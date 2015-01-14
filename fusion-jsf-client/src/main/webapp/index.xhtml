@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<title>Fusion Client</title>
+	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css" />
+	<h:outputStylesheet library="css" name="styles.css" />
+</h:head>
+<h:body>
+
+<div id="header" class="content"><div id="header_text">Fusion Client</div>
+	<div id="status"><p:ajaxStatus>  
+	    <f:facet name="start">  
+	        <p:graphicImage value="resources/images/ajax-loader.gif" />  
+	    </f:facet>						      
+	    <f:facet name="complete">  
+	        <h:outputText value="" />  
+	    </f:facet>
+	</p:ajaxStatus></div>
+</div>
+	
+<div id="mainframe">
+	<h:form id="form">
+	<p:growl id="message" showDetail="true" />	
+	
+	<div class="content section">Reference Data</div>	         		
+   	<h:panelGrid columns="3" styleClass="content alignTop">
+      	<h:panelGrid columns="4" styleClass="alignMiddle">
+	        
+	        <p:selectOneButton id="r_service" value="wfs">
+			    <f:selectItem itemLabel="WFS" itemValue="wfs" />
+			</p:selectOneButton>
+	        <h:outputText for="r_service" value="Base URL: " />
+			<h:inputText id="r_base" value="#{referenceWFS.baseURL}" styleClass="inputText"/>
+			<p:commandButton title="retrieve capabilities from server" action="#{referenceWFS.initCapabilities}" update="r_typename r_srsname :form:message r_getFeatures" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
+			
+			<h:outputText />
+	        <h:outputLabel for="r_version" value="Version: " />
+			<p:selectOneButton id="r_version" value="#{referenceWFS.version}">
+			    <f:selectItems value="#{referenceWFS.supportedVersions}" />
+				<p:ajax update="r_getFeatures" />
+			</p:selectOneButton>
+			<h:outputText />
+			
+			<h:outputText />
+			<h:outputLabel for="r_typename" value="Layer: " />
+			<p:selectOneMenu id="r_typename" value="#{referenceWFS.typename}" style="width:300px">
+				<f:selectItem itemLabel="select typeName" itemValue="#{referenceWFS.typename}" />
+			    <f:selectItems value="#{referenceWFS.supportedTypenames}" />
+				<p:ajax update="r_getFeatures r_srsname" />
+			</p:selectOneMenu>
+			<h:outputText />
+			
+			<h:outputText />
+			<h:outputLabel for="r_srsname" value="SRS Name: " />
+			<p:selectOneMenu id="r_srsname" value="#{referenceWFS.SRSName}" style="width:300px" disabled="#{referenceWFS.forceWGS84}">
+				<f:selectItem itemLabel="select srsName" itemValue="#{referenceWFS.SRSName}" />
+			    <f:selectItems value="#{referenceWFS.supportedSRS}" />
+				<p:ajax update="r_getFeatures" />
+			</p:selectOneMenu>
+			<p:commandButton id="r_getFeatures" disabled="#{referenceWFS.wfsBaseInvalid}" title="#{referenceWFS.getFeatureRequest}" onclick="f_initMapResource_r('#{referenceWFS.getFeatureRequest}','#{referenceWFS.olSRSName}',#{referenceWFS.olCenter},#{referenceWFS.olExtent})" icon="ui-icon-check" style="width:27px;height:27px;" />
+			
+			<h:outputText />
+			<h:outputLabel for="r_forceWGS84" value="force WGS84: " />
+			<p:inputSwitch id="r_forceWGS84" value="#{referenceWFS.forceWGS84}">
+				<p:ajax update="r_getFeatures r_srsname" />
+			</p:inputSwitch>
+			<h:outputText />
+			
+		</h:panelGrid>
+		
+		<h:panelGroup layout="block">
+			<div id="map_r" class="map" />
+		</h:panelGroup>
+		
+		<h:panelGroup layout="block">
+			<div id="map_r_info" class="info info_alignLeft" />
+			<div id="map_r_coord" class="coord" />			
+		</h:panelGroup>
+		
+	</h:panelGrid>
+            
+	<div class="content section">Target Data</div>
+	<h:panelGrid columns="3" styleClass="content alignTop">
+      	<h:panelGrid columns="4" styleClass="alignMiddle">
+	        
+	        <p:selectOneButton id="t_service" value="wfs">
+			    <f:selectItem itemLabel="WFS" itemValue="wfs" />
+			</p:selectOneButton>
+	        <h:outputText for="t_service" value="Base URL: " />
+			<h:inputText id="t_base" value="#{targetWFS.baseURL}" styleClass="inputText"/>
+			<p:commandButton title="retrieve capabilities from server" action="#{targetWFS.initCapabilities}" update="t_typename t_srsname :form:message t_getFeatures" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
+			
+			<h:outputText />
+	        <h:outputLabel for="t_version" value="Version: " />
+			<p:selectOneButton id="t_version" value="#{targetWFS.version}">
+			    <f:selectItems value="#{targetWFS.supportedVersions}" />
+				<p:ajax update="t_getFeatures" />
+			</p:selectOneButton>
+			<h:outputText />
+			
+			<h:outputText />
+			<h:outputLabel for="t_typename" value="Layer: " />
+			<p:selectOneMenu id="t_typename" value="#{targetWFS.typename}" style="width:300px">
+				<f:selectItem itemLabel="select typeName" itemValue="#{targetWFS.typename}" />
+			    <f:selectItems value="#{targetWFS.supportedTypenames}" />
+				<p:ajax update="t_getFeatures t_srsname" />
+			</p:selectOneMenu>
+			<h:outputText />
+			
+			<h:outputText />
+			<h:outputLabel for="t_srsname" value="SRS Name: " />
+			<p:selectOneMenu id="t_srsname" value="#{targetWFS.SRSName}" style="width:300px" disabled="#{targetWFS.forceWGS84}">
+				<f:selectItem itemLabel="select srsName" itemValue="#{targetWFS.SRSName}" />
+			    <f:selectItems value="#{targetWFS.supportedSRS}" />
+				<p:ajax update="t_getFeatures" />
+			</p:selectOneMenu>
+			<p:commandButton id="t_getFeatures" disabled="#{targetWFS.wfsBaseInvalid}" title="#{targetWFS.getFeatureRequest}" onclick="f_initMapResource_t('#{targetWFS.getFeatureRequest}','#{targetWFS.olSRSName}',#{targetWFS.olCenter},#{targetWFS.olExtent})" icon="ui-icon-check" style="width:27px;height:27px;" />
+			
+			<h:outputText />
+			<h:outputLabel for="t_forceWGS84" value="force WGS84: " />
+			<p:inputSwitch id="t_forceWGS84" value="#{targetWFS.forceWGS84}">
+				<p:ajax update="t_getFeatures t_srsname" />
+			</p:inputSwitch>
+			<h:outputText />
+			
+		</h:panelGrid>
+		
+		<h:panelGroup layout="block">
+			<div id="map_t" class="map" />
+		</h:panelGroup>
+		
+		<h:panelGroup layout="block">			
+			<div id="map_t_info" class="info info_alignLeft" />
+			<div id="map_t_coord" class="coord" />
+		</h:panelGroup>
+		
+	</h:panelGrid>
+	
+	<div class="content section">Stats</div>  
+	
+	<p:outputPanel rendered="true" styleClass="content">
+		<div id="stats_rt" />
+	</p:outputPanel>
+	
+	<div class="content section">Dataset Fusion</div>
+	
+	<h:panelGrid columns="2" styleClass="content alignTop">
+		<h:outputLabel for="f_useFusionResult" value="Use fusion results for data comparison: " />
+		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />		
+	</h:panelGrid>
+    
+       <!-- <p:tab title="Fusion Process">
+        
+        	<h:panelGrid columns="3" styleClass="alignTop">
+
+				<p:selectOneButton id="p_service" value="wps">
+				    <f:selectItem itemLabel="WPS" itemValue="wps" />
+				</p:selectOneButton>
+		        <h:outputText for="p_service" value="Base URL: " />
+		        <h:panelGroup layout="block">
+					<h:inputText id="p_base" value="#{wps.baseURL}" style="width:500px;" />
+					<p:commandButton title="retrieve capabilities from server" action="#{wps.initCapabilities}" update=":form:message p_processes" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
+				</h:panelGroup>
+				
+				<h:outputText />
+				<h:outputLabel for="p_processes" value="WPS Processes: " />
+	       		<p:selectManyButton id="p_processes" value="#{wps.selectedProcesses}" onchange="f_addProcess(new process('newProcess'))">
+		            <f:selectItems value="#{wps.supportedProcesses.entrySet()}" var="entry" itemValue="#{entry.value}" itemLabel="#{entry.key}" itemDescription="#{entry.value}" />
+        		</p:selectManyButton>
+       			
+       		</h:panelGrid> 
+       		
+       		<div id="plumb_processes" class="plumb_processes">
+       			<div id="process1" class="plumb_process">init</div>
+       		</div>
+   
+		
+        </p:tab> -->
+        
+	<div class="content section">Compare Datasets</div>
+	
+	<h:panelGrid columns="4" styleClass="content alignTop">
+		
+		<h:panelGroup layout="block">
+			<div id="map_cr" class="map" />
+		</h:panelGroup>
+		
+		<h:panelGroup layout="block">
+			<div id="map_ct" class="map" />
+		</h:panelGroup>
+		
+		<h:panelGroup layout="block">
+			<div id="map_cr_info" class="info info_alignLeft" />
+			<div id="map_cr_coord" class="coord info_alignLeft" />
+		</h:panelGroup>
+		
+		<h:panelGroup layout="block">
+			<div id="map_ct_info" class="info info_alignLeft" />
+			<div id="map_ct_coord" class="coord info_alignLeft" />			
+		</h:panelGroup>
+		
+	</h:panelGrid>	     
+      
+	</h:form>
+</div>
+    
+<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js" type="text/javascript"></script>
+<script src="http://epsg.io/31469.js" type="text/javascript"></script>
+<h:outputScript library="js" name="ol-resource.js" />
+<h:outputScript library="js" name="ol-common.js" />
+<h:outputScript library="js" name="ol-stats.js" />
+<h:outputScript library="js" name="ol-main.js" />
+<h:outputScript library="js" name="common.js" />
+<h:outputScript library="js" name="ld-relations.js" />
+<!-- <h:outputScript library="js/extern" name="dom.jsPlumb-1.7.2.js" />
+<h:outputScript library="js" name="plumb-main.js" /> -->
+	
+</h:body>
+</html>

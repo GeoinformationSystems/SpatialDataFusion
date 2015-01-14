@@ -1,0 +1,44 @@
+//change visibility of all elements identified by class name
+function f_changeVisibility(className){
+	elements = document.getElementsByClassName(className);
+	if(elements && elements.length > 0){
+		for(var i in elements){
+			var element = elements[i];
+			if(element.style){
+				if(element.style.display == "inline")	element.style.display = "none"; 
+				else element.style.display = "inline";
+			}
+		}
+	}
+}
+
+//get element text by id
+function f_getText(elementId) {
+	return document.getElementById(elementId).innerHTML;
+}
+
+//set element text by id
+function f_setText(elementId, text) {
+	document.getElementById(elementId).innerHTML = text;
+}
+
+//clear element text by id
+function f_clearText(elementId) {
+	document.getElementById(elementId).innerHTML = '&nbsp;';
+}
+
+function f_getSimpleId(id){
+	if(id.indexOf('#') !== -1)
+		return id.split('#')[1];
+	else if(id.indexOf('/') !== -1)
+		return id.split('/')[id.split('/').length - 1];
+	else
+		return id;
+}
+
+function f_getSimpleMeasurementValue(value){
+	if(value.indexOf('.') > -1 && !isNaN(parseFloat(value)))
+		return parseFloat(value).toFixed(6);
+	else
+		return value;
+}

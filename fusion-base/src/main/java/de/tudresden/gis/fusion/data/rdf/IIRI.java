@@ -1,0 +1,13 @@
+package de.tudresden.gis.fusion.data.rdf;
+
+import java.net.URI;
+
+public interface IIRI {
+
+	public URI asURI();
+	
+	public String asString();
+	
+	public boolean equals(IIRI iri);
+	
+}
