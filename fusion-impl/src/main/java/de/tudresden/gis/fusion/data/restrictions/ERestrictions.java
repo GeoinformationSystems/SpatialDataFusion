@@ -1,10 +1,8 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
-import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
@@ -26,9 +24,7 @@ public enum ERestrictions {
 	BINDING_DECIMAL(new JavaBindingRestriction(DecimalLiteral.class)),
 	BINDING_BOOLEAN(new JavaBindingRestriction(BooleanLiteral.class)),
 	BINDING_STRING(new JavaBindingRestriction(StringLiteral.class)),
-	BINDING_IFEATURE(new JavaBindingRestriction(IFeature.class)),
 	BINDING_IFEATUReCOLLECTION(new JavaBindingRestriction(IFeatureCollection.class)),
-	BINDING_GTFEATUReCOLLECTION(new JavaBindingRestriction(GTFeatureCollection.class)),
 	BINDING_IFEATUReRELATIOnCOLLECTION(new JavaBindingRestriction(IFeatureRelationCollection.class)),
 	
 	//mandatory restriction

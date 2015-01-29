@@ -11,6 +11,10 @@ public class Resource implements IDataResource {
 	public Resource(IIRI iri){
 		this.iri = iri;
 	}
+	
+	public Resource(){
+		this(null);
+	}
 
 	@Override
 	public boolean isBlank() {

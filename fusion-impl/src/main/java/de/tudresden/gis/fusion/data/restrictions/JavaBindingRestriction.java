@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
@@ -36,7 +37,7 @@ public class JavaBindingRestriction implements IDataRestriction {
 	}
 
 	@Override
-	public Map<IIdentifiableResource, INode> getObjectSet() {
+	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-import java.net.URI;
-
 public enum ERDFNamespaces {
 
 	//RDF literal types
@@ -15,15 +13,22 @@ public enum ERDFNamespaces {
 	INSTANCE_OF("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
 	HAS_VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value");
 	
-	private String sUri;
-	private ERDFNamespaces(String sURI){
-		this.sUri = sURI;
+	private IIdentifiableResource resource;
+	
+	private ERDFNamespaces(String identifier){
+		this.resource = new IdentifiableResource(identifier);
 	}
-	public URI asURI(){
-		return URI.create(asString());
+	
+	public IIdentifiableResource resource(){
+		return resource;
 	}
-	public String asString(){
-		return sUri;
+	
+	public static IIdentifiableResource resource4Identifier(IIRI identifier){
+		for(ERDFNamespaces namespace : ERDFNamespaces.values()){
+			if(namespace.resource().getIdentifier().equals(identifier))
+				return namespace.resource();
+		}
+		return null;
 	}
 	
 }

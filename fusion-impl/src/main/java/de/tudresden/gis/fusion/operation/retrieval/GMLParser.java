@@ -21,7 +21,7 @@ import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
 public class GMLParser extends AbstractOperation implements IDataRetrieval {
 
-	public static final String IN_GML_URL = "IN_GML_URL";
+	public static final String IN_GML_RESOURCE = "IN_GML_RESOURCE";
 	private final String IN_WITH_INDEX = "IN_WITH_INDEX";
 	public static final String OUT_FEATURES = "OUT_FEATURES";
 	
@@ -31,7 +31,7 @@ public class GMLParser extends AbstractOperation implements IDataRetrieval {
 	public void execute() throws ProcessException {
 		
 		//get input url
-		IDataResource gmlResource = (IDataResource) getInput(IN_GML_URL);
+		IDataResource gmlResource = (IDataResource) getInput(IN_GML_RESOURCE);
 		BooleanLiteral inWithIndex = (BooleanLiteral) getInput(IN_WITH_INDEX);
 		IIRI identifier = gmlResource.getIdentifier();
 		

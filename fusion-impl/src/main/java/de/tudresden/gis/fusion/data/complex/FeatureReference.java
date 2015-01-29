@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.data.complex;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.feature.IFeatureProperty;
@@ -57,7 +58,7 @@ public class FeatureReference implements IIdentifiableResource,IFeature {
 	}
 	
 	@Override
-	public Map<IIdentifiableResource, INode> getObjectSet() {
+	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
 		// TODO Auto-generated method stub
 		return null;
 	}

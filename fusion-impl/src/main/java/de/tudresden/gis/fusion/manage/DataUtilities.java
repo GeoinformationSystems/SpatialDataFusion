@@ -1,10 +1,21 @@
 package de.tudresden.gis.fusion.manage;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.opengis.geometry.BoundingBox;
+
+import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
+import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public class DataUtilities {
 
@@ -88,6 +99,26 @@ public class DataUtilities {
 	}
 	
 	/**
+	 * resolve URI identifier
+	 * @param identifier input identifier
+	 * @param prefixes RDF prefixes
+	 * @return resolved identifier
+	 * @throws IOException
+	 */
+	public static URI resolveIdentifier(String identifier, Map<String,URI> prefixes) throws IOException {
+		if(identifier == null)
+			return null;
+		if(identifier.contains("<"))
+			return URI.create(identifier.replace("<","").replace(">",""));
+		String[] parts = identifier.split(":");
+		if(parts.length != 2)
+			throw new IOException("invalid IRI in " + identifier);
+		if(!prefixes.containsKey(parts[0]))
+			throw new IOException("no prefix defined for " + identifier);
+		return URI.create(prefixes.get(parts[0]) + parts[1]);
+	}
+	
+	/**
 	 * disassembles a JSON array to String[]
 	 * @param jArray JSON array
 	 * @return array of Strings
@@ -98,6 +129,42 @@ public class DataUtilities {
 		String sArray = jArray.substring(jArray.indexOf("[")+1, jArray.indexOf("]"));
 		sArray = sArray.replace("\"", "").replace("'", "");
 		return sArray.split(",");
+	}
+	
+	/**
+	 * create node set out of node
+	 * @param node input not
+	 * @return node set
+	 */
+	public static Set<INode> toSet(INode node){
+		Set<INode> set = new HashSet<INode>();
+		set.add(node);
+		return set;
+	}
+	
+	/**
+	 * create node set from node collection
+	 * @param collection node collection
+	 * @return node set
+	 */
+	public static HashSet<INode> collectionToSet(Collection<? extends INode> collection){
+		if(collection == null)
+			return null;
+		return new HashSet<INode>(collection);
+	}
+
+	/**
+	 * check if resources are provided by standard namespaces
+	 * @param identifier input identifier
+	 * @return output identifiable resource
+	 */
+	public static IIdentifiableResource resolveResource(IIRI identifier) {
+		IIdentifiableResource resource = ERDFNamespaces.resource4Identifier(identifier);
+		if(resource == null)
+			resource = EFusionNamespace.resource4Identifier(identifier);		
+		if(resource != null)
+			return resource;		
+		return new IdentifiableResource(identifier);
 	}
 	
 }

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
@@ -15,7 +16,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.manage.DataUtilities;
 
 public class FeatureRelationCollection implements IResource,IFeatureRelationCollection {
 	
@@ -64,11 +65,9 @@ public class FeatureRelationCollection implements IResource,IFeatureRelationColl
 		return getIdentifier() == null;
 	}
 	
-	public Map<IIdentifiableResource,INode> getObjectSet(){
-		Map<IIdentifiableResource,INode> objectSet = new LinkedHashMap<IIdentifiableResource,INode>();
-		for(IFeatureRelation relation : relations){
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_MEMBER.asString()), relation);
-		}
+	public Map<IIdentifiableResource,Set<INode>> getObjectSet(){
+		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
+		objectSet.put(EFusionNamespace.HAS_MEMBER.resource(), DataUtilities.collectionToSet(relations));
 		return objectSet;
 	}
 	

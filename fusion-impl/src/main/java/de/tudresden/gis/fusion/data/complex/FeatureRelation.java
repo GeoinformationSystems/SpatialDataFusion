@@ -1,14 +1,18 @@
 package de.tudresden.gis.fusion.data.complex;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureRelation;
+import de.tudresden.gis.fusion.data.IMeasurementValue;
 import de.tudresden.gis.fusion.data.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.IRelationType;
+import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.metadata.IRelationDescription;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
@@ -17,7 +21,9 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.simple.RelationType;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 
 public class FeatureRelation implements IResource,IFeatureRelation,IRDFTripleSet {
 	
@@ -49,14 +55,93 @@ public class FeatureRelation implements IResource,IFeatureRelation,IRDFTripleSet
 		this.addRelationMeasurement(relationMeasurement);
 	}
 	
-	public Map<IIdentifiableResource,INode> getObjectSet(){
-		Map<IIdentifiableResource,INode> objectSet = new LinkedHashMap<IIdentifiableResource,INode>();
-		objectSet.put(new IdentifiableResource(ERDFNamespaces.INSTANCE_OF.asString()), new IdentifiableResource(EFusionNamespace.RDF_TYPE_FEATURE_RELATION.asString()));
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_REFERENCE.asString()), this.getReference());
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_TARGET.asString()), this.getTarget());
-		for(IRelationMeasurement measurement : relationMeasurements){
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_RELATION_MEASUREMENT.asString()), measurement);
+	public FeatureRelation(IRDFTripleSet decodedRDFResource) throws IOException {
+		
+		//check if subject is set
+		if(!decodedRDFResource.getSubject().isBlank())
+			this.iri = decodedRDFResource.getSubject().getIdentifier();
+		
+		//get object set
+		Map<IIdentifiableResource,Set<INode>> objectSet = decodedRDFResource.getObjectSet();
+		
+		//set reference (mandatory)
+		Set<INode> referenceSet = objectSet.get(EFusionNamespace.HAS_REFERENCE.resource());
+		if(referenceSet == null || referenceSet.size() != 1)
+			throw new IOException("Missing or multiple reference resource for feature relation.");
+		INode referenceNode = referenceSet.iterator().next();
+		if(!(referenceNode instanceof IResource))
+			throw new IOException("Invalid reference resource for feature relation.");
+		this.reference = new FeatureReference(((IResource) referenceNode).getIdentifier());
+		
+		//set target (mandatory)
+		Set<INode> targetSet = objectSet.get(EFusionNamespace.HAS_TARGET.resource());
+		if(targetSet == null || targetSet.size() != 1)
+			throw new IOException("Missing or multiple target resource for feature relation.");
+		INode targetNode = targetSet.iterator().next();
+		if(!(targetNode instanceof IResource))
+			throw new IOException("Invalid target resource for feature relation.");
+		this.target = new FeatureReference(((IResource) targetNode).getIdentifier());
+		
+		//set relation measurements (optional)
+		Set<INode> measurementSet = objectSet.get(EFusionNamespace.HAS_RELATION_MEASUREMENT.resource());
+		if(measurementSet == null)
+			return;
+		for(INode node : measurementSet){
+			IRelationMeasurement measurement = getMeasurement(node);
+			if(measurement != null)
+				this.addRelationMeasurement(measurement);
 		}
+	}
+	
+	private IRelationMeasurement getMeasurement(INode node){
+		
+		if(!(node instanceof IRDFTripleSet))
+			return null;
+		
+		//check if subject is set
+		IIRI iri = null;
+		if(!((IRDFTripleSet) node).getSubject().isBlank())
+			iri = ((IRDFTripleSet) node).getSubject().getIdentifier();
+		
+		//get object set		
+		Map<IIdentifiableResource,Set<INode>> objectSet = ((IRDFTripleSet) node).getObjectSet();
+		Set<INode> typeSet = objectSet.get(EFusionNamespace.HAS_RELATION_TYPE.resource());
+		Set<INode> valueSet = objectSet.get(ERDFNamespaces.HAS_VALUE.resource());
+		if(typeSet == null || typeSet.size() != 1 || valueSet == null || valueSet.size() != 1)
+			return null;
+		
+		IMeasurementDescription description = getMeasurementDescription(typeSet.iterator().next());
+		IMeasurementValue<?> value = getMeasurementValue(valueSet.iterator().next());
+		
+		if(description == null || value == null)
+			return null;
+		
+		IIRI type = (IIRI) objectSet.get(ERDFNamespaces.INSTANCE_OF.resource()).iterator().next().getIdentifier();
+		
+		if(type.equals(EFusionNamespace.RDF_TYPE_SIMILARITY_MEASUREMENT.resource().getIdentifier()))
+			return new SimilarityMeasurement(iri, value, description);
+		else if(type.equals(EFusionNamespace.RDF_TYPE_RELATION_MEASUREMENT.resource().getIdentifier()))
+			return new RelationMeasurement(iri, value, description);
+		
+		return null;
+	}
+	
+	private IMeasurementDescription getMeasurementDescription(INode node){
+		//TODO implement full description
+		IRelationType relationType = new RelationType(((IResource) node).getIdentifier());
+		return new MeasurementDescription(null, null, relationType, null);
+	}
+	
+	private IMeasurementValue<?> getMeasurementValue(INode node){
+		return (IMeasurementValue<?>) node;
+	}
+
+	public Map<IIdentifiableResource,Set<INode>> getObjectSet(){
+		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
+		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(EFusionNamespace.RDF_TYPE_FEATURE_RELATION.resource()));
+		objectSet.put(EFusionNamespace.HAS_REFERENCE.resource(), DataUtilities.toSet(this.getReference()));
+		objectSet.put(EFusionNamespace.HAS_TARGET.resource(), DataUtilities.toSet(this.getTarget()));
+		objectSet.put(EFusionNamespace.HAS_RELATION_MEASUREMENT.resource(), DataUtilities.collectionToSet(relationMeasurements));
 		//TODO add metadata
 //		objectSet.put(EnumPredicates.HAS_METADATA.getResource(), description);
 		return objectSet;
@@ -79,8 +164,7 @@ public class FeatureRelation implements IResource,IFeatureRelation,IRDFTripleSet
 	public void addRelationMeasurement(IRelationMeasurement measurement) {
 		if(relationMeasurements == null)
 			relationMeasurements = new ArrayList<IRelationMeasurement>();
-		else
-			relationMeasurements.add(measurement);
+		relationMeasurements.add(measurement);
 	}
 
 	@Override

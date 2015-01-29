@@ -22,7 +22,7 @@ public class GMLTest {
 	@Test
 	public void readGMLFile() throws ProcessException, MalformedURLException, URISyntaxException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_GML_URL", new Resource(new IRI(new URL("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs").toURI())));
+		input.put("IN_GML_RESOURCE", new Resource(new IRI(new URL("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs").toURI())));
 		
 		GMLParser parser = new GMLParser();
 		Map<String,IData> output = parser.execute(input);

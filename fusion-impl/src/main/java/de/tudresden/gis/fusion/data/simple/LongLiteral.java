@@ -6,7 +6,6 @@ import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public class LongLiteral implements ISimpleData,ITypedLiteral,IMeasurementValue<Long> {
 
@@ -18,7 +17,7 @@ public class LongLiteral implements ISimpleData,ITypedLiteral,IMeasurementValue<
 
 	@Override
 	public IIdentifiableResource getType() {
-		return new IdentifiableResource(ERDFNamespaces.LITERAL_TYPE_LONG.asString());
+		return ERDFNamespaces.LITERAL_TYPE_LONG.resource();
 	}
 
 	@Override

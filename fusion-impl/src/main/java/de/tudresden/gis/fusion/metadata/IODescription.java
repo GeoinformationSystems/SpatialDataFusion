@@ -3,6 +3,7 @@ package de.tudresden.gis.fusion.metadata;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IComplexData;
 import de.tudresden.gis.fusion.data.IData;
@@ -13,6 +14,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
@@ -44,19 +46,17 @@ public class IODescription extends DataDescription implements IIODescription {
 		this(iri, description, null, restrictions);
 	}
 
-	public Map<IIdentifiableResource,INode> getObjectSet() {
-		Map<IIdentifiableResource,INode> objectSet = super.getObjectSet();
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_IDENTIFIER.asString()), new IdentifiableResource(this.getIdentifier()));
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_DESCRIPTION.asString()), new StringLiteral(this.getAbstract()));
-		for(IDataRestriction restriction : restrictions){
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_RESTRICTION.asString()), restriction);
-		}
+	public Map<IIdentifiableResource,Set<INode>> getObjectSet() {
+		Map<IIdentifiableResource,Set<INode>> objectSet = super.getObjectSet();
+		objectSet.put(EFusionNamespace.HAS_IDENTIFIER.resource(), DataUtilities.toSet(new IdentifiableResource(this.getIdentifier())));
+		objectSet.put(EFusionNamespace.HAS_DESCRIPTION.resource(), DataUtilities.toSet(new StringLiteral(this.getAbstract())));
+		objectSet.put(EFusionNamespace.HAS_RESTRICTION.resource(), DataUtilities.collectionToSet(restrictions));
 		if(getDefault() instanceof ISimpleData)
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_DEFAULT.asString()), (ISimpleData) getDefault());
+			objectSet.put(EFusionNamespace.HAS_DEFAULT.resource(), DataUtilities.toSet((ISimpleData) getDefault()));
 		else if(getDefault() instanceof IComplexData)
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_DEFAULT.asString()), (IComplexData) getDefault());
+			objectSet.put(EFusionNamespace.HAS_DEFAULT.resource(), DataUtilities.toSet((IComplexData) getDefault()));
 		else
-			objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_DEFAULT.asString()), new StringLiteral(getDefault().getDescription().getAbstract()));
+			objectSet.put(EFusionNamespace.HAS_DEFAULT.resource(), DataUtilities.toSet(new StringLiteral(getDefault().getDescription().getAbstract())));
 		return objectSet;
 	}
 

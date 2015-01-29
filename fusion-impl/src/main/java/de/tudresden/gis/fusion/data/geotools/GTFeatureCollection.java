@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -119,7 +120,7 @@ public class GTFeatureCollection implements IIdentifiableResource,IFeatureCollec
 	}
 
 	@Override
-	public Map<IIdentifiableResource, INode> getObjectSet() {
+	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
 		// TODO Auto-generated method stub
 		return null;
 	}

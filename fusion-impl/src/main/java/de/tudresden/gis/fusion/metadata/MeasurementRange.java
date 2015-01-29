@@ -3,6 +3,7 @@ package de.tudresden.gis.fusion.metadata;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IMeasurementValue;
 import de.tudresden.gis.fusion.data.metadata.IMeasurementRange;
@@ -12,9 +13,9 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
+import de.tudresden.gis.fusion.manage.DataUtilities;
 
 public class MeasurementRange<T> implements IMeasurementRange<T>,IRDFTripleSet {
 	
@@ -70,12 +71,12 @@ public class MeasurementRange<T> implements IMeasurementRange<T>,IRDFTripleSet {
 	}
 
 	@Override
-	public Map<IIdentifiableResource,INode> getObjectSet() {
-		Map<IIdentifiableResource,INode> objectSet = new LinkedHashMap<IIdentifiableResource,INode>();
-		objectSet.put(new IdentifiableResource(ERDFNamespaces.INSTANCE_OF.asString()), new IdentifiableResource(EFusionNamespace.RDF_TYPE_MEASUREMENT_RANGE.asString()));
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_MIN.asString()), getMin());
-		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_MAX.asString()), getMax());
-		objectSet.put(new IdentifiableResource(EFusionNamespace.IS_CONTINUOUS.asString()), new BooleanLiteral(isContinuous()));
+	public Map<IIdentifiableResource,Set<INode>> getObjectSet() {
+		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
+		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(EFusionNamespace.RDF_TYPE_MEASUREMENT_RANGE.resource()));
+		objectSet.put(EFusionNamespace.HAS_MIN.resource(), DataUtilities.toSet(getMin()));
+		objectSet.put(EFusionNamespace.HAS_MAX.resource(), DataUtilities.toSet(getMax()));
+		objectSet.put(EFusionNamespace.IS_CONTINUOUS.resource(), DataUtilities.toSet(new BooleanLiteral(isContinuous())));
 		return objectSet;
 	}
 

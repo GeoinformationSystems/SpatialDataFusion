@@ -7,7 +7,6 @@ import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IPlainLiteral;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public class StringLiteral implements ISimpleData,IPlainLiteral,ITypedLiteral,IMeasurementValue<String> {
 
@@ -25,7 +24,7 @@ public class StringLiteral implements ISimpleData,IPlainLiteral,ITypedLiteral,IM
 
 	@Override
 	public IIdentifiableResource getType() {
-		return new IdentifiableResource(ERDFNamespaces.LITERAL_TYPE_STRING.asString());
+		return ERDFNamespaces.LITERAL_TYPE_STRING.resource();
 	}
 
 	@Override

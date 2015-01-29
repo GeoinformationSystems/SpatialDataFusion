@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.simple;
 
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IRelationType;
 import de.tudresden.gis.fusion.data.metadata.IDataDescription;
@@ -34,7 +35,7 @@ public class RelationType extends IdentifiableResource implements IRelationType 
 	}
 
 	@Override
-	public Map<IIdentifiableResource, INode> getObjectSet() {
+	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -6,7 +6,6 @@ import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public class DecimalLiteral implements ISimpleData,ITypedLiteral,IMeasurementValue<Double> {
 
@@ -18,7 +17,7 @@ public class DecimalLiteral implements ISimpleData,ITypedLiteral,IMeasurementVal
 
 	@Override
 	public IIdentifiableResource getType() {
-		return new IdentifiableResource(ERDFNamespaces.LITERAL_TYPE_DECIMAL.asString());
+		return ERDFNamespaces.LITERAL_TYPE_DECIMAL.resource();
 	}
 
 	@Override

@@ -2,13 +2,14 @@ package de.tudresden.gis.fusion.metadata;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 import de.tudresden.gis.fusion.operation.metadata.IMeasurementOperationProfile;
 
@@ -22,11 +23,9 @@ public class MeasurementOperationProfile extends OperationProfile implements IMe
 	}
 	
 	@Override
-	public Map<IIdentifiableResource,INode> getObjectSet() {
-		Map<IIdentifiableResource,INode> objectSet = super.getObjectSet();
-		for(IMeasurementDescription measurement : supportedMeasurements){
-			objectSet.put(new IdentifiableResource(EFusionNamespace.SUPPORTED_MEASUREMENT.asString()), measurement);
-		}
+	public Map<IIdentifiableResource,Set<INode>> getObjectSet() {
+		Map<IIdentifiableResource,Set<INode>> objectSet = super.getObjectSet();
+		objectSet.put(EFusionNamespace.SUPPORTED_MEASUREMENT.resource(), DataUtilities.collectionToSet(supportedMeasurements));
 		return objectSet;
 	}
 

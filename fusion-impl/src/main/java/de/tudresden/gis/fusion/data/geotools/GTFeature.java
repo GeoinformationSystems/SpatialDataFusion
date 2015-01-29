@@ -3,6 +3,7 @@ package de.tudresden.gis.fusion.data.geotools;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.Property;
@@ -89,7 +90,7 @@ public class GTFeature implements IIdentifiableResource,IFeature {
 	
 
 	@Override
-	public Map<IIdentifiableResource, INode> getObjectSet() {
+	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
 		// TODO Auto-generated method stub
 		return null;
 	}

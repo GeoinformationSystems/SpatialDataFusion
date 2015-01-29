@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-import java.net.URI;
-
 public enum EFusionNamespace {
 
 	//relation predicates
@@ -39,14 +37,21 @@ public enum EFusionNamespace {
 	RDF_TYPE_MEASUREMENT_RANGE("measurementRange");
 	
 	private final String BASE = "http://tu-dresden.de/uw/geo/gis/fusion#";
-	private String sUri;
-	private EFusionNamespace(String sUri){
-		this.sUri = sUri;
+	private IIdentifiableResource resource;
+	
+	private EFusionNamespace(String identifier){
+		this.resource = new IdentifiableResource(BASE + identifier);
 	}
-	public URI asURI(){
-		return URI.create(asString());
+	
+	public IIdentifiableResource resource(){
+		return resource;
 	}
-	public String asString(){
-		return (BASE + sUri);
+	
+	public static IIdentifiableResource resource4Identifier(IIRI identifier){
+		for(EFusionNamespace namespace : EFusionNamespace.values()){
+			if(namespace.resource().getIdentifier().equals(identifier))
+				return namespace.resource();
+		}
+		return null;
 	}
 }
