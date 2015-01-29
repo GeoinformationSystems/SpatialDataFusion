@@ -18,13 +18,20 @@ function f_getText(elementId) {
 }
 
 //set element text by id
-function f_setText(elementId, text) {
-	document.getElementById(elementId).innerHTML = text;
+function f_setText(elementId, text, resize) {
+	element = document.getElementById(elementId);
+	element.innerHTML = text;
+	if(resize)
+		element.style = 'width:' + (parseInt(element.offsetWidth) + 20) + 'px;';
+	console.log(element.offsetWidth);
 }
 
 //clear element text by id
-function f_clearText(elementId) {
-	document.getElementById(elementId).innerHTML = '&nbsp;';
+function f_clearText(elementId, resize) {
+	element = document.getElementById(elementId);
+	element.innerHTML = '&nbsp;';
+	if(resize)
+		element.style = '';
 }
 
 function f_getSimpleId(id){

@@ -22,6 +22,7 @@ function olResource(fRequest, crs, extent, style){
 	
 	//init feature source (requires JSON format from server resource)
 	this.source = f_createGeoJSONSourceFromServer(this.fRequest, this.crs);
+//	this.source = f_createGMLSourceFromServer(this.fRequest, this.crs);	
 	
 	//init layer
 	if(typeof this.source === 'undefined') return;
@@ -88,7 +89,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		this.map.addInteraction(interaction);
 	};
 	
-	//function: add select interaction with even
+	//function: add select interaction with event
 	var selectListenerKey = null;
 	this.addSelectInteraction = function(olMapObject){
 		olMapObject.selection = f_getSelectInteraction();
@@ -175,7 +176,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
  
 	//function: clear map
 	this.clear = function(){
-		f_clearText(this.div_info);
+		f_clearText(this.div_info, true);
 		this.map.unbindAll();
 		this.map.setTarget(null);
 		this.map.setView(null);
@@ -185,7 +186,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 	//function: update feature info field
 	this.updateFeatureInfo = function(featureArray){
 		//clear info
-		f_clearText(this.div_info);
+		f_clearText(this.div_info, true);
 		if(typeof featureArray === 'undefined') return;
 		//add info for each feature
 		var html = '<div class="infoProperties">';
@@ -193,7 +194,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 			html += this.getHTMLFeatureInfo(featureArray[feature]);
 		}
 		html += '</div>';
-		f_setText(this.div_info, html);
+		f_setText(this.div_info, html, true);
 	};
 	
 	//function: get feature info as html
@@ -219,7 +220,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 					(this.getHTMLAttValue(feature, property) + this.getHTMLAttProperty(property)) :
 					(this.getHTMLAttProperty(property) + this.getHTMLAttValue(feature, property))) + '<br />';
 		}
-		html += '</div>';
+		html += '<span style="width:100%;"></div>';
 		//return
 		return html;
 	};

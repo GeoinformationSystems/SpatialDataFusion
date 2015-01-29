@@ -2,7 +2,7 @@
 var defaultZoom = 15;
 var styleDefault = new ol.style.Style({
 	stroke: new ol.style.Stroke({color: '#002535', width: 1}), 
-	fill: new ol.style.Fill({color: '#002535'}),
+	fill: new ol.style.Fill({color: '#afe7ff'}),
 	image: new ol.style.Circle({radius: 3, fill: new ol.style.Fill({color: '#002535'})})
 });
 var styleHighlight = new ol.style.Style({
@@ -22,6 +22,7 @@ var styleBBox = new ol.style.Style({
 //create a GeoJSON source from server resource
 function f_createGeoJSONSourceFromServer(url, crs){	
 	var source = null;
+	url = url + "&outputformat=application/json";
 	source = new ol.source.ServerVector({
 		format: new ol.format.GeoJSON(),
 		loader: function(extent, resolution, projection) {
@@ -31,6 +32,22 @@ function f_createGeoJSONSourceFromServer(url, crs){
 		},
 		defaultProjection: crs,
 	});
+	return source;
+}
+
+//create a GML source from server resource
+function f_createGMLSourceFromServer(url, crs){	
+	var source = null;
+	source = new ol.source.ServerVector({
+		format: new ol.format.WFS(),
+		loader: function(extent, resolution, projection) {
+			$.ajax(encodeURI(url)).done(function(response) {
+				source.addFeatures(source.readFeatures(response));
+			});
+		},
+		defaultProjection: crs,
+	});
+	console.log(source);
 	return source;
 }
 

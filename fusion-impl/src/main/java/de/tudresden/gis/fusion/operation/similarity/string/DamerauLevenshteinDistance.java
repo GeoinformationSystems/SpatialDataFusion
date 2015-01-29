@@ -178,7 +178,7 @@ public class DamerauLevenshteinDistance extends AbstractMeasurementOperation {
 
 	@Override
 	protected String getProcessDescription() {
-		return "Calculates Damerau Levenshtein Distance between feature attributes";
+		return "Calculates Damerau-Levenshtein Distance between feature attributes";
 	}
 
 	@Override

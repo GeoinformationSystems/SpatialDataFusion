@@ -24,6 +24,7 @@ import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.metadata.IODescription;
@@ -40,6 +41,7 @@ public class AngleDifference extends AbstractMeasurementOperation {
 	private final String IN_TARGET = "IN_TARGET";
 	private final String IN_THRESHOLD = "IN_THRESHOLD";
 	private final String IN_RELATIONS = "IN_RELATIONS";
+	private final String IN_HARDCRITERION = "IN_HARDCRITERION";
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
@@ -53,12 +55,14 @@ public class AngleDifference extends AbstractMeasurementOperation {
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
 		DecimalLiteral inThreshold = (DecimalLiteral) getInput(IN_THRESHOLD);
+		BooleanLiteral inHardCriterion = (BooleanLiteral) getInput(IN_HARDCRITERION);
 		
 		//set defaults
 		double dThreshold = inThreshold == null ? ((DecimalLiteral) this.getInputDescription(new IRI(IN_THRESHOLD)).getDefault()).getValue() : inThreshold.getValue();
+		boolean bHardCriterion = inHardCriterion == null ? ((BooleanLiteral) this.getInputDescription(new IRI(IN_HARDCRITERION)).getDefault()).getValue() : inHardCriterion.getValue();
 		
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold) :
+				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold, bHardCriterion) :
 				calculateRelation(inReference, inTarget, dThreshold));
 			
 		//return
@@ -80,8 +84,9 @@ public class AngleDifference extends AbstractMeasurementOperation {
 	    
 	}
 		
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold){
-		
+	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold, boolean bHardCriterion){
+		//init tmp relations
+		IFeatureRelationCollection tmpRelations = new GTFeatureRelationCollection();
 		//init relations
 		for(IFeatureRelation relation : relations){
 			//get features
@@ -90,10 +95,13 @@ public class AngleDifference extends AbstractMeasurementOperation {
 			if(reference == null || target == null)
 				continue;
 			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, dThreshold);
-    		if(similarity != null)
+    		if(similarity == null && bHardCriterion)
+    			continue;
+			if(similarity != null)
     			relation.addRelationMeasurement(similarity);
+			tmpRelations.addRelation(relation);
 	    }
-		return relations;
+		return tmpRelations;
 	    
 	}
 	
@@ -224,6 +232,13 @@ public class AngleDifference extends AbstractMeasurementOperation {
 					new IDataRestriction[]{
 						ERestrictions.BINDING_DECIMAL.getRestriction()
 					})
+		);
+		inputs.add(new IODescription(
+				new IRI(IN_HARDCRITERION), "flag: measurement is hard criterion for relationship",
+				new BooleanLiteral(false),
+				new IDataRestriction[]{
+					ERestrictions.BINDING_BOOLEAN.getRestriction()
+				})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",

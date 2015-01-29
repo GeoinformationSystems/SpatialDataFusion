@@ -108,7 +108,7 @@ public class RDFTurtleGeneratorTest {
 		input.put("URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
-				+ "http://www.w3.org/TR/xmlschema11-2#;xsd;"
+				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#;demo;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#;statisticalConfidence;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#;spatialRelation;"

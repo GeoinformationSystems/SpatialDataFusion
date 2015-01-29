@@ -8,8 +8,10 @@ import org.geotools.xml.Configuration;
 
 import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.operation.AbstractOperation;
 import de.tudresden.gis.fusion.operation.IDataRetrieval;
 import de.tudresden.gis.fusion.operation.ProcessException;
@@ -20,6 +22,7 @@ import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 public class GMLParser extends AbstractOperation implements IDataRetrieval {
 
 	public static final String IN_GML_URL = "IN_GML_URL";
+	private final String IN_WITH_INDEX = "IN_WITH_INDEX";
 	public static final String OUT_FEATURES = "OUT_FEATURES";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#GMLParser";
@@ -29,7 +32,10 @@ public class GMLParser extends AbstractOperation implements IDataRetrieval {
 		
 		//get input url
 		IDataResource gmlResource = (IDataResource) getInput(IN_GML_URL);
+		BooleanLiteral inWithIndex = (BooleanLiteral) getInput(IN_WITH_INDEX);
 		IIRI identifier = gmlResource.getIdentifier();
+		
+		boolean bWithIndex = inWithIndex == null ? false : inWithIndex.getValue();
 		
 		//parse feature collection		
 		Configuration configuration;
@@ -38,7 +44,11 @@ public class GMLParser extends AbstractOperation implements IDataRetrieval {
 		try {
 			gmlStream = gmlResource.getIdentifier().asURI().toURL().openStream();
 			configuration = new org.geotools.gml3.GMLConfiguration();
-			wfsFC = new GTFeatureCollection(identifier, gmlStream, configuration);
+			if(bWithIndex)
+				wfsFC = new GTIndexedFeatureCollection(identifier, gmlStream, configuration);
+	        else
+	        	wfsFC = new GTFeatureCollection(identifier, gmlStream, configuration);
+			
 		} catch (IOException e1) {
 			try {
 				gmlStream = gmlResource.getIdentifier().asURI().toURL().openStream();

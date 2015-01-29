@@ -123,6 +123,7 @@ public class FeatureRelation implements IResource,IFeatureRelation,IRDFTripleSet
 	@Override
 	public IRelationMeasurement getMeasurement(IRelationType type){
 		for(IRelationMeasurement measurement : getMeasurements()){
+			System.out.println(measurement);
 			if(measurement.getRelationType().equals(type))
 				return measurement;
 		}

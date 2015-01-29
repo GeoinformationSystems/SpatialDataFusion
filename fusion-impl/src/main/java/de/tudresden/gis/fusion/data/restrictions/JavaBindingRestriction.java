@@ -22,14 +22,12 @@ public class JavaBindingRestriction implements IDataRestriction {
 
 	@Override
 	public boolean compliantWith(IData input) {
-		boolean compliant = false;
 		for(Class<? extends IData> binding : bindings){
 			if(binding.isAssignableFrom(input.getClass())){
-				compliant = true;
-				break;
+				return true;
 			}
 		}
-		return compliant;
+		return false;
 	}
 
 	@Override
@@ -46,6 +44,19 @@ public class JavaBindingRestriction implements IDataRestriction {
 	@Override
 	public Object getIdentifier() {
 		return getSubject().getIdentifier();
+	}
+	
+	public Class<? extends IData>[] getBindings(){
+		return bindings;
+	}
+	
+	public boolean compliantWith(Class<?extends IData> input) {
+		for(Class<? extends IData> binding : bindings){
+			if(binding.isAssignableFrom(input)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }

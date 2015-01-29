@@ -58,7 +58,7 @@ public class WFSHandler extends OWSHandler {
 	public void init(){
 		this.setService(SERVICE);
 		this.setVersion(DEFAULT_VERSION);
-		this.setOutputFormat(DEFAULT_OUTPUTFORMAT);
+//		this.setOutputFormat(DEFAULT_OUTPUTFORMAT);
 	}
 	
 	/**

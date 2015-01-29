@@ -25,6 +25,7 @@ import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 
 public class GTFeatureCollection implements IIdentifiableResource,IFeatureCollection {
@@ -39,7 +40,8 @@ public class GTFeatureCollection implements IIdentifiableResource,IFeatureCollec
 		this.description = description;
 		features = new HashMap<String,IFeature>();
 		for(SimpleFeature feature : featureList){
-			features.put(feature.getID(), new GTFeature(feature));
+			IIRI featureIRI = iri == null ? new IRI(feature.getID()) : new IRI(iri.asString() + "#" + feature.getID());
+			features.put(featureIRI.asString(), new GTFeature(featureIRI, feature));
 		}
 	}
 	
@@ -61,7 +63,8 @@ public class GTFeatureCollection implements IIdentifiableResource,IFeatureCollec
 		SimpleFeature feature = null;
         try {
 	        while((feature = (SimpleFeature) gmlParser.parse()) != null) {        	
-	        	features.put(feature.getID(), new GTFeature(feature));
+	        	IIRI featureIRI = iri == null ? new IRI(feature.getID()) : new IRI(iri.asString() + "#" + feature.getID());
+				features.put(featureIRI.asString(), new GTFeature(featureIRI, feature));
 	        }
         } catch (SAXException se){
         	throw new IOException("Error in parsing GML input stream: " + se.getMessage());

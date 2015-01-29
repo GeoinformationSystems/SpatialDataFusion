@@ -1,11 +1,9 @@
-package de.tudresden.gis.fusion.operation.similarity;
+package de.tudresden.gis.fusion.operation.similarity.geometry;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.IntersectionMatrix;
-
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelation;
@@ -17,8 +15,8 @@ import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementRange;
@@ -26,7 +24,7 @@ import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class TopologyRelation extends AbstractMeasurementOperation {
+public class LengthInPolygon extends AbstractMeasurementOperation {
 
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -35,10 +33,8 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#TopologyRelation";
-
-	//DE-9IM topology relation
-	private final String TOPOLOGY_DE9IM = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#de-9im";
+	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#LengthInPolygon";
+	private final String RELATION_LENGTH_IN_POLYGON = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlay_lengthInPolygon";
 	
 	@Override
 	public void execute() {
@@ -46,7 +42,7 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-	
+		
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
 				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
 				calculateRelation(inReference, inTarget));
@@ -61,7 +57,7 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fRef : reference) {
 		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = getTopologyRelation(fRef, fTar);
+		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar);
 	    		if(similarity != null)
 	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
 		    }
@@ -79,7 +75,7 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
 			if(reference == null || target == null)
 				continue;
-			SimilarityMeasurement similarity = getTopologyRelation(fReference, fTarget);
+			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget);
     		if(similarity != null)
     			relation.addRelationMeasurement(similarity);
 	    }
@@ -87,28 +83,25 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 	    
 	}
 	
-	/**
-	 * check topoogy relation between input features
-	 * @param reference reference feature
-	 * @param target target feature
-	 * @return
-	 */
-	private SimilarityMeasurement getTopologyRelation(IFeature reference, IFeature target) {
+	
+	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
 		//get geometries
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
-		if(gReference.isEmpty() || gTarget.isEmpty())
+		if(gReference.isEmpty() || gTarget.isEmpty() || gReference.getLength() == 0 || gTarget.getArea() == 0)
 			return null;
-		//get intersection matrix
-		IntersectionMatrix matrix = gReference.relate(gTarget);
-		//add DE-9IM topology relation if geometries are not disjoint
-		if(!matrix.isDisjoint()){
-			return new SimilarityMeasurement( 
-					new StringLiteral(matrix.toString()),
-					this.getMeasurementDescription(new RelationType(new IRI(TOPOLOGY_DE9IM)))
-			);
-		}
-		else return null;
+		//get length difference
+		Geometry intersection = gReference.intersection(gTarget);
+		//get ration intersection.length / gReference.length
+		if(intersection.getLength() <= 0)
+			return null;
+		double ratio = intersection.getLength() / gReference.getLength();
+		if(ratio < 0 || ratio > 1)
+			return null;
+		return new SimilarityMeasurement(
+				new DecimalLiteral(ratio), 
+				this.getMeasurementDescription(new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)))
+		);
 	}
 	
 	@Override
@@ -123,7 +116,7 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 
 	@Override
 	protected String getProcessDescription() {
-		return "Determines topology relation between input geometries, stored as DE-9IM";
+		return "Calculates length of reference feature within target polygon (in percent of total length)";
 	}
 	
 	@Override
@@ -133,12 +126,14 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 						new IRI(IN_REFERENCE), "Reference features",
 						new IDataRestriction[]{
 							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.GEOMETRY_LINE.getRestriction()
 						})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_TARGET), "Target features",
 					new IDataRestriction[]{
 						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+						ERestrictions.GEOMETRY_POLYGON.getRestriction()
 					})
 		);
 		inputs.add(new IODescription(
@@ -168,14 +163,14 @@ public class TopologyRelation extends AbstractMeasurementOperation {
 		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
 		measurements.add(new MeasurementDescription(
 					this.getProcessIRI(),
-					"DE-9IM intersection pattern for input geometries", 
-					new RelationType(new IRI(TOPOLOGY_DE9IM)),
-					new MeasurementRange<String>(
-							new StringLiteral[]{new StringLiteral("FFFFFFFFF"), new StringLiteral("TTTTTTTTT")}, 
+					"Length of reference feature within target polygon (in percent of total length)", 
+					new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)),
+					new MeasurementRange<Double>(
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(1)}, 
 							true
 					))
 		);
 		return measurements;
 	}
-	
+
 }

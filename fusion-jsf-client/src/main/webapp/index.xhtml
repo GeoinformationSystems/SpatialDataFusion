@@ -9,7 +9,7 @@
 <h:head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 	<title>Fusion Client</title>
-	<link rel="stylesheet" href="http://openlayers.org/en/v3.0.0/css/ol.css" type="text/css" />
+	<link rel="stylesheet" href="http://openlayers.org/en/v3.1.1/css/ol.css" type="text/css" />
 	<h:outputStylesheet library="css" name="styles.css" />
 </h:head>
 <h:body>
@@ -80,7 +80,7 @@
 		</h:panelGroup>
 		
 		<h:panelGroup layout="block">
-			<div id="map_r_info" class="info info_alignLeft" />
+			<div id="map_r_info" class="info" />
 			<div id="map_r_coord" class="coord" />			
 		</h:panelGroup>
 		
@@ -137,7 +137,7 @@
 		</h:panelGroup>
 		
 		<h:panelGroup layout="block">			
-			<div id="map_t_info" class="info info_alignLeft" />
+			<div id="map_t_info" class="info" />
 			<div id="map_t_coord" class="coord" />
 		</h:panelGroup>
 		
@@ -151,10 +151,64 @@
 	
 	<div class="content section">Dataset Fusion</div>
 	
-	<h:panelGrid columns="2" styleClass="content alignTop">
-		<h:outputLabel for="f_useFusionResult" value="Use fusion results for data comparison: " />
-		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />		
+	<!-- <h:panelGrid columns="5" styleClass="content alignMiddle">
+	
+		<p:selectOneButton id="f_service" value="wps">
+			 <f:selectItem itemLabel="WPS" itemValue="wps" />
+		</p:selectOneButton>
+		<h:outputText for="f_service" value="Base URL: " />
+		<h:inputText id="f_base" value="http://localhost:8080/52n-wps-webapp/WebProcessingService" styleClass="inputText" style="width:500px;" />
+		<p:commandButton title="retrieve capabilities from server" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
+		<p:commandButton title="execute" value="WPS execute" />
+		
 	</h:panelGrid>
+	
+	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
+        
+        <h:outputText value="Data Harmonization: " />
+        <p:selectManyCheckbox id="f_processes_dh" layout="grid" columns="1">
+            <f:selectItem itemLabel="CRSReproject ('Reprojects coordinate reference system of input features')" itemValue="false" />
+        </p:selectManyCheckbox>
+        
+        <p:separator /><p:separator />
+        
+        <h:outputText value="Relation Measurement: " />
+        <p:selectManyCheckbox id="f_processes_rm" layout="grid" columns="2">
+            <f:selectItem itemLabel="AngleDifference ('Calculates angle difference between linear input geometries')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false"/>
+            <f:selectItem itemLabel="BoundingBoxDistance ('Calculates the distance between input feature bounds')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="GeometryDistance ('Calculates the distance between input feature geometries')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="HausdorffDistance ('Calculates the Hausdorff distance between input feature geometries')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="LengthDifference ('Calculates length difference between input geometries')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="SinuosityDifference ('Calculates sinuosity difference between linear input geometries')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="DamerauLevenshteinDistance ('Calculates Damerau-Levenshtein Distance for feature attributes')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+            <f:selectItem itemLabel="TopologyRelation ('Determines topology relation between input geometries, stored as DE-9IM')" itemValue="false" />
+            <f:selectItem itemLabel="hard criterion" itemValue="false" />
+        </p:selectManyCheckbox>
+        
+        <p:separator /><p:separator />
+        
+        <h:outputText value="Confidence Measurement: " />
+        <p:selectManyCheckbox id="f_processes_cm" layout="grid" columns="2">
+            <f:selectItem itemLabel="SimilarityCountMatch ('Counts the number of similarity measurements for a feature relation')" itemValue="false" />
+        </p:selectManyCheckbox>
+        
+        <p:separator /><p:separator />
+        
+        <h:outputText value="Resolving: " />
+        <p:selectManyCheckbox id="f_processes_rs" layout="grid" columns="1">
+            <f:selectItem itemLabel="AttributeTransfer ('Transfers all attributes from target to linked reference')" itemValue="false" />
+        </p:selectManyCheckbox>
+        
+       </h:panelGrid> -->
+	
+	
     
        <!-- <p:tab title="Fusion Process">
         
@@ -186,7 +240,12 @@
         
 	<div class="content section">Compare Datasets</div>
 	
-	<h:panelGrid columns="4" styleClass="content alignTop">
+	<h:panelGrid columns="2" styleClass="content alignTop">
+		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " />
+		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
+	</h:panelGrid>
+	
+	<h:panelGrid columns="4" styleClass="content alignTop" style="padding-top:0px;">
 		
 		<h:panelGroup layout="block">
 			<div id="map_cr" class="map" />
@@ -197,13 +256,13 @@
 		</h:panelGroup>
 		
 		<h:panelGroup layout="block">
-			<div id="map_cr_info" class="info info_alignLeft" />
-			<div id="map_cr_coord" class="coord info_alignLeft" />
+			<div id="map_cr_info" class="info" />
+			<div id="map_cr_coord" class="coord" />
 		</h:panelGroup>
 		
 		<h:panelGroup layout="block">
-			<div id="map_ct_info" class="info info_alignLeft" />
-			<div id="map_ct_coord" class="coord info_alignLeft" />			
+			<div id="map_ct_info" class="info" />
+			<div id="map_ct_coord" class="coord" />			
 		</h:panelGroup>
 		
 	</h:panelGrid>	     
@@ -211,7 +270,7 @@
 	</h:form>
 </div>
     
-<script src="http://openlayers.org/en/v3.0.0/build/ol.js" type="text/javascript"></script>
+<script src="http://openlayers.org/en/v3.1.1/build/ol.js" type="text/javascript"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js" type="text/javascript"></script>
 <script src="http://epsg.io/31469.js" type="text/javascript"></script>
 <h:outputScript library="js" name="ol-resource.js" />
