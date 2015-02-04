@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.rdf;
 
 import java.net.URI;
+import java.net.URL;
 
 public interface IIRI {
 
@@ -9,5 +10,7 @@ public interface IIRI {
 	public String asString();
 	
 	public boolean equals(IIRI iri);
+
+	public URL asURL();
 	
 }

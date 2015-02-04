@@ -21,13 +21,13 @@ import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.misc.OSMCollection;
 
-public class OSMFeatureCollection implements IResource,IComplexData {
+public class OSMFeatureCollection implements IIdentifiableResource,IComplexData {
 
 	private OSMCollection osmCollection;
 	private IIRI iri;
 	
 	public OSMFeatureCollection(IIRI iri) throws MalformedURLException, XMLStreamException, IOException {
-		osmCollection = new OSMCollection(iri.asURI().toURL());
+		osmCollection = new OSMCollection(iri.asURL());
 		this.iri = iri;
 	}
 	
@@ -38,7 +38,7 @@ public class OSMFeatureCollection implements IResource,IComplexData {
 	
 	public OSMFeatureCollection(String type, Map<String,String> tags, BoundingBox bbox) throws MalformedURLException, XMLStreamException, IOException {
 		iri = new IRI(DataUtilities.getOSMOverpassResource(type, tags, bbox));
-		osmCollection = new OSMCollection(iri.asURI().toURL());
+		osmCollection = new OSMCollection(iri.asURL());
 	}
 	
 	public boolean isResolvable(){

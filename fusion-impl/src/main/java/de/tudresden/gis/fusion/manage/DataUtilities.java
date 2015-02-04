@@ -8,8 +8,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.opengis.geometry.BoundingBox;
 
+import de.tudresden.gis.fusion.data.IFeatureCollection;
+import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
@@ -165,6 +168,19 @@ public class DataUtilities {
 		if(resource != null)
 			return resource;		
 		return new IdentifiableResource(identifier);
+	}
+	
+	/**
+	 * get GeoTools SimpleFeatureCollection from IFeaturecollection
+	 * @param features input features
+	 * @return GeoTools feature collection
+	 */
+	public static SimpleFeatureCollection getGTFeatureCollection(IFeatureCollection features){
+		if(features instanceof GTFeatureCollection)
+			return ((GTFeatureCollection) features).getSimpleFeatureCollection();
+		
+		//TODO: implement transformation based on IFeatureCollection methods
+		return null;
 	}
 	
 }

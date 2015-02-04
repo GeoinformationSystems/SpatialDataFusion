@@ -38,12 +38,12 @@
 	<dependency>
 		<groupId>org.geotools</groupId>
 		<artifactId>gt-main</artifactId>
-		<version>10.4</version>
+		<version>12.2</version>
 	</dependency>
 	<dependency>
 		<groupId>org.geotools</groupId>
 		<artifactId>gt-epsg-hsql</artifactId>
-		<version>10.4</version>
+		<version>12.2</version>
 	</dependency>
 	<dependency>
 		<groupId>xml-apis</groupId>
@@ -53,12 +53,12 @@
 	<dependency>
 		<groupId>org.geotools.xsd</groupId>
 		<artifactId>gt-xsd-gml3</artifactId>
-		<version>10.4</version>
+		<version>12.2</version>
 	</dependency>
 	<dependency>
 		<groupId>org.geotools</groupId>
 		<artifactId>gt-shapefile</artifactId>
-		<version>10.4</version>
+		<version>12.2</version>
 	</dependency>
 	<dependency>
 		<groupId>de.tudresden.gis</groupId>

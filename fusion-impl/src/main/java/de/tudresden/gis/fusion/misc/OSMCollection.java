@@ -418,7 +418,14 @@ public class OSMCollection {
 			//build line string
 			LinkedList<Coordinate> coordinateList = new LinkedList<Coordinate>();
 			for(OSMNode node : nodeList){
-				coordinateList.add(node.getCoordinate());
+				try {
+					coordinateList.add(node.getCoordinate());
+				} catch(Exception e){
+					System.out.println(nodeReferences.size());
+					System.out.println(osmId);
+					e.printStackTrace();
+					throw e;
+				}
 			}			
 			return(geometryFactory.createLineString(coordinateList.toArray(new Coordinate[0])));
 		}

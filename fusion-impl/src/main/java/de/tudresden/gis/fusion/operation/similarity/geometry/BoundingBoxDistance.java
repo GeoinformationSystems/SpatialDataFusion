@@ -167,6 +167,8 @@ public class BoundingBoxDistance extends AbstractMeasurementOperation {
 	}
 	
 	private double getOverlap(ReferencedEnvelope eReference, ReferencedEnvelope eTarget){
+		if(eReference.equals(eTarget))
+			return 100d;
 		Envelope eIntersection = eReference.intersection(eTarget);
 		if(eIntersection != null)
 			return((getArea(new ReferencedEnvelope(eIntersection, eReference.getCoordinateReferenceSystem())) / getArea(eReference)) * 100);
