@@ -1,12 +1,9 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import com.vividsolutions.jts.geom.Geometry;
-
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelation;
@@ -18,7 +15,6 @@ import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
-import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.metadata.IODescription;
@@ -28,17 +24,17 @@ import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class GeometryDistance extends AbstractMeasurementOperation {
-	
+public class LengthInPolygon extends AbstractMeasurementOperation {
+
+	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
-	private final String IN_THRESHOLD = "IN_THRESHOLD";
-	private final String IN_RELATIONS = "IN_RELATIONS";	
+	private final String IN_RELATIONS = "IN_RELATIONS";
+	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#GeometryDistance";
-	private final String RELATION_GEOM_INTERSECT = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#intersect";
-	private final String RELATION_GEOM_DISTANCE = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#distance_geometric";
+	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#LengthInPolygon";
+	private final String RELATION_LENGTH_IN_POLYGON = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlay_lengthInPolygon";
 	
 	@Override
 	public void execute() {
@@ -46,26 +42,22 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		DecimalLiteral inBuffer = (DecimalLiteral) getInput(IN_THRESHOLD);
-		
-		//set defaults
-		double dBuffer = inBuffer == null ? 0 : inBuffer.getValue();
 		
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dBuffer) :
-				calculateRelation(inReference, inTarget, dBuffer));
+				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				calculateRelation(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target) {
 
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fRef : reference) {
 		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold);
+		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar);
 	    		if(similarity != null)
 	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
 		    }
@@ -74,7 +66,7 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 	    
 	}
 		
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold){
+	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations){
 		
 		//init relations
 		for(IFeatureRelation relation : relations){
@@ -83,7 +75,7 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
 			if(reference == null || target == null)
 				continue;
-			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, dThreshold);
+			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget);
     		if(similarity != null)
     			relation.addRelationMeasurement(similarity);
 	    }
@@ -91,60 +83,25 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 	    
 	}
 	
-	/**
-	 * calculate overlap between feature bounds
-	 * @param fReference reference feature
-	 * @param fTarget target feature
-	 * @throws IOException
-	 * @throws URISyntaxException 
-	 */
-	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, double dThreshold) {
+	
+	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
 		//get geometries
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
-		if(gReference.isEmpty() || gTarget.isEmpty())
+		if(gReference.isEmpty() || gTarget.isEmpty() || gReference.getLength() == 0 || gTarget.getArea() == 0)
 			return null;
-		//get overlap
-		boolean intersect = getIntersect(gReference, gTarget);
-		//check for overlap		
-		if(intersect) {
-			return new SimilarityMeasurement(
-					new BooleanLiteral(intersect), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_GEOM_INTERSECT)))
-			);
-		}
-		else {
-			//get distance
-			double distance = getDistance(gReference, gTarget);
-			//check for overlap
-			if(distance <= dThreshold)
-				return new SimilarityMeasurement(
-						new DecimalLiteral(distance), 
-						this.getMeasurementDescription(new RelationType(new IRI(RELATION_GEOM_DISTANCE)))
-				);
-			else
-				return null;
-		}
-	}
-	
-	/**
-	 * check geometry intersection
-	 * @param gReference input reference
-	 * @param gTarget input target
-	 * @return true, if geometries intersect
-	 */
-	private boolean getIntersect(Geometry gReference, Geometry gTarget){
-		return gReference.intersects(gTarget);
-	}
-	
-	/**
-	 * get distance between geometries
-	 * @param gReference reference geometry
-	 * @param gTarget target geometry
-	 * @return distance (uom defined by input geometries)
-	 */
-	private double getDistance(Geometry gReference, Geometry gTarget){
-		return gReference.distance(gTarget);
+		//get length difference
+		Geometry intersection = gReference.intersection(gTarget);
+		//get ration intersection.length / gReference.length
+		if(intersection.getLength() <= 0)
+			return null;
+		double ratio = intersection.getLength() / gReference.getLength();
+		if(ratio < 0 || ratio > 1)
+			return null;
+		return new SimilarityMeasurement(
+				new DecimalLiteral(ratio), 
+				this.getMeasurementDescription(new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)))
+		);
 	}
 	
 	@Override
@@ -159,28 +116,24 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 
 	@Override
 	protected String getProcessDescription() {
-		return "Calculates the distance between input feature geometries";
+		return "Calculates length of reference feature within target polygon (in percent of total length)";
 	}
-
+	
 	@Override
 	protected Collection<IIODescription> getInputDescriptions() {
 		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
 		inputs.add(new IODescription(
 						new IRI(IN_REFERENCE), "Reference features",
 						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.GEOMETRY_LINE.getRestriction()
 						})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_TARGET), "Target features",
 					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Distance threshold for relations",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_DECIMAL.getRestriction()
+						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+						ERestrictions.GEOMETRY_POLYGON.getRestriction()
 					})
 		);
 		inputs.add(new IODescription(
@@ -210,23 +163,14 @@ public class GeometryDistance extends AbstractMeasurementOperation {
 		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
 		measurements.add(new MeasurementDescription(
 					this.getProcessIRI(),
-					"Geometric intersection between geometries", 
-					new RelationType(new IRI(RELATION_GEOM_INTERSECT)),
-					new MeasurementRange<Boolean>(
-							new BooleanLiteral[]{new BooleanLiteral(true), new BooleanLiteral(false)}, 
-							false
-					))
-		);
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Geometric distance between geometries", 
-					new RelationType(new IRI(RELATION_GEOM_DISTANCE)),
+					"Length of reference feature within target polygon (in percent of total length)", 
+					new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)),
 					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(Double.MAX_VALUE)}, 
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(1)}, 
 							true
 					))
 		);
 		return measurements;
 	}
-	
+
 }

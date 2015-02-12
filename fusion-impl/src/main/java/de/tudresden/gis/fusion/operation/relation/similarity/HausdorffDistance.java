@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.io.IOException;
 import java.util.ArrayList;

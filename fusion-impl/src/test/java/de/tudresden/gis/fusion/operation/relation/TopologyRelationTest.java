@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity;
+package de.tudresden.gis.fusion.operation.relation;
 
 import java.io.File;
 import java.util.HashMap;
@@ -12,6 +12,7 @@ import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
 
 public class TopologyRelationTest {

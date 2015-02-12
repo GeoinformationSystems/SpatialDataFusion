@@ -1,11 +1,10 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.IntersectionMatrix;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
@@ -18,8 +17,8 @@ import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
-import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
+import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementRange;
@@ -27,18 +26,19 @@ import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class LengthDifference extends AbstractMeasurementOperation {
+public class TopologyRelation extends AbstractMeasurementOperation {
 
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
-	private final String IN_THRESHOLD = "IN_THRESHOLD";
 	private final String IN_RELATIONS = "IN_RELATIONS";
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#LengthDifference";
-	private final String RELATION_LENGTH_DIFF = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#difference_length";
+	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#TopologyRelation";
+
+	//DE-9IM topology relation
+	private final String TOPOLOGY_DE9IM = "http://tu-dresden.de/uw/geo/gis/fusion/relation/topology#de-9im";
 	
 	@Override
 	public void execute() {
@@ -46,26 +46,22 @@ public class LengthDifference extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		DecimalLiteral inThreshold = (DecimalLiteral) getInput(IN_THRESHOLD);
-		
-		//set defaults
-		double dThreshold = inThreshold.getValue();
-		
+	
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold) :
-				calculateRelation(inReference, inTarget, dThreshold));
+				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				calculateRelation(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target) {
 
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fRef : reference) {
 		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold);
+		    	SimilarityMeasurement similarity = getTopologyRelation(fRef, fTar);
 	    		if(similarity != null)
 	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
 		    }
@@ -74,7 +70,7 @@ public class LengthDifference extends AbstractMeasurementOperation {
 	    
 	}
 		
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold){
+	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations){
 		
 		//init relations
 		for(IFeatureRelation relation : relations){
@@ -83,7 +79,7 @@ public class LengthDifference extends AbstractMeasurementOperation {
 			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
 			if(reference == null || target == null)
 				continue;
-			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, dThreshold);
+			SimilarityMeasurement similarity = getTopologyRelation(fReference, fTarget);
     		if(similarity != null)
     			relation.addRelationMeasurement(similarity);
 	    }
@@ -92,26 +88,24 @@ public class LengthDifference extends AbstractMeasurementOperation {
 	}
 	
 	/**
-	 * calculate angle between features
-	 * @param fcReference reference feature
-	 * @param fcTarget target feature
-	 * @param threshold threshold for accepting angle difference
-	 * @return angle similarity
-	 * @throws IOException
-	 * @throws URISyntaxException 
+	 * check topoogy relation between input features
+	 * @param reference reference feature
+	 * @param target target feature
+	 * @return
 	 */
-	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, double dThreshold) {
+	private SimilarityMeasurement getTopologyRelation(IFeature reference, IFeature target) {
 		//get geometries
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
-		//get length difference
-		double difference = gReference.getLength() - gTarget.getLength();
-		if(Math.abs(difference) <= dThreshold){
-			return new SimilarityMeasurement(
-					new DecimalLiteral(difference), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_LENGTH_DIFF)))
+		//get intersection matrix
+		IntersectionMatrix matrix = gReference.relate(gTarget);
+		//add DE-9IM topology relation if geometries are not disjoint
+		if(!matrix.isDisjoint()){
+			return new SimilarityMeasurement( 
+					new StringLiteral(matrix.toString()),
+					this.getMeasurementDescription(new RelationType(new IRI(TOPOLOGY_DE9IM)))
 			);
 		}
 		else return null;
@@ -129,7 +123,7 @@ public class LengthDifference extends AbstractMeasurementOperation {
 
 	@Override
 	protected String getProcessDescription() {
-		return "Calculates length difference between input geometries";
+		return "Determines topology relation between input geometries, stored as DE-9IM";
 	}
 	
 	@Override
@@ -139,20 +133,12 @@ public class LengthDifference extends AbstractMeasurementOperation {
 						new IRI(IN_REFERENCE), "Reference features",
 						new IDataRestriction[]{
 							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-							ERestrictions.GEOMETRY_NoPOINT.getRestriction()
 						})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_TARGET), "Target features",
 					new IDataRestriction[]{
 						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						ERestrictions.GEOMETRY_NoPOINT.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Length difference threshold for relations",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_DECIMAL.getRestriction()
 					})
 		);
 		inputs.add(new IODescription(
@@ -182,14 +168,14 @@ public class LengthDifference extends AbstractMeasurementOperation {
 		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
 		measurements.add(new MeasurementDescription(
 					this.getProcessIRI(),
-					"Length difference between input geometries (reference - target)", 
-					new RelationType(new IRI(RELATION_LENGTH_DIFF)),
-					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
+					"DE-9IM intersection pattern for input geometries", 
+					new RelationType(new IRI(TOPOLOGY_DE9IM)),
+					new MeasurementRange<String>(
+							new StringLiteral[]{new StringLiteral("FFFFFFFFF"), new StringLiteral("TTTTTTTTT")}, 
 							true
 					))
 		);
 		return measurements;
 	}
-
+	
 }

@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -13,8 +13,8 @@ import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.operation.relation.similarity.LengthDifference;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
-import de.tudresden.gis.fusion.operation.similarity.geometry.LengthDifference;
 
 public class LengthDifferenceTest {
 

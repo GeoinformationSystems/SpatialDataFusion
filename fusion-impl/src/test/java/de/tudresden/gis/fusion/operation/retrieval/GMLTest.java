@@ -1,8 +1,5 @@
 package de.tudresden.gis.fusion.operation.retrieval;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,9 +17,9 @@ import de.tudresden.gis.fusion.operation.retrieval.GMLParser;
 public class GMLTest {
 
 	@Test
-	public void readGMLFile() throws ProcessException, MalformedURLException, URISyntaxException {
+	public void readGMLFile() throws ProcessException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_GML_RESOURCE", new Resource(new IRI(new URL("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs").toURI())));
+		input.put("IN_GML_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
 		
 		GMLParser parser = new GMLParser();
 		Map<String,IData> output = parser.execute(input);

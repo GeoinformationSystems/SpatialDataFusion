@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -17,8 +17,8 @@ import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
+import de.tudresden.gis.fusion.operation.relation.similarity.GeometryDistance;
 import de.tudresden.gis.fusion.operation.retrieval.GMLParser;
-import de.tudresden.gis.fusion.operation.similarity.geometry.GeometryDistance;
 
 public class GeometryDistanceTest {
 	

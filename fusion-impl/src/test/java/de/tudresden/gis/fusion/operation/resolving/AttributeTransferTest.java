@@ -14,8 +14,8 @@ import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
-import de.tudresden.gis.fusion.operation.similarity.TopologyRelation;
 
 public class AttributeTransferTest {
 

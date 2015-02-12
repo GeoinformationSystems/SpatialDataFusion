@@ -24,7 +24,6 @@ import org.opengis.referencing.operation.TransformException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeature;
@@ -52,37 +51,28 @@ public class CRSReproject extends AbstractOperation {
 	@Override
 	public void execute() throws ProcessException {
 
-		//get input resource
+		//get inputs
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IResource inReferenceCRS = (IResource) getInput(IN_REFERENCE_CRS);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
 		IResource inTargetCRS = (IResource) getInput(IN_TARGET_CRS);
+		IResource inCRS = (IResource) getInput(IN_CRS);
 		
-		//get input crs if set
+		//get reference and target crs
 		CoordinateReferenceSystem crsReference = inReferenceCRS == null ? 
-					getCRSFromIRI(inReference.getSpatialProperty().getSRSName()) : 
-					getCRSFromIRI(inReferenceCRS.getIdentifier());
+				getCRSFromIRI(inReference.getSpatialProperty().getSRSName()) : 
+				getCRSFromIRI(inReferenceCRS.getIdentifier());
 		CoordinateReferenceSystem crsTarget = inTargetCRS == null ? 
 				getCRSFromIRI(inTarget.getSpatialProperty().getSRSName()) : 
 				getCRSFromIRI(inTargetCRS.getIdentifier());
 		
-		//init output
-		IFeatureCollection outReference;
-		IFeatureCollection outTarget;
+		//get final crs
+		CoordinateReferenceSystem crsFinal = inCRS == null ? crsReference : getCRSFromIRI(inCRS.getIdentifier());
 		
-		//get final crs and transform
-		CoordinateReferenceSystem crsFinal;
-		IDataResource rCRS = (IDataResource) getInput(IN_CRS);
-		if(inputContainsKey(IN_CRS)){
-			crsFinal = getCRSFromIRI(rCRS.getIdentifier());
-			outReference = reproject(inReference, crsReference, crsFinal);
-			outTarget = reproject(inTarget, crsTarget, crsFinal);
-		}
-		else {
-			crsFinal = crsReference;
-			outReference = inReference;
-			outTarget = reproject(inTarget, crsTarget, crsFinal);
-		}	
+		//transform
+		IFeatureCollection outReference = reproject(inReference, crsReference, crsFinal);
+		IFeatureCollection outTarget = reproject(inTarget, crsTarget, crsFinal);
+		outReference = inReference;
 		
 		//return
 		setOutput(OUT_REFERENCE, outReference);
@@ -109,6 +99,10 @@ public class CRSReproject extends AbstractOperation {
 	 * @throws IOException
 	 */
 	private IFeatureCollection reproject(IFeatureCollection inFeature, CoordinateReferenceSystem referenceCRS, CoordinateReferenceSystem targteCRS) throws ProcessException {
+		
+		//check if feature colletion is set
+		if(inFeature == null || inFeature.size() == 0)
+			return null;
 		
 		//check if transformation is required/applicable
 		if(referenceCRS == null || targteCRS == null || referenceCRS.equals(targteCRS))

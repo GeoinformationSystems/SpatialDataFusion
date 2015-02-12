@@ -1,5 +1,6 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
+import de.tudresden.gis.fusion.data.ICoverage;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
@@ -17,6 +18,7 @@ public enum ERestrictions {
 	GEOMETRY_LINE(new GeometryTypeRestriction(new EGeometryType[]{EGeometryType.GML3_1D_LINESTRING,EGeometryType.GML3_1D_CURVE})),
 	GEOMETRY_POLYGON(new GeometryTypeRestriction(new EGeometryType[]{EGeometryType.GML3_2D_POLYGON,EGeometryType.GML3_2D_SURFACE})),
 	GEOMETRY_NoPOINT(new GeometryTypeRestriction(new EGeometryType[]{EGeometryType.GML3_1D_LINESTRING,EGeometryType.GML3_1D_CURVE,EGeometryType.GML3_2D_POLYGON,EGeometryType.GML3_2D_SURFACE})),
+	GEOMETRY_SURFACE(new GeometryTypeRestriction(EGeometryType.GML3_SURFACE)),
 	
 	//Java binding restrictions
 	BINDING_INTEGER(new JavaBindingRestriction(IntegerLiteral.class)),
@@ -26,6 +28,7 @@ public enum ERestrictions {
 	BINDING_STRING(new JavaBindingRestriction(StringLiteral.class)),
 	BINDING_IFEATUReCOLLECTION(new JavaBindingRestriction(IFeatureCollection.class)),
 	BINDING_IFEATUReRELATIOnCOLLECTION(new JavaBindingRestriction(IFeatureRelationCollection.class)),
+	BINDING_ICOVERAGE(new JavaBindingRestriction(ICoverage.class)),
 	
 	//mandatory restriction
 	MANDATORY(new MandatoryIORestriction(true));

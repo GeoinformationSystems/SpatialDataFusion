@@ -15,6 +15,7 @@ import com.vividsolutions.jts.geom.MultiPoint;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
@@ -93,6 +94,11 @@ public class GTSpatialProperty implements ISpatialProperty {
 		} catch (FactoryException e) {
 			return null;
 		}
+	}
+
+	@Override
+	public String asWKT() {
+		return ((Geometry) property.getValue()).toText();
 	}
 
 }

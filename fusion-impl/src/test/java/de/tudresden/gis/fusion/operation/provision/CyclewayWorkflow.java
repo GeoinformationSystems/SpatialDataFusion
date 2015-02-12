@@ -19,9 +19,9 @@ import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.operation.provision.FusekiTripleStoreGenerator;
+import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
+import de.tudresden.gis.fusion.operation.relation.similarity.LengthInPolygon;
 import de.tudresden.gis.fusion.operation.retrieval.GMLParser;
-import de.tudresden.gis.fusion.operation.similarity.TopologyRelation;
-import de.tudresden.gis.fusion.operation.similarity.geometry.LengthInPolygon;
 
 public class CyclewayWorkflow {
 

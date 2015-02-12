@@ -21,9 +21,9 @@ import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
-import de.tudresden.gis.fusion.operation.similarity.TopologyRelation;
-import de.tudresden.gis.fusion.operation.similarity.geometry.BoundingBoxDistance;
-import de.tudresden.gis.fusion.operation.similarity.geometry.HausdorffDistance;
+import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
+import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
+import de.tudresden.gis.fusion.operation.relation.similarity.HausdorffDistance;
 
 public class RDFRelationsTurtleTest {
 

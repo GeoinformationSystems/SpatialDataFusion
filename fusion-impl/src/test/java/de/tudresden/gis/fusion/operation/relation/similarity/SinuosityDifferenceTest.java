@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.io.File;
 import java.util.HashMap;
@@ -11,12 +11,11 @@ import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.Resource;
-import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.operation.relation.similarity.SinuosityDifference;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
-import de.tudresden.gis.fusion.operation.similarity.geometry.AngleDifference;
 
-public class AngleDifferenceTest {
+public class SinuosityDifferenceTest {
 
 	@Test
 	public void calculateSimilarity() {
@@ -33,11 +32,10 @@ public class AngleDifferenceTest {
 		output = parser.execute(input);		
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");
 		
-		AngleDifference process = new AngleDifference();
+		SinuosityDifference process = new SinuosityDifference();
 		
 		input.put("IN_REFERENCE", reference);
 		input.put("IN_TARGET", target);
-		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/50));
 		output = process.execute(input);	
 		IFeatureRelationCollection relations = (IFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
@@ -48,7 +46,6 @@ public class AngleDifferenceTest {
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) process.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
-				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
-		
+				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");		
 	}
 }

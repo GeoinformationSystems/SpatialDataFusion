@@ -1,12 +1,15 @@
-package de.tudresden.gis.fusion.operation.similarity.geometry;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
+import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.opengis.geometry.BoundingBox;
+
+import com.vividsolutions.jts.geom.Envelope;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
@@ -14,7 +17,9 @@ import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.FeatureRelation;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
+import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
+import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
@@ -28,18 +33,17 @@ import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class SinuosityDifference extends AbstractMeasurementOperation {
+public class BoundingBoxDistance extends AbstractMeasurementOperation {
 
-	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
 	private final String IN_THRESHOLD = "IN_THRESHOLD";
-	private final String IN_RELATIONS = "IN_RELATIONS";
-	
+	private final String IN_RELATIONS = "IN_RELATIONS";	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#SinuosityDifference";
-	private final String RELATION_SIN_DIFF = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#difference_sinuosity";
+	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#BBoxDistance";
+	private final String RELATION_BBOX_OVERLAP = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlap_bbox";
+	private final String RELATION_BBOX_DISTANCE = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#distance_bbox";
 	
 	@Override
 	public void execute() {
@@ -49,11 +53,10 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
 		DecimalLiteral inThreshold = (DecimalLiteral) getInput(IN_THRESHOLD);
 		
-		//set defaults
 		double dThreshold = inThreshold == null ? ((DecimalLiteral) this.getInputDescription(new IRI(IN_THRESHOLD)).getDefault()).getValue() : inThreshold.getValue();
 		
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold) :
+				calculateRelation(inReference, inTarget, (GTFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold) :
 				calculateRelation(inReference, inTarget, dThreshold));
 			
 		//return
@@ -62,6 +65,31 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 	}
 	
 	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+
+		if(reference instanceof GTIndexedFeatureCollection)
+			return calculateRelationWithIndex((GTIndexedFeatureCollection) reference, target, dThreshold);
+		else
+			return calculateRelationWithoutIndex(reference, target, dThreshold);
+		
+	}
+	
+	private IFeatureRelationCollection calculateRelationWithIndex(GTIndexedFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+
+		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
+	    for(IFeature fTar : target) {
+		    List<IFeature> intersections = reference.intersects(fTar, dThreshold);
+		    for(IFeature fRef : intersections){
+		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold);
+		    	//only adds measurement, if distance is <= threshold (index can return features that are more distant by different expand strategy)
+		    	if(similarity != null)
+		    		relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
+		    }
+	    }
+	    return relations;
+	    
+	}
+	
+	private IFeatureRelationCollection calculateRelationWithoutIndex(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
 
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fRef : reference) {
@@ -93,49 +121,65 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 	}
 	
 	/**
-	 * calculate angle between features
-	 * @param fcReference reference feature
-	 * @param fcTarget target feature
-	 * @param threshold threshold for accepting angle difference
-	 * @return angle similarity
+	 * calculate overlap between feature bounds
+	 * @param fReference reference feature
+	 * @param fTarget target feature
 	 * @throws IOException
 	 * @throws URISyntaxException 
 	 */
 	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, double dThreshold) {
-		//get geometries
-		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
-		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
-		if(gReference.isEmpty() || gTarget.isEmpty())
-			return null;
-		//get length difference
-		double difference = getSinuosity(gReference) - getSinuosity(gTarget);
-		if(Math.abs(difference) <= dThreshold){
+		//get bounding boxes
+		ReferencedEnvelope eReference = getEnvelope(reference.getDefaultSpatialProperty());
+		ReferencedEnvelope eTarget = getEnvelope(target.getDefaultSpatialProperty());
+		//check for overlap
+		boolean overlap = intersects(eReference, eTarget);
+		if(overlap){
+			double dOverlap = getOverlap(eReference, eTarget);
 			return new SimilarityMeasurement(
-					new DecimalLiteral(difference), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_SIN_DIFF)))
+					new DecimalLiteral(dOverlap), 
+					this.getMeasurementDescription(new RelationType(new IRI(RELATION_BBOX_OVERLAP)))
 			);
 		}
-		else return null;
+		else {
+			//get distance
+			double distance = getDistance(eReference, eTarget);
+			if(distance <= dThreshold)
+				return new SimilarityMeasurement(
+						new DecimalLiteral(distance), 
+						this.getMeasurementDescription(new RelationType(new IRI(RELATION_BBOX_DISTANCE)))
+				);
+			else
+				return null;
+		}
 	}
 	
-	/**
-	 * calculate sinuosity from geometry
-	 * @param geometry  input geometrx
-	 * @return sinuosity
-	 */
-	private double getSinuosity(Geometry geometry){
-		//get coordinates
-		Coordinate[] coords = geometry.getCoordinates();
-		//return 0, if geometry consists of less than 2 points
-		if(coords.length <= 1) return 0;
-		//calculate sinuosity
-		double basis = coords[0].distance(coords[coords.length-1]);
-		double length = geometry.getLength();
-		//return sinuosity
-		if(basis > 0 && length > 0) return length / basis;
-		else return 0;
+	private ReferencedEnvelope getEnvelope(ISpatialProperty property){
+		double[] bbox = property.getBounds();
+		return new ReferencedEnvelope(bbox[0], bbox[2], bbox[1], bbox[3], null);
 	}
 	
+	private double getDistance(ReferencedEnvelope eReference, ReferencedEnvelope eTarget){
+		return eReference.distance(eTarget);
+	}
+	
+	private boolean intersects(ReferencedEnvelope eReference, ReferencedEnvelope eTarget){
+		return eReference.intersects((BoundingBox) eTarget);
+	}
+	
+	private double getOverlap(ReferencedEnvelope eReference, ReferencedEnvelope eTarget){
+		if(eReference.equals(eTarget))
+			return 100d;
+		Envelope eIntersection = eReference.intersection(eTarget);
+		if(eIntersection != null)
+			return((getArea(new ReferencedEnvelope(eIntersection, eReference.getCoordinateReferenceSystem())) / getArea(eReference)) * 100);
+		else
+			return 0d;
+	}
+	
+	private double getArea(ReferencedEnvelope envelope){
+		return envelope.getArea();
+	}
+
 	@Override
 	protected IIRI getProcessIRI() {
 		return new IRI(PROCESS_ID);
@@ -148,7 +192,7 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 
 	@Override
 	protected String getProcessDescription() {
-		return "Calculates sinuosity difference between linear input geometries";
+		return "Calculates the distance between input feature bounds";
 	}
 
 	@Override
@@ -157,20 +201,18 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 		inputs.add(new IODescription(
 						new IRI(IN_REFERENCE), "Reference features",
 						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-							ERestrictions.GEOMETRY_NoPOINT.getRestriction()
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
 						})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_TARGET), "Target features",
 					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						ERestrictions.GEOMETRY_NoPOINT.getRestriction()
+						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
 					})
 		);
 		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Sinuosity difference threshold for relations",
-					new DecimalLiteral(2),
+					new IRI(IN_THRESHOLD), "Distance threshold for relations",
+					new DecimalLiteral(0),
 					new IDataRestriction[]{
 						ERestrictions.BINDING_DECIMAL.getRestriction()
 					})
@@ -202,14 +244,23 @@ public class SinuosityDifference extends AbstractMeasurementOperation {
 		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
 		measurements.add(new MeasurementDescription(
 					this.getProcessIRI(),
-					"Sinuosity difference between linear geometries (reference - target)", 
-					new RelationType(new IRI(RELATION_SIN_DIFF)),
+					"Bounding box overlap between geometries", 
+					new RelationType(new IRI(RELATION_BBOX_OVERLAP)),
 					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(100)},  
+							false
+					))
+		);
+		measurements.add(new MeasurementDescription(
+					this.getProcessIRI(),
+					"Bounding box distance between geometries", 
+					new RelationType(new IRI(RELATION_BBOX_DISTANCE)),
+					new MeasurementRange<Double>(
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(Double.MAX_VALUE)}, 
 							true
 					))
 		);
 		return measurements;
-	}
+	}	
 
 }

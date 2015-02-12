@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.operation.similarity.string;
+package de.tudresden.gis.fusion.operation.relation.similarity;
 
 import java.util.ArrayList;
 import java.util.Arrays;

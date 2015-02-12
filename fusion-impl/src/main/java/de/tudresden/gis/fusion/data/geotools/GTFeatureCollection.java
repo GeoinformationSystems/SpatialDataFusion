@@ -80,13 +80,17 @@ public class GTFeatureCollection implements IIdentifiableResource,IFeatureCollec
 	}
 	
 	public SimpleFeatureCollection getSimpleFeatureCollection(){
+		return DataUtilities.collection(getFeatureCollectionList());
+	}
+
+	public List<SimpleFeature> getFeatureCollectionList(){
 		List<SimpleFeature> fList = new ArrayList<SimpleFeature>();
 		for(IFeature feature : this.getFeatures()){
 			fList.add(((GTFeature) feature).getFeature());
 		}
-		return DataUtilities.collection(fList);
+		return fList;
 	}
-
+	
 	@Override
 	public IFeature getFeatureById(IIRI identifier){
 		return features.get(identifier.asString());

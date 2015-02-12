@@ -15,7 +15,7 @@
 			<repository>
 				<id>OpenGEO</id>
 				<name>opengeo repository</name>
-				<url>http://repo.opengeo.org</url>
+				<url>http://repo.boundlessgeo.com/main</url>
 		</repository> 
 		<repository>
 			<id>Geoserver</id>
@@ -58,6 +58,11 @@
 	<dependency>
 		<groupId>org.geotools</groupId>
 		<artifactId>gt-shapefile</artifactId>
+		<version>12.2</version>
+	</dependency>
+	<dependency>
+		<groupId>org.geotools</groupId>
+		<artifactId>gt-geotiff</artifactId>
 		<version>12.2</version>
 	</dependency>
 	<dependency>

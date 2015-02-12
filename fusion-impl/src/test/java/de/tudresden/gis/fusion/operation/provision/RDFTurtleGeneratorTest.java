@@ -19,13 +19,13 @@ import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.operation.confidence.SimilarityCountMatch;
 import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
+import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
+import de.tudresden.gis.fusion.operation.relation.similarity.AngleDifference;
+import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
+import de.tudresden.gis.fusion.operation.relation.similarity.GeometryDistance;
+import de.tudresden.gis.fusion.operation.relation.similarity.HausdorffDistance;
+import de.tudresden.gis.fusion.operation.relation.similarity.LengthDifference;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
-import de.tudresden.gis.fusion.operation.similarity.TopologyRelation;
-import de.tudresden.gis.fusion.operation.similarity.geometry.AngleDifference;
-import de.tudresden.gis.fusion.operation.similarity.geometry.BoundingBoxDistance;
-import de.tudresden.gis.fusion.operation.similarity.geometry.GeometryDistance;
-import de.tudresden.gis.fusion.operation.similarity.geometry.HausdorffDistance;
-import de.tudresden.gis.fusion.operation.similarity.geometry.LengthDifference;
 
 public class RDFTurtleGeneratorTest {
 
