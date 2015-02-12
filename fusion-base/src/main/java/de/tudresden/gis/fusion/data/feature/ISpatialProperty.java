@@ -11,6 +11,12 @@ public interface ISpatialProperty extends IFeatureProperty {
 	public double[] getBounds();
 	
 	/**
+	 * get spatial property as WKT
+	 * @return WKT representation of spatial property
+	 */
+	public String asWKT();
+	
+	/**
 	 * get geometry type
 	 * @return geometry type
 	 */

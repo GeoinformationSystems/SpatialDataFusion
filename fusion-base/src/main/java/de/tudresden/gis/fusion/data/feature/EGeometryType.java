@@ -13,8 +13,11 @@ public enum EGeometryType {
 	GML3_2D_MULTISURFACE("http://www.opengis.net/ont/gml#MultiSurface"),
 	GML3_2D_POLYGON("http://www.opengis.net/ont/gml#Polygon"),
 	
-	GML3_MULTIGEOMETRY("http://www.opengis.net/ont/gml#MultiGeometry");
-	//TODO: complete geometry type list
+	GML3_MULTIGEOMETRY("http://www.opengis.net/ont/gml#MultiGeometry"),
+	
+	GML3_SURFACE("http://www.opengis.net/ont/gml#Surface");
+	
+	//TODO: complete geometry and coverage type list
 	
 	private String type;
 	
