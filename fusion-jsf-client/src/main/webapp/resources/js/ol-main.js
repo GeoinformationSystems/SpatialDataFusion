@@ -63,5 +63,3 @@ function f_setCompareInteraction(){
 	r_olMaps["map_cr"].setCompareInteraction(useFusionResult, r_olMaps["map_cr"], t_olMaps["map_ct"], true);
 	t_olMaps["map_ct"].setCompareInteraction(useFusionResult, t_olMaps["map_ct"], r_olMaps["map_cr"], false);
 }
-
-

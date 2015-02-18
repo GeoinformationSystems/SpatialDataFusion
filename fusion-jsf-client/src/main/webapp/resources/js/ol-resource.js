@@ -202,15 +202,18 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		//check if feature is set
 		if(!feature) return '&nbsp;';
 		//get feature properties
+		var featureIdDefined = false;
 		var featureId = feature.getId();
+		if(typeof featureId !== 'undefined')
+			featureIdDefined = true;
 		var properties = feature.getProperties();
 		//check, if align is right
 		var alignRight = (document.getElementById(this.div_info).className.indexOf("alignRight") > -1);
 		//add id property
 		var html = '<div>' +
 			(alignRight ? 
-					(this.getHTMLIdValue(featureId) + this.getHTMLIdProperty()) :
-					(this.getHTMLIdProperty() + this.getHTMLIdValue(featureId))) + '<br />';
+					(this.getHTMLIdValue(featureId, featureIdDefined) + this.getHTMLIdProperty()) :
+					(this.getHTMLIdProperty() + this.getHTMLIdValue(featureId, featureIdDefined))) + '<br />';
 		//add properties (add to featureId class to enable visibility toggling)
 		html += '<div class="elementProperties ' + featureId + '">';
 		for(var property in properties){
@@ -227,26 +230,27 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 	
 	//function: get id property field as HTML
 	this.getHTMLIdProperty = function() {
-		return '<span class="idproperty">&nbsp;ID&nbsp;</span>';
+		return '<span class="idproperty color_main">&nbsp;ID&nbsp;</span>';
 	};
 
 	//function: get id property value as HTML
-	this.getHTMLIdValue = function(featureId) {
-		return '<span class="idvalue" ' +
+	this.getHTMLIdValue = function(featureId, featureIdDefined) {
+		return '<span class="idvalue color_sub" ' +
+			(featureIdDefined ?
 				'onmouseover="f_highlightFeature(\'' + this.div + '\', \'' + featureId + '\')" ' +
-				'onmouseout="f_clearHighlight(\'' + this.div + '\')"' +
+				'onmouseout="f_clearHighlight(\'' + this.div + '\')"' : '') +
 				'onclick="f_changeVisibility(\'' + featureId + '\')"' +
 		'>' + featureId + '</span>';
 	};
 
 	//function: get feature property field as HTML
 	this.getHTMLAttProperty = function(property) {
-		return '<span class="property">' + property + '</span>';
+		return '<span class="property color_txt_main">' + property + '</span>';
 	};
 
 	//function: get feature property value as HTML
 	this.getHTMLAttValue = function(feature, property) {
-		return '<span class="value">' + ((feature.get(property) == null || feature.get(property).length == 0) ? '<i>null</i>' : feature.get(property)) + '</span>';
+		return '<span class="value color_txt_sub">' + ((feature.get(property) == null || feature.get(property).length == 0) ? '<i>null</i>' : feature.get(property)) + '</span>';
 	};
 	
 	//function: highlight feature identified by id

@@ -23,7 +23,6 @@ function f_setText(elementId, text, resize) {
 	element.innerHTML = text;
 	if(resize)
 		element.style = 'width:' + (parseInt(element.offsetWidth) + 20) + 'px;';
-	console.log(element.offsetWidth);
 }
 
 //clear element text by id

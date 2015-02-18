@@ -14,7 +14,7 @@
 </h:head>
 <h:body>
 
-<div id="header" class="content"><div id="header_text">Fusion Client</div>
+<div id="header" class="content color_main"><div id="header_text">Fusion Client</div>
 	<div id="status"><p:ajaxStatus>  
 	    <f:facet name="start">  
 	        <p:graphicImage value="resources/images/ajax-loader.gif" />  
@@ -29,7 +29,7 @@
 	<h:form id="form">
 	<p:growl id="message" showDetail="true" />	
 	
-	<div class="content section">Reference Data</div>	         		
+	<!-- <div class="content section color_sub">Reference Data</div>	         		
    	<h:panelGrid columns="3" styleClass="content alignTop">
       	<h:panelGrid columns="4" styleClass="alignMiddle">
 	        
@@ -64,7 +64,7 @@
 			    <f:selectItems value="#{referenceWFS.supportedSRS}" />
 				<p:ajax update="r_getFeatures" />
 			</p:selectOneMenu>
-			<p:commandButton id="r_getFeatures" disabled="#{referenceWFS.wfsBaseInvalid}" title="#{referenceWFS.getFeatureRequest}" onclick="f_initMapResource_r('#{referenceWFS.getFeatureRequest}','#{referenceWFS.olSRSName}',#{referenceWFS.olCenter},#{referenceWFS.olExtent})" icon="ui-icon-check" style="width:27px;height:27px;" />
+			<p:commandButton id="r_getFeatures" disabled="#{referenceWFS.WFSBaseIsInvalid}" title="#{referenceWFS.getFeatureRequest}" onclick="f_initMapResource_r('#{referenceWFS.getFeatureRequest}','#{referenceWFS.SRSName}',#{referenceWFS.centerAsString},#{referenceWFS.extentAsString})" icon="ui-icon-check" style="width:27px;height:27px;" />
 			
 			<h:outputText />
 			<h:outputLabel for="r_forceWGS84" value="force WGS84: " />
@@ -86,7 +86,7 @@
 		
 	</h:panelGrid>
             
-	<div class="content section">Target Data</div>
+	<div class="content section color_sub">Target Data</div>
 	<h:panelGrid columns="3" styleClass="content alignTop">
       	<h:panelGrid columns="4" styleClass="alignMiddle">
 	        
@@ -121,7 +121,7 @@
 			    <f:selectItems value="#{targetWFS.supportedSRS}" />
 				<p:ajax update="t_getFeatures" />
 			</p:selectOneMenu>
-			<p:commandButton id="t_getFeatures" disabled="#{targetWFS.wfsBaseInvalid}" title="#{targetWFS.getFeatureRequest}" onclick="f_initMapResource_t('#{targetWFS.getFeatureRequest}','#{targetWFS.olSRSName}',#{targetWFS.olCenter},#{targetWFS.olExtent})" icon="ui-icon-check" style="width:27px;height:27px;" />
+			<p:commandButton id="t_getFeatures" disabled="#{targetWFS.WFSBaseIsInvalid}" title="#{targetWFS.getFeatureRequest}" onclick="f_initMapResource_t('#{targetWFS.getFeatureRequest}','#{targetWFS.SRSName}',#{targetWFS.centerAsString},#{targetWFS.extentAsString})" icon="ui-icon-check" style="width:27px;height:27px;" />
 			
 			<h:outputText />
 			<h:outputLabel for="t_forceWGS84" value="force WGS84: " />
@@ -143,29 +143,53 @@
 		
 	</h:panelGrid>
 	
-	<div class="content section">Stats</div>  
+	<div class="content section color_sub">Stats</div>  
 	
 	<p:outputPanel rendered="true" styleClass="content">
 		<div id="stats_rt" />
-	</p:outputPanel>
+	</p:outputPanel> -->
 	
-	<div class="content section">Dataset Fusion</div>
+	<div class="content section color_sub">Dataset Fusion</div>
 	
-	<!-- <h:panelGrid columns="5" styleClass="content alignMiddle">
+	<h:panelGrid columns="5" styleClass="content alignMiddle">
 	
 		<p:selectOneButton id="f_service" value="wps">
 			 <f:selectItem itemLabel="WPS" itemValue="wps" />
 		</p:selectOneButton>
 		<h:outputText for="f_service" value="Base URL: " />
-		<h:inputText id="f_base" value="http://localhost:8080/52n-wps-webapp/WebProcessingService" styleClass="inputText" style="width:500px;" />
-		<p:commandButton title="retrieve capabilities from server" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
-		<p:commandButton title="execute" value="WPS execute" />
-		
+		<h:inputText id="f_base" value="#{wps.baseURL}" styleClass="inputText" style="width:500px;" />
+		<p:commandButton title="retrieve capabilities from server" value="get capabilities" action="#{wps.initCapabilities}" update="f_processes :form:message" icon="ui-icon-circle-arrow-s" />
 	</h:panelGrid>
 	
 	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
+	
+		<p:selectManyCheckbox id="f_processes" layout="grid" widgetVar="p_selectedProcesses" value="#{wps.selectedProcesses}" valueChangeListener="#{wps.updateProcesses}" columns="1">
+			<f:selectItems value="#{wps.processDescriptions.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
+			<f:ajax />
+        </p:selectManyCheckbox>
         
-        <h:outputText value="Data Harmonization: " />
+    </h:panelGrid>
+    
+	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
+     	<h:panelGroup layout="block">
+			<div id="plumb_processes" class="content color_border" style="margin-bottom:0px;"/>
+		</h:panelGroup>
+		<h:panelGroup layout="block">
+			<div id="plumb_desc" class="color_txt_main" />
+		</h:panelGroup>
+		<h:panelGroup>
+	     	<h:inputText id="p_literal" styleClass="inputText" style="width:80px;" />
+     		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
+     		<p:commandButton id="p_execute" widgetVar="p_execute_button" title="execute" value="execute" icon="ui-icon-arrowreturnthick-1-e" disabled="true" />
+     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" onclick="f_reset();" style="float:right;margin-right:0px;" />
+     	</h:panelGroup>
+     	<h:inputHidden id="p_connections" value="#{wps.connections}" />
+     	<h:panelGroup layout="block">
+			<div id="p_validationResult" class="color_txt_main" />
+		</h:panelGroup>
+    </h:panelGrid>
+        
+    <!-- <h:outputText value="Data Harmonization: " />
         <p:selectManyCheckbox id="f_processes_dh" layout="grid" columns="1">
             <f:selectItem itemLabel="CRSReproject ('Reprojects coordinate reference system of input features')" itemValue="false" />
         </p:selectManyCheckbox>
@@ -204,43 +228,14 @@
         <h:outputText value="Resolving: " />
         <p:selectManyCheckbox id="f_processes_rs" layout="grid" columns="1">
             <f:selectItem itemLabel="AttributeTransfer ('Transfers all attributes from target to linked reference')" itemValue="false" />
-        </p:selectManyCheckbox>
+        </p:selectManyCheckbox> -->
         
-       </h:panelGrid> -->
-	
-	
-    
-       <!-- <p:tab title="Fusion Process">
-        
-        	<h:panelGrid columns="3" styleClass="alignTop">
-
-				<p:selectOneButton id="p_service" value="wps">
-				    <f:selectItem itemLabel="WPS" itemValue="wps" />
-				</p:selectOneButton>
-		        <h:outputText for="p_service" value="Base URL: " />
-		        <h:panelGroup layout="block">
-					<h:inputText id="p_base" value="#{wps.baseURL}" style="width:500px;" />
-					<p:commandButton title="retrieve capabilities from server" action="#{wps.initCapabilities}" update=":form:message p_processes" icon="ui-icon-circle-arrow-s" style="width:27px;height:27px;" />
-				</h:panelGroup>
-				
-				<h:outputText />
-				<h:outputLabel for="p_processes" value="WPS Processes: " />
-	       		<p:selectManyButton id="p_processes" value="#{wps.selectedProcesses}" onchange="f_addProcess(new process('newProcess'))">
-		            <f:selectItems value="#{wps.supportedProcesses.entrySet()}" var="entry" itemValue="#{entry.value}" itemLabel="#{entry.key}" itemDescription="#{entry.value}" />
-        		</p:selectManyButton>
-       			
-       		</h:panelGrid> 
-       		
-       		<div id="plumb_processes" class="plumb_processes">
-       			<div id="process1" class="plumb_process">init</div>
-       		</div>
+      
    
-		
-        </p:tab> -->
         
-	<div class="content section">Compare Datasets</div>
+	<div class="content section color_sub">Compare Datasets</div>
 	
-	<h:panelGrid columns="2" styleClass="content alignTop">
+	<h:panelGrid columns="2" styleClass="content alignTop" style="margin-bottom:0px;">
 		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " />
 		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
 	</h:panelGrid>
@@ -265,12 +260,14 @@
 			<div id="map_ct_coord" class="coord" />			
 		</h:panelGroup>
 		
-	</h:panelGrid>	     
+	</h:panelGrid>   
       
 	</h:form>
 </div>
     
+<!-- <script src="http://openlayers.org/en/v3.2.1/build/ol.js" type="text/javascript"></script> -->
 <script src="http://openlayers.org/en/v3.1.1/build/ol.js" type="text/javascript"></script>
+<!-- <h:outputScript library="js/extern" name="ol-debug.js" /> -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.3/proj4.js" type="text/javascript"></script>
 <script src="http://epsg.io/31469.js" type="text/javascript"></script>
 <h:outputScript library="js" name="ol-resource.js" />
@@ -279,8 +276,8 @@
 <h:outputScript library="js" name="ol-main.js" />
 <h:outputScript library="js" name="common.js" />
 <h:outputScript library="js" name="ld-relations.js" />
-<!-- <h:outputScript library="js/extern" name="dom.jsPlumb-1.7.2.js" />
-<h:outputScript library="js" name="plumb-main.js" /> -->
+<h:outputScript library="js/extern" name="dom.jsPlumb-1.7.2.js" />
+<h:outputScript library="js" name="plumb-main.js" />
 	
 </h:body>
 </html>

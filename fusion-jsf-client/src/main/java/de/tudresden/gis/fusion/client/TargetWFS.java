@@ -9,9 +9,6 @@ import de.tudresden.gis.fusion.client.ows.WFSHandler;
 @SessionScoped
 public class TargetWFS extends WFSHandler {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 }

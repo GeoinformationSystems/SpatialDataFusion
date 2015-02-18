@@ -1,13 +1,22 @@
+.color_main { background-color:#000066;color:white; }
+.color_border { border:1px solid #000066; }
+.color_sub { background-color:#BBDDFF;color:black; }
+.color_sub_border { background-color:#BBDDFF;color:black;border:1px solid #000066; }
+.color_subsub { background-color:#DDEEFF;color:black; }
+.color_subsub_border { background-color:#DDEEFF;color:black;border:1px solid #000066; }
+.color_txt_main { color:#000099; }
+.color_txt_sub {color:black;}
+
 body { margin:0px;padding-top:90px;font-family:Verdana,Arial,sans-serif!important;}
 
-#header { top:0px;left:0px;position:fixed;display:block;background-color:#0B2A51;z-index:100;overflow:hidden;height:60px!important;width:100% }
+#header { top:0px;left:0px;position:fixed;display:block;z-index:100;overflow:hidden;height:60px!important;width:100% }
 #header_text { font-size:2em;font-weight:bold;color:white;float:left; }
 #status { width:100px;height:32px;float:right;margin-top:5px;padding-right:50px; }
 
 #mainframe { clear:both;width:100%;margin-left:0px; }
 
 .content { position:relative;padding-top:30px;padding-left:50px;margin-bottom:20px; }
-.section { color:white;height:40px;font-size:1.8em;background-color:#515D80; }
+.section { height:40px;font-size:1.8em; }
 
 .map { height:300px;width:400px;border:1px solid black;float:left;margin:2px; }
 .info { height:280px;overflow:auto;padding-left:5px; }
@@ -16,32 +25,41 @@ body { margin:0px;padding-top:90px;font-family:Verdana,Arial,sans-serif!importan
 .inputText { line-height:1.5em;width:100%;color:#555; }
 
 .infoProperties { font-size:0.8em;border-top:2px solid white; }
-.idproperty { padding:5px 0px;background-color:#515D80;color:white;margin-left:-5px; }
-.idvalue { padding:5px;display:inline-block;background-color:#515D80;color:white;cursor:pointer;min-width:200px; }
+.idproperty { padding:5px 0px;margin-left:-5px; }
+.idvalue { padding:5px;display:inline-block;cursor:pointer;min-width:200px; }
 .property { }
-.value { color:blue;padding:0px 5px; }
+.value { padding:0px 5px; }
 
 .elementProperties { display:none; }
 
 .stats { border:0px;font-size:0.8em!important;margin-left:5px; }
 .stats th { text-align:left; border-bottom:1px solid black; }
 .stats td { min-width:200px;padding-right:10px; }
-.stats td.good { color:green; }
-.stats td.bad { color:red; }
+.good { color:green; }
+.bad { color:red; }
 .stats td.row_cap { font-weight:bold; }
 	
 .alignTop td { vertical-align:top; }
 .alignMiddle td { vertical-align:middle; }
 
-.ui-button-text-only .ui-button-text { line-height:1.2!important;padding:0.2em 0.6em!important;font-weight:normal!important;font-size:0.9em!important; }
+.ui-button { height:27px;font-weight:normal!important;font-size:0.9em!important; }
+.ui-button-text { padding-top:0.1em!important; }
 .ui-selectonemenu { margin-top:2px;font-size:0.9em!important; }
 .ui-selectmanycheckbox label { margin-top:-2px!important; }
 .ui-selectonemenu-list-item { font-size:0.9em!important; }
 .ui-inputswitch .ui-inputswitch-on, .ui-inputswitch .ui-inputswitch-off { font-weight:normal!important;font-size:0.9em!important; }
+.ui-inputfield { height:18px; }
 .ui-growl { font-size:0.9em!important; }
 .ui-widget { font-size:1em; }
-.ui-state-active { background:none;background-color:#515D80;color:white; }
-.ui-state-active .ui-icon { background-image:none!important; }
+.ui-state-active { box-shadow:none; }
+.ui-state-focus { box-shadow:none; } 
 
-#plumb_processes { width:100%;height:300px;background-color:white;position:relative;overflow:auto; }
-.plumb_process { border:1px solid black;font-size:12pt;width:100px;height:50px;position:absolute;text-align:center;font-variant:small-caps;padding-top:5px; }
+#plumb_processes { width:1000px;height:300px;background-color:white;overflow:auto;float:left; }
+#plumb_desc { height:300px;overflow:auto;padding-left:5px;font-size:0.8em; }
+.ioFormat { font-style:italic;padding:0px 5px; }
+.p_validationResult { font-size:0.8em; }
+.plumb_process { cursor:move;color:white;font-size:12pt;min-width:150px;position:absolute;text-align:center;font-variant:small-caps; }
+.plumb_process:hover { opacity:0.8; }
+.plumb_process_in { border-left-width:5px;cursor:pointer;font-size:10pt;padding:3px;font-variant:normal; }
+.plumb_process_out { border-right-width:5px;cursor:pointer;font-size:10pt;padding:3px;font-variant:normal; }
+._jsPlumb_source_hover, ._jsPlumb_target_hover { background-color:#990000; color:white;border-color:#990000 }
