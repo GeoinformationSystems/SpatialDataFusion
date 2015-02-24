@@ -7,7 +7,7 @@ import javax.faces.bean.SessionScoped;
 
 import de.tudresden.gis.fusion.client.ows.WPSHandler;
 
-@ManagedBean(name = "wps")
+@ManagedBean(name = "wpsConnection")
 @SessionScoped
 public class WPSConnection extends WPSHandler implements Serializable {
 

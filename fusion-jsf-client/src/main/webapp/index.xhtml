@@ -157,14 +157,14 @@
 			 <f:selectItem itemLabel="WPS" itemValue="wps" />
 		</p:selectOneButton>
 		<h:outputText for="f_service" value="Base URL: " />
-		<h:inputText id="f_base" value="#{wps.baseURL}" styleClass="inputText" style="width:500px;" />
-		<p:commandButton title="retrieve capabilities from server" value="get capabilities" action="#{wps.initCapabilities}" update="f_processes :form:message" icon="ui-icon-circle-arrow-s" />
+		<h:inputText id="f_base" value="#{wpsConnection.baseURL}" styleClass="inputText" style="width:500px;" />
+		<p:commandButton title="retrieve capabilities from server" value="get capabilities" action="#{wpsConnection.initCapabilities}" update="f_processes :form:message" icon="ui-icon-circle-arrow-s" />
 	</h:panelGrid>
 	
 	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
 	
-		<p:selectManyCheckbox id="f_processes" layout="grid" widgetVar="p_selectedProcesses" value="#{wps.selectedProcesses}" valueChangeListener="#{wps.updateProcesses}" columns="1">
-			<f:selectItems value="#{wps.processDescriptions.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
+		<p:selectManyCheckbox id="f_processes" layout="grid" widgetVar="p_selectedProcesses" value="#{wpsConnection.selectedProcesses}" valueChangeListener="#{wpsConnection.updateProcesses}" columns="1">
+			<f:selectItems value="#{wpsConnection.processDescriptions.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
 			<f:ajax />
         </p:selectManyCheckbox>
         
@@ -172,7 +172,7 @@
     
 	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
      	<h:panelGroup layout="block">
-			<div id="plumb_processes" class="content color_border" style="margin-bottom:0px;"/>
+			<div id="plumb_processes" class="color_border" style="margin-bottom:0px;"/>
 		</h:panelGroup>
 		<h:panelGroup layout="block">
 			<div id="plumb_desc" class="color_txt_main" />
@@ -180,12 +180,13 @@
 		<h:panelGroup>
 	     	<h:inputText id="p_literal" styleClass="inputText" style="width:80px;" />
      		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
-     		<p:commandButton id="p_execute" widgetVar="p_execute_button" title="execute" value="execute" icon="ui-icon-arrowreturnthick-1-e" disabled="true" />
+     		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsExecute.executeProcess}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnection.connectionInvalid}" update=":form:message f_useFusionResult" />
+     		<p:remoteCommand name="p_setConnectionsInvalidFromJS" update="p_execute" actionListener="#{wpsConnection.setConnectionsInvalidFromJS}" />
      		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" onclick="f_reset();" style="float:right;margin-right:0px;" />
      	</h:panelGroup>
-     	<h:inputHidden id="p_connections" value="#{wps.connections}" />
+     	<h:inputHidden id="p_connections" value="#{wpsConnection.connections}" />
      	<h:panelGroup layout="block">
-			<div id="p_validationResult" class="color_txt_main" />
+			<div id="p_validationResult" class="color_txt_main p_validationResult" />
 		</h:panelGroup>
     </h:panelGrid>
         
@@ -236,7 +237,7 @@
 	<div class="content section color_sub">Compare Datasets</div>
 	
 	<h:panelGrid columns="2" styleClass="content alignTop" style="margin-bottom:0px;">
-		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " />
+		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " disabled="#{wpsExecute.isNotExecuted}" />
 		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
 	</h:panelGrid>
 	

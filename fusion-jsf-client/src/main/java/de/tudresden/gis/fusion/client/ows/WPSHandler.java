@@ -7,18 +7,17 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
 import javax.faces.event.ValueChangeEvent;
 
 import org.primefaces.context.RequestContext;
-
+import org.primefaces.json.JSONException;
+import org.primefaces.json.JSONObject;
 import de.tudresden.gis.fusion.client.ows.document.WPSCapabilities;
 import de.tudresden.gis.fusion.client.ows.document.WPSProcessDescriptions;
 
 public class WPSHandler extends OWSHandler {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	private final String SERVICE = "wps";	
@@ -141,5 +140,19 @@ public class WPSHandler extends OWSHandler {
 	public String connections;
 	public String getConnections() { return connections; }
 	public void setConnections(String connections) { this.connections = connections; }
+	public JSONObject decodeConnections() throws JSONException {
+		return new JSONObject(getConnections().replace("&quot;", "\""));
+	}
+	
+	public boolean connectionInvalid = true;
+	public boolean getConnectionInvalid() { return connectionInvalid; }
+	public void setConnectionInvalid(boolean connectionInvalid) { this.connectionInvalid = connectionInvalid; }
+	public void setConnectionsInvalidFromJS() {
+		String value = FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("invalid");
+		if(value == null || value.equalsIgnoreCase("true"))
+			setConnectionInvalid(true);
+		else
+			setConnectionInvalid(false);
+	}
 
 }

@@ -29,6 +29,13 @@ function f_removeProcess(identifier){
  * reset jsPlumb
  */
 function f_reset() {
+	//uncheck all processes
+	var selection = PrimeFaces.widgets.p_selectedProcesses;
+	selection.inputs.each(function() {
+		if($(this).prop('checked') === true)
+			$(this).trigger('click');
+	});
+	//remove rest
 	jsPlumbInstance.deleteEveryEndpoint();
 	var identifiers = [];
 	for(var process in activeProcesses){
@@ -37,12 +44,6 @@ function f_reset() {
 	for(var i=0; i<identifiers.length; i++) {
 		f_removeProcess(identifiers[i]);
 	}
-	//uncheck all processes
-	var selection = PrimeFaces.widgets.p_selectedProcesses;
-	selection.inputs.each(function() {
-		if($(this).prop('checked') === true)
-			$(this).trigger('click');
-	});
 }
 
 /**
@@ -228,9 +229,9 @@ function f_addProcessIO(identifier_norm, ioDescription, input){
 	processIO.mouseover(function() {
 		$('#plumb_desc').html(f_getIODetails(ioDescription));
 	});
-//	processIO.mouseleave(function() {
-//		$('#plumb_desc').html('');
-//	});
+	processIO.mouseleave(function() {
+		$('#plumb_desc').html('');
+	});
 	$('#' + identifier_norm).append(processIO);
 	
 	var io = jsPlumb.getSelector("#" + processIOId);
@@ -262,6 +263,11 @@ function f_getIODetails(ioDescription){
 		'supportedFormats<br />';
 	for(var i=0; i<ioDescription.supportedFormats.length; i++) {
 		details += f_getFormatString(ioDescription.supportedFormats[i]);
+		if(i >= 5){
+			details += '<div class="ioFormat color_txt_sub">... (' + 
+					(ioDescription.supportedFormats.length - 5) + ' more)</div>';
+			break;
+		}
 	}
 	return details;
 }
@@ -277,7 +283,7 @@ function f_getFormatString(format){
 		string += 'no format defined<br />';
 	else
 		string += (typeof format.mimetype !== 'undefined' && format.mimetype.length > 0 ? 'mimetype: ' + format.mimetype + '<br />' : '') + 
-			(typeof format.schema !== 'undefined' && format.schema.length > 0 ? 'schema: ' + format.mimetype + '<br />' : '') + 
+			(typeof format.schema !== 'undefined' && format.schema.length > 0 ? 'schema: ' + format.schema + '<br />' : '') + 
 			(typeof format.type !== 'undefined' && format.type.length > 0 ? 'type: ' + format.type + '<br />' : '');
 	if(string.lastIndexOf('<br />') > -1)
 		string = string.substring(0, string.lastIndexOf('<br />'));
@@ -290,9 +296,10 @@ function f_getFormatString(format){
  */
 function setConnectionsValid(flag){
 	if(flag === true)
-		PrimeFaces.widgets.p_execute_button.enable();
+		p_setConnectionsInvalidFromJS([{name:"invalid", value:"false"}]);
 	else
-		PrimeFaces.widgets.p_execute_button.disable();
+		p_setConnectionsInvalidFromJS([{"invalid":"true"}]);
+		
 }
 
 /**
@@ -320,7 +327,7 @@ function f_validateConnections() {
 	if(connectionsValid) {
 		setConnectionsValid(true);
 		document.getElementById('p_validationResult').innerHTML = '<span class="good">Connections are valid</span>';
-		document.getElementById('form:p_connections').value = JSON.stringify(f_getConnections());
+		document.getElementById('form:p_connections').value = '{ "connections" : ' + JSON.stringify(connections) + '}';
 	}
 	else {
 		setConnectionsValid(false);
@@ -349,9 +356,9 @@ function f_validateConnection(connection) {
 	}
 	//check if inputs and outputs are set	
 	if(typeof outputs === null || typeof inputs === null)
-		return 'inputs or outputs are not set properly for ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+		return 'inputs or outputs are not set properly for : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
 	else if(!f_haveCommonFormat(inputs, outputs))
-		return 'inputs and outputs have no common format ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+		return 'inputs and outputs have no common format : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
 	else
 		return null;
 }
