@@ -4,7 +4,7 @@ import java.util.Collection;
 
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 
-public interface IMeasurementOperationProfile extends IOperationProfile {
+public interface IMeasurementProfile extends IOperationProfile {
 
 	public Collection<IMeasurementDescription> getSupportedMeasurements();
 	
