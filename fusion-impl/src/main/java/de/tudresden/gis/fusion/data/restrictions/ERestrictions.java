@@ -1,8 +1,10 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
 import de.tudresden.gis.fusion.data.ICoverage;
+import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
+import de.tudresden.gis.fusion.data.complex.OSMFeatureCollection;
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
@@ -27,8 +29,10 @@ public enum ERestrictions {
 	BINDING_BOOLEAN(new JavaBindingRestriction(BooleanLiteral.class)),
 	BINDING_STRING(new JavaBindingRestriction(StringLiteral.class)),
 	BINDING_IFEATUReCOLLECTION(new JavaBindingRestriction(IFeatureCollection.class)),
+	BINDING_OSMFEATUReCOLLECTION(new JavaBindingRestriction(OSMFeatureCollection.class)),
 	BINDING_IFEATUReRELATIOnCOLLECTION(new JavaBindingRestriction(IFeatureRelationCollection.class)),
 	BINDING_ICOVERAGE(new JavaBindingRestriction(ICoverage.class)),
+	BINDING_IDATARESOURCE(new JavaBindingRestriction(IDataResource.class)),
 	
 	//mandatory restriction
 	MANDATORY(new MandatoryIORestriction(true));

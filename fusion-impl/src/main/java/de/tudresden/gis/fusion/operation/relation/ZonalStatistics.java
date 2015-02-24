@@ -89,7 +89,7 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 	};
 
 	@Override
-	protected void execute() {
+	public void execute() {
 		
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);

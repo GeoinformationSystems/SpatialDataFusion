@@ -29,11 +29,11 @@ public class GeometryDistanceTest {
 		GMLParser parser = new GMLParser();
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_GML_URL", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
+		input.put("IN_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
 		Map<String,IData> output = parser.execute(input);
 		IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");
 
-		input.put("IN_GML_URL", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
+		input.put("IN_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
 		output = parser.execute(input);
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");
 		

@@ -5,13 +5,13 @@ import java.util.Collection;
 import de.tudresden.gis.fusion.data.IRelationType;
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementOperationProfile;
-import de.tudresden.gis.fusion.operation.IMeasurementOperation;
-import de.tudresden.gis.fusion.operation.metadata.IMeasurementOperationProfile;
+import de.tudresden.gis.fusion.operation.IMeasurement;
+import de.tudresden.gis.fusion.operation.metadata.IMeasurementProfile;
 
-public abstract class AbstractMeasurementOperation extends AbstractOperation implements IMeasurementOperation {
+public abstract class AbstractMeasurementOperation extends AbstractOperation implements IMeasurement {
 	
-	public IMeasurementOperationProfile getProfile(){
-		return (IMeasurementOperationProfile) super.getProfile();
+	public IMeasurementProfile getProfile(){
+		return (IMeasurementProfile) super.getProfile();
 	}
 	
 	protected void initDescription(){

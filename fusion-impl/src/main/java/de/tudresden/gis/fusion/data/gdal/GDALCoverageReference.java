@@ -45,7 +45,7 @@ public class GDALCoverageReference implements IIdentifiableResource,ICoverage {
 			p.waitFor();
 			supported = p.exitValue() == 0 ? true : false;
 			p.destroy();			
-		} catch (IOException | InterruptedException e){
+		} catch (Exception e){
 			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
 		}
 		return supported;

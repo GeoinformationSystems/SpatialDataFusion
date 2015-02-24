@@ -11,11 +11,8 @@ import com.vividsolutions.jts.geom.Point;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.complex.FeatureRelation;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
@@ -26,11 +23,11 @@ import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
+import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class HausdorffDistance extends AbstractMeasurementOperation {
+public class HausdorffDistance extends AbstractRelationMeasurement {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -39,11 +36,16 @@ public class HausdorffDistance extends AbstractMeasurementOperation {
 	private final String IN_BIDIRECTIONAL = "IN_BIDIRECTIONAL";
 	private final String IN_POINTS_ONLY = "IN_POINTS_ONLY";
 	private final String IN_RELATIONS = "IN_RELATIONS";
+	private final String IN_DROP_RELATIONS = "IN_DROP_RELATIONS";
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#HausdorffDistance";
 	private final String RELATION_HAUS_DISTANCE = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#distance_hausdorff";
+	
+	private double dThreshold;
+	private boolean bBidirectional;
+	private boolean bPointsOnly;
 	
 	@Override
 	public void execute() {
@@ -51,62 +53,29 @@ public class HausdorffDistance extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		DecimalLiteral inThreshold = (DecimalLiteral) getInput(IN_THRESHOLD);
-		BooleanLiteral inBidirectional = (BooleanLiteral) getInput(IN_BIDIRECTIONAL);
-		BooleanLiteral inPointsOnly = (BooleanLiteral) getInput(IN_POINTS_ONLY);
+		bBidirectional = ((BooleanLiteral) getInput(IN_BIDIRECTIONAL)).getValue();
+		bPointsOnly = ((BooleanLiteral) getInput(IN_POINTS_ONLY)).getValue();
+		dThreshold = ((DecimalLiteral) getInput(IN_THRESHOLD)).getValue();
+		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
 		
-		//set defaults
-		double dThreshold = inThreshold.getValue();
-		boolean bidirectional = inBidirectional == null ? ((BooleanLiteral) this.getInputDescription(new IRI(IN_BIDIRECTIONAL)).getDefault()).getValue() : inBidirectional.getValue();
-		boolean pointsOnly = inPointsOnly == null ? ((BooleanLiteral) this.getInputDescription(new IRI(IN_POINTS_ONLY)).getDefault()).getValue() : inPointsOnly.getValue();
-		
+		//execute		
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold, bidirectional, pointsOnly) :
-				calculateRelation(inReference, inTarget, dThreshold, bidirectional, pointsOnly));
+				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				calculateRelation(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, double dThreshold, boolean bidirectional, boolean pointsOnly) {
-
-		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
-	    for(IFeature fRef : reference) {
-		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold, bidirectional, pointsOnly);
-	    		if(similarity != null)
-	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
-		    }
-	    }
-	    return relations;
-	    
-	}
-	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold, boolean bidirectional, boolean pointsOnly){
-		
-		//init relations
-		for(IFeatureRelation relation : relations){
-			//get features
-			IFeature fReference = reference.getFeatureById(relation.getReference().getIdentifier());
-			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
-			if(reference == null || target == null)
-				continue;
-			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, dThreshold, bidirectional, pointsOnly);
-    		if(similarity != null)
-    			relation.addRelationMeasurement(similarity);
-	    }
-		return relations;
-	    
-	}
-	
-	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, double dThreshold, boolean bidirectional, boolean pointsOnly) {
+	@Override
+	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get distance
-		double distance = calculateHausdorffDistance(gReference, gTarget, bidirectional, pointsOnly);
+		double distance = calculateHausdorffDistance(gReference, gTarget);
 		//add similarity measurement, if angle <= threshold 
 		if(distance <= dThreshold){
 			return new SimilarityMeasurement(
@@ -126,13 +95,13 @@ public class HausdorffDistance extends AbstractMeasurementOperation {
 	 * @return hausdorff distance
 	 * @throws IOException
 	 */
-	private double calculateHausdorffDistance(Geometry gReference, Geometry gTarget, boolean bidirectional, boolean pointsOnly) {
+	private double calculateHausdorffDistance(Geometry gReference, Geometry gTarget) {
 		//calculate hausdorff distance for each feature
-		if(pointsOnly && bidirectional)
+		if(bPointsOnly && bBidirectional)
 			return(Math.min(calculateHausdorffDistance(gReference.getCoordinates(), gTarget.getCoordinates()), calculateHausdorffDistance(gTarget.getCoordinates(), gReference.getCoordinates())));
-		else if(bidirectional)
+		else if(bBidirectional)
 			return(Math.min(calculateHausdorffDistance(gReference.getCoordinates(), gTarget), calculateHausdorffDistance(gTarget.getCoordinates(), gReference)));
-		else if(pointsOnly)
+		else if(bPointsOnly)
 			return(calculateHausdorffDistance(gReference.getCoordinates(), gTarget.getCoordinates()));		
 		else
 			return(calculateHausdorffDistance(gReference.getCoordinates(), gTarget));
@@ -206,17 +175,20 @@ public class HausdorffDistance extends AbstractMeasurementOperation {
 		inputs.add(new IODescription(
 						new IRI(IN_REFERENCE), "Reference features",
 						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
 						})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_TARGET), "Target features",
 					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+						ERestrictions.MANDATORY.getRestriction()
 					})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_THRESHOLD), "Distance threshold for relations",
+					new DecimalLiteral(0),
 					new IDataRestriction[]{
 						ERestrictions.BINDING_DECIMAL.getRestriction()
 					})
@@ -234,6 +206,13 @@ public class HausdorffDistance extends AbstractMeasurementOperation {
 					new IDataRestriction[]{
 						ERestrictions.BINDING_BOOLEAN.getRestriction()
 					})
+		);
+		inputs.add(new IODescription(
+				new IRI(IN_DROP_RELATIONS), "relations that do not satisfy the threshold are dropped",
+				new BooleanLiteral(false),
+				new IDataRestriction[]{
+					ERestrictions.BINDING_BOOLEAN.getRestriction()
+				})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",

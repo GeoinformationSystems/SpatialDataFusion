@@ -104,8 +104,8 @@ public class RDFTurtleGeneratorTest {
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
 		RDFTurtleGenerator generator = new RDFTurtleGenerator();
-		input.put("IN_DATA", relations);
-		input.put("URI_PREFIXES", new StringLiteral(""
+		input.put("IN_RELATIONS", relations);
+		input.put("IN_URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
@@ -115,7 +115,7 @@ public class RDFTurtleGeneratorTest {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
 		output = generator.execute(input);	
-		IDataResource file = (IDataResource) output.get("OUT_FILE");
+		IDataResource file = (IDataResource) output.get("OUT_RESOURCE");
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();

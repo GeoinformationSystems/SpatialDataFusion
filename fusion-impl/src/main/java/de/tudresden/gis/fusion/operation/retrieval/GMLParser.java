@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.operation.retrieval;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.geotools.xml.Configuration;
@@ -11,18 +12,22 @@ import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
+import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.operation.AbstractOperation;
 import de.tudresden.gis.fusion.operation.IDataRetrieval;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.io.IFilter;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
 public class GMLParser extends AbstractOperation implements IDataRetrieval {
 
-	public static final String IN_GML_RESOURCE = "IN_GML_RESOURCE";
+	public static final String IN_RESOURCE = "IN_RESOURCE";
 	private final String IN_WITH_INDEX = "IN_WITH_INDEX";
+	
 	public static final String OUT_FEATURES = "OUT_FEATURES";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#GMLParser";
@@ -31,7 +36,7 @@ public class GMLParser extends AbstractOperation implements IDataRetrieval {
 	public void execute() throws ProcessException {
 		
 		//get input url
-		IDataResource gmlResource = (IDataResource) getInput(IN_GML_RESOURCE);
+		IDataResource gmlResource = (IDataResource) getInput(IN_RESOURCE);
 		BooleanLiteral inWithIndex = (BooleanLiteral) getInput(IN_WITH_INDEX);
 		IIRI identifier = gmlResource.getIdentifier();
 		
@@ -82,26 +87,44 @@ public class GMLParser extends AbstractOperation implements IDataRetrieval {
 
 	@Override
 	protected String getProcessTitle() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
 	protected String getProcessDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Parser for GML";
 	}
 
-	@Override
 	protected Collection<IIODescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
+		inputs.add(new IODescription(
+						new IRI(IN_RESOURCE), "GML resource",
+						new IDataRestriction[]{
+							ERestrictions.BINDING_IDATARESOURCE.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+						})
+		);
+		inputs.add(new IODescription(
+					new IRI(IN_WITH_INDEX), "if set true, a spatial index is build",
+					new BooleanLiteral(true),
+					new IDataRestriction[]{
+						ERestrictions.BINDING_BOOLEAN.getRestriction()
+					})
+		);
+		return inputs;				
 	}
 
 	@Override
 	protected Collection<IIODescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
+		outputs.add(new IODescription(
+					new IRI(OUT_FEATURES), "Output features",
+					new IDataRestriction[]{
+						ERestrictions.MANDATORY.getRestriction(),
+						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+					})
+		);
+		return outputs;
 	}
 	
 }

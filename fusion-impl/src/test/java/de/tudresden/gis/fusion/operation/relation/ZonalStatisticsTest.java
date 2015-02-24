@@ -29,12 +29,12 @@ public class ZonalStatisticsTest {
 	Map<String,IData> output;
 	
 	GMLParser featureParser = new GMLParser();
-	input.put("IN_GML_RESOURCE", new Resource(new IRI("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:municipalities&srsname=crs:84")));
+	input.put("IN_RESOURCE", new Resource(new IRI("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:municipalities&srsname=crs:84")));
 	output = featureParser.execute(input);		
 	IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");
 	
 	String request = "http://localhost:8081/geoserver/wcs?request=getcoverage&version=2.0.0&coverageId=fusion__dem";
-	input.put("IN_COVERAGE_RESOURCE", new Resource(new IRI(request)));
+	input.put("IN_RESOURCE", new Resource(new IRI(request)));
 	GridCoverageParser coverageParser = new GridCoverageParser();
 	output = coverageParser.execute(input);
 	ICoverage target = (ICoverage) output.get("OUT_COVERAGE");

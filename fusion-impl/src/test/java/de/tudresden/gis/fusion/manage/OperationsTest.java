@@ -4,7 +4,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import de.tudresden.gis.fusion.operation.IMeasurementOperation;
+import de.tudresden.gis.fusion.operation.IMeasurement;
 import de.tudresden.gis.fusion.operation.IOperation;
 
 public class OperationsTest {
@@ -18,9 +18,9 @@ public class OperationsTest {
 			System.out.println("\t" + op.getCanonicalName());
 		}
 		
-		Set<Class<? extends IMeasurementOperation>> measurementOperations = Operations.getAvalaibleMeasurementOperations();
+		Set<Class<? extends IMeasurement>> measurementOperations = Operations.getAvalaibleMeasurementOperations();
 		System.out.println("Available measurement operations:");
-		for(Class<? extends IMeasurementOperation> op : measurementOperations) {
+		for(Class<? extends IMeasurement> op : measurementOperations) {
 			System.out.println("\t" + op.getCanonicalName());
 		}
 		

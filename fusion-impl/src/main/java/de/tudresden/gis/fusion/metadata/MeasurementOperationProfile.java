@@ -11,9 +11,9 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
-import de.tudresden.gis.fusion.operation.metadata.IMeasurementOperationProfile;
+import de.tudresden.gis.fusion.operation.metadata.IMeasurementProfile;
 
-public class MeasurementOperationProfile extends OperationProfile implements IMeasurementOperationProfile {
+public class MeasurementOperationProfile extends OperationProfile implements IMeasurementProfile {
 
 	private Collection<IMeasurementDescription> supportedMeasurements;
 	

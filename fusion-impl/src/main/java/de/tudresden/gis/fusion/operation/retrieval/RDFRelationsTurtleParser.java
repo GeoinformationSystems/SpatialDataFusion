@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,16 +19,19 @@ import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.RDFTurtleDecoder;
+import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.operation.AbstractOperation;
 import de.tudresden.gis.fusion.operation.IDataRetrieval;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.io.IFilter;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
 public class RDFRelationsTurtleParser extends AbstractOperation implements IDataRetrieval {
 	
-	public final String IN_RDF_RESOURCE = "IN_RDF_RESOURCE";
+	public final String IN_RESOURCE = "IN_RESOURCE";
 	public final String OUT_RELATIONS = "OUT_RELATIONS";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#RDFRelationsTurtleParser";
@@ -36,8 +40,8 @@ public class RDFRelationsTurtleParser extends AbstractOperation implements IData
 	IFeatureRelationCollection relations;
 	
 	@Override
-	protected void execute() {
-		IDataResource rdfResource = (IDataResource) getInput(IN_RDF_RESOURCE);
+	public void execute() {
+		IDataResource rdfResource = (IDataResource) getInput(IN_RESOURCE);
 		IIRI identifier = rdfResource.getIdentifier();
 		
 		prefixes = new HashMap<String,URI>();
@@ -87,26 +91,37 @@ public class RDFRelationsTurtleParser extends AbstractOperation implements IData
 
 	@Override
 	protected String getProcessTitle() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
 	protected String getProcessDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Parser for RDF relations";
 	}
 
-	@Override
 	protected Collection<IIODescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
+		inputs.add(new IODescription(
+						new IRI(IN_RESOURCE), "RDF relations resource",
+						new IDataRestriction[]{
+							ERestrictions.BINDING_IDATARESOURCE.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+						})
+		);
+		return inputs;				
 	}
 
 	@Override
 	protected Collection<IIODescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
+		outputs.add(new IODescription(
+					new IRI(OUT_RELATIONS), "Output relations",
+					new IDataRestriction[]{
+						ERestrictions.MANDATORY.getRestriction(),
+						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+					})
+		);
+		return outputs;
 	}
 
 }

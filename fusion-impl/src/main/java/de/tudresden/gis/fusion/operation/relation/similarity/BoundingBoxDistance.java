@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +11,6 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.FeatureRelation;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
@@ -24,26 +21,31 @@ import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
+import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class BoundingBoxDistance extends AbstractMeasurementOperation {
+public class BoundingBoxDistance extends AbstractRelationMeasurement {
 
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
 	private final String IN_THRESHOLD = "IN_THRESHOLD";
 	private final String IN_RELATIONS = "IN_RELATIONS";	
+	private final String IN_DROP_RELATIONS = "IN_DROP_RELATIONS";
+	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#BBoxDistance";
+	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#BoundingBoxDistance";
 	private final String RELATION_BBOX_OVERLAP = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlap_bbox";
 	private final String RELATION_BBOX_DISTANCE = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#distance_bbox";
+	
+	private double dThreshold;
 	
 	@Override
 	public void execute() {
@@ -51,35 +53,35 @@ public class BoundingBoxDistance extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		DecimalLiteral inThreshold = (DecimalLiteral) getInput(IN_THRESHOLD);
-		
-		double dThreshold = inThreshold == null ? ((DecimalLiteral) this.getInputDescription(new IRI(IN_THRESHOLD)).getDefault()).getValue() : inThreshold.getValue();
-		
+		dThreshold = ((DecimalLiteral) getInput(IN_THRESHOLD)).getValue();
+		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
+
+		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (GTFeatureRelationCollection) getInput(IN_RELATIONS), dThreshold) :
-				calculateRelation(inReference, inTarget, dThreshold));
+				calculateRelation(inReference, inTarget, (GTFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				calculateRelationDelegate(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+	private IFeatureRelationCollection calculateRelationDelegate(IFeatureCollection reference, IFeatureCollection target) {
 
 		if(reference instanceof GTIndexedFeatureCollection)
-			return calculateRelationWithIndex((GTIndexedFeatureCollection) reference, target, dThreshold);
+			return calculateRelationWithIndex((GTIndexedFeatureCollection) reference, target);
 		else
-			return calculateRelationWithoutIndex(reference, target, dThreshold);
+			return calculateRelation(reference, target);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelationWithIndex(GTIndexedFeatureCollection reference, IFeatureCollection target, double dThreshold) {
+	private IFeatureRelationCollection calculateRelationWithIndex(GTIndexedFeatureCollection reference, IFeatureCollection target) {
 
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fTar : target) {
 		    List<IFeature> intersections = reference.intersects(fTar, dThreshold);
 		    for(IFeature fRef : intersections){
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold);
+		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar);
 		    	//only adds measurement, if distance is <= threshold (index can return features that are more distant by different expand strategy)
 		    	if(similarity != null)
 		    		relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
@@ -89,45 +91,8 @@ public class BoundingBoxDistance extends AbstractMeasurementOperation {
 	    
 	}
 	
-	private IFeatureRelationCollection calculateRelationWithoutIndex(IFeatureCollection reference, IFeatureCollection target, double dThreshold) {
-
-		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
-	    for(IFeature fRef : reference) {
-		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, dThreshold);
-	    		if(similarity != null)
-	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
-		    }
-	    }
-	    return relations;
-	    
-	}
-		
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, double dThreshold){
-		
-		//init relations
-		for(IFeatureRelation relation : relations){
-			//get features
-			IFeature fReference = reference.getFeatureById(relation.getReference().getIdentifier());
-			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
-			if(reference == null || target == null)
-				continue;
-			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, dThreshold);
-    		if(similarity != null)
-    			relation.addRelationMeasurement(similarity);
-	    }
-		return relations;
-	    
-	}
-	
-	/**
-	 * calculate overlap between feature bounds
-	 * @param fReference reference feature
-	 * @param fTarget target feature
-	 * @throws IOException
-	 * @throws URISyntaxException 
-	 */
-	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, double dThreshold) {
+	@Override
+	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
 		//get bounding boxes
 		ReferencedEnvelope eReference = getEnvelope(reference.getDefaultSpatialProperty());
 		ReferencedEnvelope eTarget = getEnvelope(target.getDefaultSpatialProperty());
@@ -216,6 +181,13 @@ public class BoundingBoxDistance extends AbstractMeasurementOperation {
 					new IDataRestriction[]{
 						ERestrictions.BINDING_DECIMAL.getRestriction()
 					})
+		);
+		inputs.add(new IODescription(
+				new IRI(IN_DROP_RELATIONS), "relations that do not satisfy the threshold are dropped",
+				new BooleanLiteral(false),
+				new IDataRestriction[]{
+					ERestrictions.BINDING_BOOLEAN.getRestriction()
+				})
 		);
 		inputs.add(new IODescription(
 					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",

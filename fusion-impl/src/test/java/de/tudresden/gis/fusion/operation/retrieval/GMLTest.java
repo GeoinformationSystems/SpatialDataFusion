@@ -19,7 +19,7 @@ public class GMLTest {
 	@Test
 	public void readGMLFile() throws ProcessException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_GML_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
+		input.put("IN_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
 		
 		GMLParser parser = new GMLParser();
 		Map<String,IData> output = parser.execute(input);

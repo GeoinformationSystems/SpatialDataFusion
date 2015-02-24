@@ -26,7 +26,7 @@ public class GTGridCoverage2D implements IIdentifiableResource,ICoverage {
 	private IIRI iri;
 	GridCoverage2D coverage;
 	
-	public GTGridCoverage2D(IIRI identifier, GridCoverage2D coverage) throws IOException {
+	public GTGridCoverage2D(IIRI identifier, GridCoverage2D coverage) {
 		this.coverage = coverage;
 		this.iri = identifier;
 	}

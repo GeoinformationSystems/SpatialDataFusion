@@ -21,7 +21,7 @@ import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.operation.confidence.SimilarityCountMatch;
-import de.tudresden.gis.fusion.operation.provision.FusekiTripleStoreGenerator;
+import de.tudresden.gis.fusion.operation.provision.TripleStoreGenerator;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.relation.similarity.AngleDifference;
 import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
@@ -172,7 +172,7 @@ public class RoadUpdate {
 				"runtime (ms): " + ((LongLiteral) process6.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
-		FusekiTripleStoreGenerator generator = new FusekiTripleStoreGenerator();
+		TripleStoreGenerator generator = new TripleStoreGenerator();
 		input.put("IN_DATA", relations);
 		input.put("IN_TRIPLE_STORE", new Resource(new IRI(URI.create(FUSEKI_URI))));
 		input.put("IN_CLEAR_STORE", new BooleanLiteral(true));

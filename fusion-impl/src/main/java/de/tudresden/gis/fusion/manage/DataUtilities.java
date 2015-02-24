@@ -1,5 +1,6 @@
 package de.tudresden.gis.fusion.manage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -7,11 +8,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.opengis.geometry.BoundingBox;
 
 import de.tudresden.gis.fusion.data.IFeatureCollection;
+import de.tudresden.gis.fusion.data.ISimpleData;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
@@ -19,6 +20,12 @@ import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
+import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
+import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
+import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.operation.ProcessException;
+import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
 
 public class DataUtilities {
 
@@ -181,6 +188,40 @@ public class DataUtilities {
 		
 		//TODO: implement transformation based on IFeatureCollection methods
 		return null;
+	}
+	
+	/**
+	 * encode String literal
+	 * @param sLiteral literal string
+	 * @return encoded literal (type based on RegEx)
+	 */
+	public static ISimpleData encodeLiteral(String sLiteral){
+		//check boolean
+		if(sLiteral.matches("^(?i)(true|false)"))
+			return new BooleanLiteral(Boolean.parseBoolean(sLiteral));
+		//check integer
+		//TODO: separate long from int
+		if(sLiteral.matches("/^\\d+$"))
+			return new IntegerLiteral(Integer.parseInt(sLiteral));
+		//check decimal
+		if(sLiteral.matches("^\\d+\\.?\\d+$"))
+			return new DecimalLiteral(Double.parseDouble(sLiteral));
+		//final: return string literal
+		return new StringLiteral(sLiteral);
+	}
+	
+	/**
+	 * create temporary file
+	 * @param name file name
+	 * @param suffix file suffix
+	 * @return temp file
+	 */
+	public static File createTmpFile(String name, String suffix){
+		try {
+			return File.createTempFile(name, suffix);
+		} catch (IOException e) {
+			throw new ProcessException(ExceptionKey.ACCESS_RESTRICTION, e);
+		}
 	}
 	
 }

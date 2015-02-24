@@ -18,7 +18,7 @@ import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
-import de.tudresden.gis.fusion.operation.provision.FusekiTripleStoreGenerator;
+import de.tudresden.gis.fusion.operation.provision.TripleStoreGenerator;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.relation.similarity.LengthInPolygon;
 import de.tudresden.gis.fusion.operation.retrieval.GMLParser;
@@ -119,7 +119,7 @@ public class CyclewayWorkflow {
 //				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
 		//write outputs
-		FusekiTripleStoreGenerator generator = new FusekiTripleStoreGenerator();
+		TripleStoreGenerator generator = new TripleStoreGenerator();
 		input.put("IN_DATA", radwege_laermkartierung);
 		input.put("IN_TRIPLE_STORE", new Resource(new IRI(URI.create(FUSEKI_URI))));
 		input.put("IN_CLEAR_STORE", new BooleanLiteral(true));

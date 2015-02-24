@@ -6,6 +6,7 @@ import java.util.Map;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.metadata.OperationProfile;
 import de.tudresden.gis.fusion.operation.IOperation;
@@ -58,7 +59,6 @@ public abstract class AbstractOperation implements IOperation {
 	}
 	
 	public void setInputs(Map<String,IData> inputs){
-		initInput();
 		this.input = inputs;
 	}
 	
@@ -68,7 +68,14 @@ public abstract class AbstractOperation implements IOperation {
 	}
 	
 	public IData getInput(String key){
-		return input.get(key);
+		//return input, if set
+		if(input.containsKey(key))
+			return input.get(key);
+		//return default (returns null if default is not set)
+		IIODescription inputDesc = this.getInputDescription(new IRI(key));
+		if(inputDesc == null)
+			throw new RuntimeException("no input description set for " + key);
+		return inputDesc.getDefault();
 	}
 	
 	public IData getOutput(String key){

@@ -35,11 +35,11 @@ public class SimilarityCountMatchTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_highDensity.shp").toURI())));
+		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
 		Map<String,IData> output = parser.execute(input);		
 		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_highDensity.shp").toURI())));
+		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
 		output = parser.execute(input);		
 		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_FEATURES");
 		

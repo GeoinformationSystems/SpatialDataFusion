@@ -44,7 +44,7 @@ public class AttributeTransfer extends AbstractOperation {
 	private final String FLAG_NEW = "_new";
 
 	@Override
-	protected void execute() {
+	public void execute() {
 		
 		//get input
 		GTFeatureCollection inReference = (GTFeatureCollection) getInput(IN_REFERENCE);

@@ -34,11 +34,11 @@ public class RDFRelationsTurtleTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
 		Map<String,IData> output = parser.execute(input);		
 		IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
 		output = parser.execute(input);		
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");
 		
@@ -59,8 +59,8 @@ public class RDFRelationsTurtleTest {
 		relations = (IFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
 		RDFTurtleGenerator generator = new RDFTurtleGenerator();
-		input.put("IN_DATA", relations);
-		input.put("URI_PREFIXES", new StringLiteral(""
+		input.put("IN_RELATIONS", relations);
+		input.put("IN_URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
@@ -70,7 +70,7 @@ public class RDFRelationsTurtleTest {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
 		output = generator.execute(input);	
-		IDataResource file = (IDataResource) output.get("OUT_FILE");
+		IDataResource file = (IDataResource) output.get("OUT_RESOURCE");
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
@@ -79,7 +79,7 @@ public class RDFRelationsTurtleTest {
 				"target relation file: " + file.getIdentifier().asString() + "\n");
 		
 		
-		input.put("IN_RDF_RESOURCE", file);
+		input.put("IN_RESOURCE", file);
 		
 		RDFRelationsTurtleParser relationsParser = new RDFRelationsTurtleParser();
 		output = relationsParser.execute(input);
@@ -93,7 +93,7 @@ public class RDFRelationsTurtleTest {
 		Assert.assertTrue(relations.size() > 0);
 		runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + parser.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + relationsParser.getProcessIRI().asString() + "\n\t" +
 				"relations read from rdf: " + relations.size() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) parser.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
@@ -108,7 +108,7 @@ public class RDFRelationsTurtleTest {
 		relations = (IFeatureRelationCollection) output.get("OUT_RELATIONS");
 				
 		input.put("IN_DATA", relations);
-		input.put("URI_PREFIXES", new StringLiteral(""
+		input.put("IN_URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
@@ -118,7 +118,7 @@ public class RDFRelationsTurtleTest {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
 		output = generator.execute(input);	
-		file = (IDataResource) output.get("OUT_FILE");
+		file = (IDataResource) output.get("OUT_RESOURCE");
 		
 		runtime = Runtime.getRuntime();
 		runtime.gc();

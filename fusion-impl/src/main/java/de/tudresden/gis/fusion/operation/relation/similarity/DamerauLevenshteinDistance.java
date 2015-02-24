@@ -6,27 +6,25 @@ import java.util.Collection;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.complex.FeatureRelation;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.metadata.MeasurementDescription;
 import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
+import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class DamerauLevenshteinDistance extends AbstractMeasurementOperation {
+public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -35,11 +33,16 @@ public class DamerauLevenshteinDistance extends AbstractMeasurementOperation {
 	private final String IN_TARGET_ATT = "IN_TARGET_ATT";
 	private final String IN_THRESHOLD = "IN_THRESHOLD";
 	private final String IN_RELATIONS = "IN_RELATIONS";
+	private final String IN_DROP_RELATIONS = "IN_DROP_RELATIONS";
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#DamerauLevenshteinDistance";
 	private final String RELATION_STRING_DAMLEV = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#damerauLevenshtein";
+	
+	private String referenceAtt;
+	private String targetAtt;
+	private int iThreshold;
 	
 	@Override
 	public void execute() {
@@ -47,57 +50,26 @@ public class DamerauLevenshteinDistance extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		StringLiteral inReferenceAtt = (StringLiteral) getInput(IN_REFERENCE_ATT);
-		StringLiteral inTargetAtt = (StringLiteral) getInput(IN_TARGET_ATT);
-		IntegerLiteral inThreshold = (IntegerLiteral) getInput(IN_THRESHOLD);
+		referenceAtt = ((StringLiteral) getInput(IN_REFERENCE_ATT)).getIdentifier();
+		targetAtt = ((StringLiteral) getInput(IN_TARGET_ATT)).getIdentifier();
+		iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).getValue();
+		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
 		
-		//set defaults
-		int iThreshold = inThreshold == null ? ((IntegerLiteral) this.getInputDescription(new IRI(IN_THRESHOLD)).getDefault()).getValue() : inThreshold.getValue();
-		
+		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS), inReferenceAtt, inTargetAtt, iThreshold) :
-				calculateRelation(inReference, inTarget, inReferenceAtt, inTargetAtt, iThreshold));
+				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				calculateRelation(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, StringLiteral referenceAtt, StringLiteral targetAtt, int iThreshold) {
-
-		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
-	    for(IFeature fRef : reference) {
-		    for(IFeature fTar : target) {
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar, referenceAtt, targetAtt, iThreshold);
-	    		if(similarity != null)
-	    			relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
-		    }
-	    }
-	    return relations;
-	    
-	}
-		
-	private IFeatureRelationCollection calculateRelation(IFeatureCollection reference, IFeatureCollection target, IFeatureRelationCollection relations, StringLiteral referenceAtt, StringLiteral targetAtt, int iThreshold){
-		
-		//init relations
-		for(IFeatureRelation relation : relations){
-			//get features
-			IFeature fReference = reference.getFeatureById(relation.getReference().getIdentifier());
-			IFeature fTarget = target.getFeatureById(relation.getTarget().getIdentifier());
-			if(reference == null || target == null)
-				continue;
-			SimilarityMeasurement similarity = calculateSimilarity(fReference, fTarget, referenceAtt, targetAtt, iThreshold);
-    		if(similarity != null)
-    			relation.addRelationMeasurement(similarity);
-	    }
-		return relations;
-	    
-	}
-	
-	private SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target, StringLiteral referenceAtt, StringLiteral targetAtt, int iThreshold) {
+	@Override
+	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
 		//get attributes
-		String sReference = getAttributeValue(reference, referenceAtt.getIdentifier());
-		String sTarget = getAttributeValue(target, targetAtt.getIdentifier());
+		String sReference = getAttributeValue(reference, referenceAtt);
+		String sTarget = getAttributeValue(target, targetAtt);
 		if(sReference == null || sReference.isEmpty() || sTarget == null || sTarget.isEmpty())
 			return null;
 		//get distance

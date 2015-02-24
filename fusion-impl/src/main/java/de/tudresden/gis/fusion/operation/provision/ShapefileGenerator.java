@@ -2,7 +2,9 @@ package de.tudresden.gis.fusion.operation.provision;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+
 import org.geotools.data.FeatureWriter;
 import org.geotools.data.Transaction;
 import org.geotools.data.shapefile.ShapefileDataStore;
@@ -13,45 +15,44 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import de.tudresden.gis.fusion.data.IComplexData;
 import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.IODescription;
 import de.tudresden.gis.fusion.operation.AbstractOperation;
 import de.tudresden.gis.fusion.operation.IDataProvision;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
 public class ShapefileGenerator extends AbstractOperation implements IDataProvision {
 
 	private final String IN_FEATURES = "IN_FEATURES";	
-	private final String OUT_FILE = "OUT_FILE";
+	private final String OUT_RESOURCE = "OUT_RESOURCE";
 	
 	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#ShapefileGenerator";
 	
 	@Override
-	protected void execute() {
+	public void execute() {
 		
 		//get input features
-		IComplexData features = (IComplexData)getInput(IN_FEATURES);
-		
-		if(!(features instanceof IFeatureCollection))
-			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT);
+		IFeatureCollection features = (IFeatureCollection) getInput(IN_FEATURES);
 		
 		//write file
 		IDataResource shape;
 		try {
-			shape = writeShapefile((IFeatureCollection) features);
+			shape = writeShapefile(features);
 		} catch (IOException e) {
 			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
 		}
 		
 		//return file
-		setOutput(OUT_FILE, shape);
+		setOutput(OUT_RESOURCE, shape);
 		
 	}
 	
@@ -61,7 +62,7 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
 		if(collection == null)
 			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT);
 		
-		File file = getFile();
+		File file = DataUtilities.createTmpFile("shape_" + System.currentTimeMillis(), ".shp");
 		
 		ShapefileDataStore shapeDataStore = new ShapefileDataStore(file.toURI().toURL());
         shapeDataStore.createSchema(collection.getSchema());
@@ -87,14 +88,6 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
         return new Resource(new IRI(file.toURI()));
       
 	}
-	
-	private File getFile() {
-		try {
-			return File.createTempFile("shape_" + System.currentTimeMillis(), ".shp");
-		} catch (IOException e) {
-			throw new ProcessException(ExceptionKey.ACCESS_RESTRICTION, e);
-		}
-	}
 
 	@Override
 	protected IIRI getProcessIRI() {
@@ -103,26 +96,37 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
 
 	@Override
 	protected String getProcessTitle() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
 	protected String getProcessDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Generator for ESRI Shapefiles";
 	}
 
-	@Override
 	protected Collection<IIODescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
+		inputs.add(new IODescription(
+						new IRI(IN_FEATURES), "Input features",
+						new IDataRestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+						})
+		);
+		return inputs;				
 	}
 
 	@Override
 	protected Collection<IIODescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
+		outputs.add(new IODescription(
+					new IRI(OUT_RESOURCE), "Output shapefile",
+					new IDataRestriction[]{
+						ERestrictions.MANDATORY.getRestriction(),
+						ERestrictions.BINDING_IDATARESOURCE.getRestriction()
+					})
+		);
+		return outputs;
 	}
 
 }

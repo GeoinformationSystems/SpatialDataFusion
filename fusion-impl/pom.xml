@@ -2,11 +2,26 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.tudresden.gis</groupId>
   <artifactId>fusion-impl</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.4-SNAPSHOT</version>
   
   <properties>
 		<geotools.version>12.2</geotools.version>
+		<fusion.version>0.0.4-SNAPSHOT</fusion.version>
   </properties>
+  
+  <build>
+	 	<plugins>
+	 		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+				 	<source>1.7</source>
+				  	<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
   
   <repositories>
 		<repository>
@@ -61,6 +76,11 @@
 	</dependency>
 	<dependency>
 		<groupId>org.geotools</groupId>
+		<artifactId>gt-xml</artifactId>
+		<version>${geotools.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.geotools</groupId>
 		<artifactId>gt-shapefile</artifactId>
 		<version>${geotools.version}</version>
 	</dependency>
@@ -72,7 +92,7 @@
 	<dependency>
 		<groupId>de.tudresden.gis</groupId>
 		<artifactId>fusion-base</artifactId>
-		<version>0.0.3-SNAPSHOT</version>
+		<version>${fusion.version}</version>
 	</dependency>
 	<dependency>
 		<groupId>org.apache.jena</groupId>

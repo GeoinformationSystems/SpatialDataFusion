@@ -11,7 +11,7 @@ import org.reflections.Reflections;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.operation.IMeasurementOperation;
+import de.tudresden.gis.fusion.operation.IMeasurement;
 import de.tudresden.gis.fusion.operation.IOperation;
 import de.tudresden.gis.fusion.operation.io.IDataRestriction;
 import de.tudresden.gis.fusion.operation.metadata.IIODescription;
@@ -54,7 +54,7 @@ public class Operations {
 				}
 				if(!compliant)
 					iter.remove();
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (Exception e) {
 				iter.remove();
 			}
 		}
@@ -65,12 +65,12 @@ public class Operations {
 	 * get available fusion measurement operations
 	 * @return available fusion measurement operations
 	 */
-	public static Set<Class<? extends IMeasurementOperation>> getAvalaibleMeasurementOperations() {
+	public static Set<Class<? extends IMeasurement>> getAvalaibleMeasurementOperations() {
 		Reflections reflections = new Reflections("de.tudresden.gis.fusion.operation");
-		Set<Class<? extends IMeasurementOperation>> ops = reflections.getSubTypesOf(IMeasurementOperation.class);
-		Iterator<Class<? extends IMeasurementOperation>> iter = ops.iterator();
+		Set<Class<? extends IMeasurement>> ops = reflections.getSubTypesOf(IMeasurement.class);
+		Iterator<Class<? extends IMeasurement>> iter = ops.iterator();
 		while(iter.hasNext()){
-			Class<? extends IMeasurementOperation> op = iter.next();
+			Class<? extends IMeasurement> op = iter.next();
 			if(op.isInterface() || Modifier.isAbstract(op.getModifiers()))
 				iter.remove();
 		}
@@ -110,7 +110,7 @@ public class Operations {
 			try {
 				if(!profileAllowsInput(op.newInstance().getProfile(), input))
 					iter.remove();
-			} catch (InstantiationException | IllegalAccessException e) {
+			} catch (Exception e) {
 				iter.remove();
 			}
 		}
