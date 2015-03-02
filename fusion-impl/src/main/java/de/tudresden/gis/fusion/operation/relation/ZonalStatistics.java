@@ -3,7 +3,6 @@ package de.tudresden.gis.fusion.operation.relation;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import javax.media.jai.ROI;
@@ -38,26 +37,31 @@ import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.FeatureReference;
 import de.tudresden.gis.fusion.data.complex.FeatureRelation;
-import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
+import de.tudresden.gis.fusion.data.complex.RelationMeasurement;
 import de.tudresden.gis.fusion.data.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.geotools.GTGridCoverage2D;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.metadata.data.RelationMeasurementDescription;
+import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
 /**
  * zonal statistics operation
@@ -65,7 +69,7 @@ import de.tudresden.gis.fusion.operation.metadata.IIODescription;
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public class ZonalStatistics extends AbstractMeasurementOperation {
+public class ZonalStatistics extends ARelationMeasurementOperation {
 	
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
@@ -73,13 +77,33 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#ZonalStatistics";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+			EProcessType.OP_REL_PROP_LOC.resource(),
+			EProcessType.OP_REL_PROP_TOPO.resource()
+	};
 	
-	//relations for zonal statistics
-	private final String ZONAL_STATS_MIN = "http://tu-dresden.de/uw/geo/gis/fusion/relation/statistics#min";
-	private final String ZONAL_STATS_MAX = "http://tu-dresden.de/uw/geo/gis/fusion/relation/statistics#max";
-	private final String ZONAL_STATS_MEAN = "http://tu-dresden.de/uw/geo/gis/fusion/relation/statistics#mean";
-	private final String ZONAL_STATS_STD = "http://tu-dresden.de/uw/geo/gis/fusion/relation/statistics#std";
+	private final IIRI MEASUREMENT_MIN_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#min");
+	private final String MEASUREMENT_MIN_DESC = "Minimum of zonal values";
+	private final IIdentifiableResource[] MEASUREMENT_MIN_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_OVERLAP.resource(),
+	};
+	private final IIRI MEASUREMENT_MAX_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#max");
+	private final String MEASUREMENT_MAX_DESC = "Maximum of zonal values";
+	private final IIdentifiableResource[] MEASUREMENT_MAX_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_OVERLAP.resource(),
+	};
+	private final IIRI MEASUREMENT_MEAN_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#mean");
+	private final String MEASUREMENT_MEAN_DESC = "Mean of zonal values";
+	private final IIdentifiableResource[] MEASUREMENT_MEAN_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_OVERLAP.resource(),
+	};
+	private final IIRI MEASUREMENT_STD_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#std");
+	private final String MEASUREMENT_STD_DESC = "Standard deviation of zonal value";
+	private final IIdentifiableResource[] MEASUREMENT_STD_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_OVERLAP.resource(),
+	};
 	
 	Statistic[] statistics = new Statistic[]{
 			Statistic.MIN,
@@ -87,6 +111,8 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 			Statistic.MEAN,
 			Statistic.SDEV
 	};
+	
+	int iBand;
 
 	@Override
 	public void execute() {
@@ -94,14 +120,12 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		ICoverage inTarget = (ICoverage) getInput(IN_TARGET);
-		IntegerLiteral inBand = (IntegerLiteral) getInput(IN_BAND);
-		
-		int iBand = inBand == null ? ((IntegerLiteral) this.getInputDescription(new IRI(IN_BAND)).getDefault()).getValue() : inBand.getValue();
+		iBand = ((IntegerLiteral) getInput(IN_BAND)).getValue();
 	
 		IFeatureRelationCollection relations = null;
 		if(inTarget instanceof GTGridCoverage2D && inReference instanceof GTFeatureCollection){
 			try {
-				relations = calculateRelationsWithJAI((GTFeatureCollection) inReference, (GTGridCoverage2D) inTarget, iBand);
+				relations = calculateRelationsWithJAI((GTFeatureCollection) inReference, (GTGridCoverage2D) inTarget);
 			} catch (TransformException e) {
 				throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
 			}
@@ -115,7 +139,7 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 		
 	}
 	
-	private IFeatureRelationCollection calculateRelationsWithJAI(GTFeatureCollection reference, GTGridCoverage2D target, int iBand) throws TransformException {
+	private IFeatureRelationCollection calculateRelationsWithJAI(GTFeatureCollection reference, GTGridCoverage2D target) throws TransformException {
 		
 		FeatureReference targetRef = new FeatureReference(target.getIdentifier());
 		
@@ -130,9 +154,9 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 		}
 
 	    for(IFeature fRef : reference.getFeatures()) {
-	    	List<SimilarityMeasurement> measurements = getMeasurements((GTFeature) fRef, target, iBand, worldToGridTransform);
+	    	List<RelationMeasurement> measurements = getMeasurements((GTFeature) fRef, target, iBand, worldToGridTransform);
     		if(measurements != null && measurements.size() > 0){
-    			for(SimilarityMeasurement measurement : measurements){
+    			for(RelationMeasurement measurement : measurements){
     				relations.addRelation(new FeatureRelation(fRef, targetRef, measurement, null));
     			}
     		}
@@ -142,7 +166,7 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 	
 	
 
-	private List<SimilarityMeasurement> getMeasurements(GTFeature feature, GTGridCoverage2D target, int band, MathTransform worldToGridTransform) throws TransformException {
+	private List<RelationMeasurement> getMeasurements(GTFeature feature, GTGridCoverage2D target, int band, MathTransform worldToGridTransform) throws TransformException {
 		
 		SimpleFeature sf = feature.getFeature();
 		GridCoverage2D coverage = target.getCoverage();
@@ -187,32 +211,36 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 		GridCoverage2D zsCoverage = (GridCoverage2D) op.doOperation(params, null);
 		
 		//init stats
-		List<SimilarityMeasurement> measurements = new ArrayList<SimilarityMeasurement>();
+		List<RelationMeasurement> measurements = new ArrayList<RelationMeasurement>();
 		ZonalStats stats = (ZonalStats) zsCoverage.getProperty(ZonalStatsDescriptor.ZONAL_STATS_PROPERTY);
 		for (Result r : stats.results()) {
 			if(r.getStatistic() == Statistic.MEAN) {
-				measurements.add(new SimilarityMeasurement( 
-							new DecimalLiteral(r.getValue()),
-							this.getMeasurementDescription(new RelationType(new IRI(ZONAL_STATS_MEAN)))
-		    	));
+				measurements.add(new RelationMeasurement( 
+					new DecimalLiteral(r.getValue()),
+					this.PROCESS_RESOURCE,
+					this.getMeasurementDescription(MEASUREMENT_MEAN_ID)
+				));
 		    }
 			else if(r.getStatistic() == Statistic.MIN) {
-				measurements.add(new SimilarityMeasurement( 
-							new DecimalLiteral(r.getValue()),
-							this.getMeasurementDescription(new RelationType(new IRI(ZONAL_STATS_MIN)))
-		    	));
+				measurements.add(new RelationMeasurement( 
+					new DecimalLiteral(r.getValue()),
+					this.PROCESS_RESOURCE,
+					this.getMeasurementDescription(MEASUREMENT_MIN_ID)
+				));
 		    }
 			else if(r.getStatistic() == Statistic.MAX) {
-				measurements.add(new SimilarityMeasurement( 
-							new DecimalLiteral(r.getValue()),
-							this.getMeasurementDescription(new RelationType(new IRI(ZONAL_STATS_MAX)))
-		    	));
+				measurements.add(new RelationMeasurement( 
+					new DecimalLiteral(r.getValue()),
+					this.PROCESS_RESOURCE,
+					this.getMeasurementDescription(MEASUREMENT_MAX_ID)
+				));
 		    }
 			else if(r.getStatistic() == Statistic.SDEV) {
-				measurements.add(new SimilarityMeasurement( 
-							new DecimalLiteral(r.getValue()),
-							this.getMeasurementDescription(new RelationType(new IRI(ZONAL_STATS_STD)))
-		    	));
+				measurements.add(new RelationMeasurement( 
+					new DecimalLiteral(r.getValue()),
+					this.PROCESS_RESOURCE,
+					this.getMeasurementDescription(MEASUREMENT_STD_ID)
+				));
 		    }
 		}
 		
@@ -237,50 +265,8 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 	}
 
 	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-				this.getProcessIRI(),
-				"minimum target coverage value for reference feature", 
-				new RelationType(new IRI(ZONAL_STATS_MIN)),
-				new MeasurementRange<Double>(
-						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
-						true
-				))
-		);
-		measurements.add(new MeasurementDescription(
-				this.getProcessIRI(),
-				"maximum target coverage value for reference feature", 
-				new RelationType(new IRI(ZONAL_STATS_MAX)),
-				new MeasurementRange<Double>(
-						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
-						true
-				))
-		);
-		measurements.add(new MeasurementDescription(
-				this.getProcessIRI(),
-				"mean target coverage value for reference feature", 
-				new RelationType(new IRI(ZONAL_STATS_MEAN)),
-				new MeasurementRange<Double>(
-						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
-						true
-				))
-		);
-		measurements.add(new MeasurementDescription(
-				this.getProcessIRI(),
-				"standard deviation of target coverage values for reference feature", 
-				new RelationType(new IRI(ZONAL_STATS_STD)),
-				new MeasurementRange<Double>(
-						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
-						true
-				))
-		);
-		return measurements;
-	}
-
-	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -289,50 +275,93 @@ public class ZonalStatistics extends AbstractMeasurementOperation {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Determines zonal statistics for reference polygons on target raster";
 	}
-
+	
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-				new IRI(IN_REFERENCE), "Reference polygon features",
-				new IDataRestriction[]{
-					ERestrictions.MANDATORY.getRestriction(),
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				IN_REFERENCE, "Reference features",
+				new IIORestriction[]{
 					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-					ERestrictions.GEOMETRY_POLYGON.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_TARGET), "Target coverage",
-				new IDataRestriction[]{
-					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.GEOMETRY_POLYGON.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_TARGET, "Target coverage",
+				new IIORestriction[]{
+					ERestrictions.GEOMETRY_SURFACE.getRestriction(),
 					ERestrictions.BINDING_ICOVERAGE.getRestriction(),
-					ERestrictions.GEOMETRY_SURFACE.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_BAND), "Target coverage band",
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_BAND, "Target coverage band",
 				new IntegerLiteral(0),
-				new IDataRestriction[]{
+				new IIORestriction[]{
 					ERestrictions.BINDING_INTEGER.getRestriction()
-				})
-		);
-		return inputs;
+				}
+			)			
+		};
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
+	}
+	
+	@Override
+	protected IRelationMeasurementDescription[] getSupportedMeasurements() {		
+		return new RelationMeasurementDescription[]{
+			new RelationMeasurementDescription(
+				MEASUREMENT_MIN_ID, MEASUREMENT_MIN_DESC,
+				new MeasurementRange<Double>(
+						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)},
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_MIN_CLASSIFICATION)
+			),
+			new RelationMeasurementDescription(
+				MEASUREMENT_MAX_ID, MEASUREMENT_MAX_DESC,
+				new MeasurementRange<Double>(
+						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)},
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_MAX_CLASSIFICATION)
+			),
+			new RelationMeasurementDescription(
+				MEASUREMENT_MEAN_ID, MEASUREMENT_MEAN_DESC,
+				new MeasurementRange<Double>(
+						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)},
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_MEAN_CLASSIFICATION)
+			),
+			new RelationMeasurementDescription(
+				MEASUREMENT_STD_ID, MEASUREMENT_STD_DESC,
+				new MeasurementRange<Double>(
+						new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)},
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_STD_CLASSIFICATION)
+			)
+		};
 	}
 
 }

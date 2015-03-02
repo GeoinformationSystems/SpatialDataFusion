@@ -1,22 +1,15 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
+import de.tudresden.gis.fusion.manage.Namespace;
 
-public class GeometryTypeRestriction implements IDataRestriction {
+public class GeometryTypeRestriction extends IORestriction {
 	
-	private final String RESTRICTION_URI = "http://tu-dresden.de/uw/geo/gis/fusion/restriction#geometryType";
+	private final String RESTRICTION_URI = Namespace.uri_restriction() + "/property/spatial/geometry#type";
 	
 	EGeometryType[] types;
 	
@@ -46,19 +39,13 @@ public class GeometryTypeRestriction implements IDataRestriction {
 	}
 
 	@Override
-	public IResource getSubject() {
-		return new IdentifiableResource(RESTRICTION_URI);
+	public String getAbstract() {
+		return "feature geometry type restriction";
 	}
 
 	@Override
-	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public Object getIdentifier() {
-		return getSubject().getIdentifier();
+	public String getRestrictionURI() {
+		return RESTRICTION_URI;
 	}
 	
 }

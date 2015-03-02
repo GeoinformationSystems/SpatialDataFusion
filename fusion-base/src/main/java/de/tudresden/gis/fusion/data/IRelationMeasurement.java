@@ -1,22 +1,15 @@
 package de.tudresden.gis.fusion.data;
 
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
 
 /**
  * relation measurement
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public interface IRelationMeasurement extends IComplexData {
+public interface IRelationMeasurement extends IMeasurement {
 	
-	/**
-	 * get relation type for this measurement
-	 * @return relation type
-	 */
-	public IRelationType getRelationType();
-	
-	public IMeasurementValue<?> getMeasurementValue();
-	
-	public IMeasurementDescription getDescription();
+	@Override
+	public IRelationMeasurementDescription getDescription();
 	
 }

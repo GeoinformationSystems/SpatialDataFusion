@@ -9,14 +9,11 @@ import org.junit.Test;
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
-import de.tudresden.gis.fusion.data.simple.StringLiteral;
-import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.relation.similarity.AngleDifference;
 import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
@@ -35,11 +32,11 @@ public class SimilarityCountMatchTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI()));
 		Map<String,IData> output = parser.execute(input);		
 		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI()));
 		output = parser.execute(input);		
 		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
@@ -55,6 +52,7 @@ public class SimilarityCountMatchTest {
 		AngleDifference process2 = new AngleDifference();		
 		input.put("IN_RELATIONS", relations);
 		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
+		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
 		output = process2.execute(input);	
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
@@ -62,6 +60,7 @@ public class SimilarityCountMatchTest {
 		GeometryDistance process3 = new GeometryDistance();		
 		input.put("IN_RELATIONS", relations);
 		input.put("IN_THRESHOLD", new DecimalLiteral(50));
+		input.put("IN_DROP_RELATIONS", new BooleanLiteral(false));
 		output = process3.execute(input);	
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
@@ -85,28 +84,15 @@ public class SimilarityCountMatchTest {
 		output = process6.execute(input);	
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
-		RDFTurtleGenerator generator = new RDFTurtleGenerator();
-		input.put("IN_DATA", relations);
-		input.put("URI_BASE", new Resource(new IRI("http://tu-dresden.de/uw/geo/gis/fusion")));
-		input.put("URI_PREFIXES", new StringLiteral(""
-				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns;rdf;"
-				+ "http://www.w3.org/TR/xmlschema11-2;xsd;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/process/demo;demo;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial;spatialRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string;stringRelation"));
-		output = generator.execute(input);	
-		IResource file = (IResource) output.get("OUT_FILE");
-		
 		//write output
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + process6.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + process6.getProfile().getProcessName() + "\n\t" +
 				"number of reference features: " + reference.size() + "\n\t" + 
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) process6.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"total runtime (ms): " + (System.currentTimeMillis() - start) + "\n\t" +
-				"target relation file: " + file.getIdentifier().asString() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
 	}

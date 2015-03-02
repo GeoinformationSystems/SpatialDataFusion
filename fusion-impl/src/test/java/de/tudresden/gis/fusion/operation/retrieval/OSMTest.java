@@ -11,9 +11,8 @@ import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.complex.OSMFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.misc.OSMCollection;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.retrieval.OSMParser;
@@ -23,7 +22,7 @@ public class OSMTest {
 	@Test
 	public void readOSMOverpass() throws ProcessException, MalformedURLException, URISyntaxException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_OSM_URL", new Resource(new IRI(new URL("http://open.mapquestapi.com/xapi/api/0.6/way%5Bbbox=13.43353,51.01806,13.44083,51.02064%5D").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new URL("http://open.mapquestapi.com/xapi/api/0.6/way%5Bbbox=13.44,51.02,13.445,51.025%5D").toURI()));
 		
 		OSMParser parser = new OSMParser();
 		Map<String,IData> output = parser.execute(input);
@@ -40,7 +39,7 @@ public class OSMTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + parser.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + parser.getProfile().getProcessName() + "\n\t" +
 				"nodes read from osm: " + osmFC.getNodes().size() + "\n\t" +
 				"ways read from osm: " + osmFC.getWays().size() + "\n\t" +
 				"feature bounds: " + osmFC.getNodes().getBounds() + "\n\t" +

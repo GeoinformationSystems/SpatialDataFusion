@@ -6,49 +6,55 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.FeatureRelation;
 import de.tudresden.gis.fusion.data.complex.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFTurtleDecoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
 import de.tudresden.gis.fusion.operation.IDataRetrieval;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 import de.tudresden.gis.fusion.operation.io.IFilter;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
 
-public class RDFRelationsTurtleParser extends AbstractOperation implements IDataRetrieval {
+public class RDFRelationsTurtleParser extends AOperation implements IDataRetrieval {
 	
 	public final String IN_RESOURCE = "IN_RESOURCE";
 	public final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#RDFRelationsTurtleParser";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RETRIEVAL.resource()
+	};
 	
 	private Map<String,URI> prefixes;
 	IFeatureRelationCollection relations;
 	
 	@Override
 	public void execute() {
-		IDataResource rdfResource = (IDataResource) getInput(IN_RESOURCE);
-		IIRI identifier = rdfResource.getIdentifier();
 		
+		URILiteral rdfResource = (URILiteral) getInput(IN_RESOURCE);
+		
+		IIRI identifier = new IRI(rdfResource.getIdentifier());
 		prefixes = new HashMap<String,URI>();
 		relations = new FeatureRelationCollection();
 		
 		try {
-			parseRelations(identifier, rdfResource.getIdentifier().asURI().toURL().openStream());
+			parseRelations(identifier, identifier.asURL().openStream());
 		} catch (Exception e) {
 			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
 		}
@@ -85,11 +91,6 @@ public class RDFRelationsTurtleParser extends AbstractOperation implements IData
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
-	}
-
-	@Override
 	protected String getProcessTitle() {
 		return this.getClass().getSimpleName();
 	}
@@ -99,29 +100,39 @@ public class RDFRelationsTurtleParser extends AbstractOperation implements IData
 		return "Parser for RDF relations";
 	}
 
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_RESOURCE), "RDF relations resource",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IDATARESOURCE.getRestriction(),
-							ERestrictions.MANDATORY.getRestriction()
-						})
-		);
-		return inputs;				
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+				new IODescription(
+					IN_RESOURCE, "RDF relations resource",
+					new IIORestriction[]{
+						ERestrictions.BINDING_URIRESOURCE.getRestriction(),
+						ERestrictions.MANDATORY.getRestriction()
+					}
+				),
+		};			
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription (
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
+	}
+	
+	@Override
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
+	}
+
+	@Override
+	protected IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 }

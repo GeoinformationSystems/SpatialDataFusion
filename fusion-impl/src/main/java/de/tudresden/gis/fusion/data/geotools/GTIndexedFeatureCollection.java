@@ -14,15 +14,15 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.strtree.STRtree;
 
 import de.tudresden.gis.fusion.data.IFeature;
-import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.metadata.data.IDescription;
 
 public class GTIndexedFeatureCollection extends GTFeatureCollection {
 	
 	//index tree
 	protected STRtree index;
 
-	public GTIndexedFeatureCollection(IIRI iri, List<SimpleFeature> featureList, IDataDescription description) {
+	public GTIndexedFeatureCollection(IIRI iri, List<SimpleFeature> featureList, IDescription description) {
 		super(iri, featureList, description);
 		buildIndex();
 	}
@@ -31,7 +31,7 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 		this(iri, featureList, null);
 	}
 	
-	public GTIndexedFeatureCollection(IIRI iri, SimpleFeatureCollection fc, IDataDescription description){
+	public GTIndexedFeatureCollection(IIRI iri, SimpleFeatureCollection fc, IDescription description){
 		this(iri, DataUtilities.list(fc), description);
 	}
 	

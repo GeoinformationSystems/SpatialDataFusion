@@ -1,29 +1,31 @@
 package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.ISimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.metadata.data.SimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.operation.ASimilarityMeasurementOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class LengthInPolygon extends AbstractRelationMeasurement {
+public class LengthInPolygon extends ASimilarityMeasurementOperation {
 
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -33,8 +35,21 @@ public class LengthInPolygon extends AbstractRelationMeasurement {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#LengthInPolygon";
-	private final String RELATION_LENGTH_IN_POLYGON = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlay_lengthInPolygon";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+			EProcessType.OP_REL_PROP_LOC.resource(),
+			EProcessType.OP_REL_PROP_TOPO.resource()
+	};
+	
+	private final IIRI MEASUREMENT_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle());
+	private final String MEASUREMENT_DESC = "Relative length of geometry in polygon";
+	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_INTERSECT.resource(),
+			EMeasurementType.TOPO_OVERLAP.resource(),
+	};
+	
+	private boolean bDropRelations;
 	
 	@Override
 	public void execute() {
@@ -42,20 +57,25 @@ public class LengthInPolygon extends AbstractRelationMeasurement {
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).getValue();
 		
 		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
-				calculateRelation(inReference, inTarget));
+				relate(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				relate(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 		
-	}	
+	}
 	
 	@Override
-	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
+	protected boolean dropRelations() {
+		return bDropRelations;
+	}
+	
+	@Override
+	protected SimilarityMeasurement relate(IFeature reference, IFeature target) {
 		//get geometries
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
@@ -66,18 +86,19 @@ public class LengthInPolygon extends AbstractRelationMeasurement {
 		//get ration intersection.length / gReference.length
 		if(intersection.getLength() <= 0)
 			return null;
-		double ratio = intersection.getLength() / gReference.getLength();
-		if(ratio < 0 || ratio > 1)
+		double dRatio = intersection.getLength() / gReference.getLength();
+		if(dRatio < 0 || dRatio > 1)
 			return null;
-		return new SimilarityMeasurement(
-				new DecimalLiteral(ratio), 
-				this.getMeasurementDescription(new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)))
+		return new SimilarityMeasurement( 
+			new DecimalLiteral(dRatio),
+			this.PROCESS_RESOURCE,
+			this.getMeasurementDescription(MEASUREMENT_ID)
 		);
 	}
 	
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -86,69 +107,74 @@ public class LengthInPolygon extends AbstractRelationMeasurement {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Calculates length of reference feature within target polygon (in percent of total length)";
 	}
 	
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-							ERestrictions.GEOMETRY_LINE.getRestriction()
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						ERestrictions.GEOMETRY_POLYGON.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_DROP_RELATIONS), "relations that do not satisfy the threshold are dropped",
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				IN_REFERENCE, "Reference features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_NoPOINT.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_TARGET, "Target features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_POLYGON.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_DROP_RELATIONS, "relations that have no intersection are dropped",
 				new BooleanLiteral(false),
-				new IDataRestriction[]{
+				new IIORestriction[]{
 					ERestrictions.BINDING_BOOLEAN.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return inputs;
+				}
+			),
+			new IODescription(
+				IN_RELATIONS, "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+		)};
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Length of reference feature within target polygon (in percent of total length)", 
-					new RelationType(new IRI(RELATION_LENGTH_IN_POLYGON)),
-					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(1)}, 
-							true
-					))
-		);
-		return measurements;
+	protected ISimilarityMeasurementDescription[] getSupportedMeasurements() {		
+		return new SimilarityMeasurementDescription[]{
+			new SimilarityMeasurementDescription(
+				MEASUREMENT_ID, MEASUREMENT_DESC,
+				new MeasurementRange<Double>(
+						new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(100)},
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_CLASSIFICATION)
+			)
+		};
 	}
 
 }

@@ -9,28 +9,30 @@ import de.tudresden.gis.fusion.data.feature.IFeatureProperty;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
 import de.tudresden.gis.fusion.data.feature.ITemporalProperty;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
-import de.tudresden.gis.fusion.data.metadata.IFeatureDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.metadata.data.IFeatureDescription;
 
-public class FeatureReference implements IIdentifiableResource,IFeature {
+public class FeatureReference extends Resource implements IRDFTripleSet,IFeature {
 
-	private IIRI iri;
-	
 	public FeatureReference(IIRI iri){
-		this.iri = iri;
+		super(iri);
 	}
-
-	@Override
-	public IIRI getIdentifier() {
-		return iri;
+	
+	public FeatureReference(String sIri){
+		super(new IRI(sIri));
 	}
-
+	
 	@Override
-	public boolean isBlank() {
-		return iri == null;
+	public String getFeatureId() {
+		return getIdentifier().asString();
 	}
 
 	@Override
@@ -65,7 +67,7 @@ public class FeatureReference implements IIdentifiableResource,IFeature {
 
 	@Override
 	public IResource getSubject() {
-		return this;
+		return new IdentifiableResource(getIdentifier());
 	}
 
 	@Override
@@ -78,6 +80,11 @@ public class FeatureReference implements IIdentifiableResource,IFeature {
 	public IFeatureProperty getFeatureProperty(String identifier) {
 		//TODO: get geometry
 		throw new UnsupportedOperationException("property cannot be resolved");
+	}
+
+	@Override
+	public IRDFRepresentation getRDFRepresentation() {
+		return this;
 	}
 
 }

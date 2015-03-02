@@ -1,8 +1,5 @@
 package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -10,21 +7,26 @@ import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.ISimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.metadata.data.SimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.operation.ASimilarityMeasurementOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class SinuosityDifference extends AbstractRelationMeasurement {
+public class SinuosityDifference extends ASimilarityMeasurementOperation {
 
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -35,10 +37,21 @@ public class SinuosityDifference extends AbstractRelationMeasurement {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#SinuosityDifference";
-	private final String RELATION_SIN_DIFF = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#difference_sinuosity";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+			EProcessType.OP_REL_PROP_SINUOSITY.resource()
+	};
+	
+	private final IIRI MEASUREMENT_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle());
+	private final String MEASUREMENT_DESC = "Sinuosity difference between linear geometries";
+	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.GEOM_SHAPE_DIFF.resource(),
+			EMeasurementType.DIFFERENCE.resource()
+	};
 	
 	private double dThreshold;
+	private boolean bDropRelations;
 	
 	@Override
 	public void execute() {
@@ -47,12 +60,12 @@ public class SinuosityDifference extends AbstractRelationMeasurement {
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
 		dThreshold = ((DecimalLiteral) getInput(IN_THRESHOLD)).getValue();
-		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).getValue();
 		
 		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
-				calculateRelation(inReference, inTarget));
+				relate(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				relate(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
@@ -60,18 +73,24 @@ public class SinuosityDifference extends AbstractRelationMeasurement {
 	}
 	
 	@Override
-	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
+	protected boolean dropRelations() {
+		return bDropRelations;
+	}
+	
+	@Override
+	protected SimilarityMeasurement relate(IFeature reference, IFeature target) {
 		//get geometries
 		Geometry gReference = (Geometry) reference.getDefaultSpatialProperty().getValue();
 		Geometry gTarget = (Geometry) target.getDefaultSpatialProperty().getValue();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get length difference
-		double difference = getSinuosity(gReference) - getSinuosity(gTarget);
-		if(Math.abs(difference) <= dThreshold){
-			return new SimilarityMeasurement(
-					new DecimalLiteral(difference), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_SIN_DIFF)))
+		double dDifference = getSinuosity(gReference) - getSinuosity(gTarget);
+		if(Math.abs(dDifference) <= dThreshold){
+			return new SimilarityMeasurement( 
+				new DecimalLiteral(dDifference),
+				this.PROCESS_RESOURCE,
+				this.getMeasurementDescription(MEASUREMENT_ID)
 			);
 		}
 		else return null;
@@ -96,8 +115,8 @@ public class SinuosityDifference extends AbstractRelationMeasurement {
 	}
 	
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -106,76 +125,81 @@ public class SinuosityDifference extends AbstractRelationMeasurement {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Calculates sinuosity difference between linear input geometries";
 	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-							ERestrictions.GEOMETRY_NoPOINT.getRestriction()
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						ERestrictions.GEOMETRY_NoPOINT.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Sinuosity difference threshold for relations",
-					new DecimalLiteral(2),
-					new IDataRestriction[]{
-						ERestrictions.BINDING_DECIMAL.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_DROP_RELATIONS), "relations that do not satisfy the threshold are dropped",
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				IN_REFERENCE, "Reference features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_NoPOINT.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_TARGET, "Target features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_NoPOINT.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_THRESHOLD, "Sinuosity difference threshold for relations",
+				new DecimalLiteral(0.5),
+				new IIORestriction[]{
+					ERestrictions.BINDING_DECIMAL.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_DROP_RELATIONS, "relations that do not satisfy the threshold are dropped",
 				new BooleanLiteral(false),
-				new IDataRestriction[]{
+				new IIORestriction[]{
 					ERestrictions.BINDING_BOOLEAN.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return inputs;
+				}
+			),
+			new IODescription(
+				IN_RELATIONS, "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+		)};
+	}
+
+	@Override
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
-	}
-	
-	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Sinuosity difference between linear geometries (reference - target)", 
-					new RelationType(new IRI(RELATION_SIN_DIFF)),
+	protected ISimilarityMeasurementDescription[] getSupportedMeasurements() {		
+		return new SimilarityMeasurementDescription[]{
+			new SimilarityMeasurementDescription(
+					MEASUREMENT_ID, MEASUREMENT_DESC,
 					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(Double.MIN_VALUE), new DecimalLiteral(Double.MAX_VALUE)}, 
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(Double.MAX_VALUE)},
 							true
-					))
-		);
-		return measurements;
+					),
+					DataUtilities.toSet(MEASUREMENT_CLASSIFICATION)
+			)
+		};
 	}
 
 }

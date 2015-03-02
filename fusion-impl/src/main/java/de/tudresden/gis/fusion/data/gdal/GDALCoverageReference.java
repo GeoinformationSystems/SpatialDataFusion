@@ -3,35 +3,36 @@ package de.tudresden.gis.fusion.data.gdal;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
 
 import de.tudresden.gis.fusion.data.ICoverage;
 import de.tudresden.gis.fusion.data.feature.IFeatureProperty;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
 import de.tudresden.gis.fusion.data.feature.ITemporalProperty;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
-import de.tudresden.gis.fusion.data.metadata.IFeatureDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.metadata.data.IFeatureDescription;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
 
-public class GDALCoverageReference implements IIdentifiableResource,ICoverage {
+public class GDALCoverageReference extends Resource implements ICoverage {
 	
-	private IIRI iri;
 	File file;
 	
-	public GDALCoverageReference(IIRI identifier, File file) throws IOException {
+	public GDALCoverageReference(IIRI iri, File file) throws IOException {
+		super(iri);
 		if(!isSupported(file))
 			throw new IOException("Format is not supported by GDAL");
-		this.iri = identifier;
+	}
+	
+	@Override
+	public String getFeatureId() {
+		return getIdentifier().asString();
 	}
 	
 	/**
-	 * chekc if file is supported by GDAL installation
+	 * check if file is supported by GDAL installation
 	 * @param file input coverage
 	 * @return true, if file is supported (gdalinfo returned exit code 0)
 	 */
@@ -56,30 +57,9 @@ public class GDALCoverageReference implements IIdentifiableResource,ICoverage {
 	}
 
 	@Override
-	public boolean isBlank() {
-		return false;
-	}
-
-	@Override
-	public IIRI getIdentifier() {
-		return iri;
-	}
-
-	@Override
 	public IFeatureDescription getDescription() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public IResource getSubject() {
-		return this;
 	}
 
 	@Override
@@ -110,6 +90,12 @@ public class GDALCoverageReference implements IIdentifiableResource,ICoverage {
 	public IFeatureProperty getFeatureProperty(String identifier) {
 		//TODO: get properties
 		throw new UnsupportedOperationException("feature properties cannot be resolved");
+	}
+
+	@Override
+	public IRDFRepresentation getRDFRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

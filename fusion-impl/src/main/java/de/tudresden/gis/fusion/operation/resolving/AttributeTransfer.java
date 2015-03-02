@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -17,18 +18,23 @@ import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.IRelationType;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
 import de.tudresden.gis.fusion.data.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class AttributeTransfer extends AbstractOperation {
+public class AttributeTransfer extends AOperation {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -39,7 +45,11 @@ public class AttributeTransfer extends AbstractOperation {
 	
 	private final String OUT_REFERENCE = "OUT_REFERENCE";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#AttributeTransfer";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RESOLVING.resource(),
+			EProcessType.OP_RES_TRANSFER_ATT.resource()
+	};
 	
 	private final String FLAG_NEW = "_new";
 
@@ -50,9 +60,11 @@ public class AttributeTransfer extends AbstractOperation {
 		GTFeatureCollection inReference = (GTFeatureCollection) getInput(IN_REFERENCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) getInput(IN_TARGET);
 		StringLiteral inTargetAtt = (StringLiteral) getInput(IN_TARGET_ATT);
-		IRelationType inTargetRel = (IRelationType) getInput(IN_TARGET_RELATION);
+		URILiteral inTargetRel = (URILiteral) getInput(IN_TARGET_RELATION);
 		IFeatureRelationCollection inRelations = (IFeatureRelationCollection) getInput(IN_RELATIONS);
 		
+		//get relation resource
+		IIdentifiableResource targetRelation = new IdentifiableResource(inTargetRel.getIdentifier());
 		//set defaults
 		List<String> attributeSet;
 		//get all attriubtes of first feature (assumes same schema for all features)
@@ -69,14 +81,14 @@ public class AttributeTransfer extends AbstractOperation {
 			attributeSet = Arrays.asList(new String[]{inTargetAtt.getIdentifier()});
 		
 		//execute
-		IFeatureCollection outReference = transferAttribute(inReference, inTarget, attributeSet, inRelations, inTargetRel);
+		IFeatureCollection outReference = transferAttribute(inReference, inTarget, attributeSet, inRelations, targetRelation);
 			
 		//return
 		setOutput(OUT_REFERENCE, outReference);
 		
 	}
 	
-	private IFeatureCollection transferAttribute(GTFeatureCollection inReference, GTFeatureCollection inTarget, List<String> attributeSet, IFeatureRelationCollection inRelations, IRelationType inTargetRel) {
+	private IFeatureCollection transferAttribute(GTFeatureCollection inReference, GTFeatureCollection inTarget, List<String> attributeSet, IFeatureRelationCollection inRelations, IIdentifiableResource targetRelation) {
 		//init feature list
     	List<SimpleFeature> outTargetList = new ArrayList<SimpleFeature>();
     	//get GT SimpleFeatureCollections
@@ -87,8 +99,12 @@ public class AttributeTransfer extends AbstractOperation {
     	//iterate collection and add attributes
     	for(IFeature feature : inReference) {
         	//get related features
-    		IFeature matchingTarget = getRelatedFeature(feature, inRelations, inTargetRel);
-    		matchingTarget = inTarget.getFeatureById(matchingTarget.getIdentifier());
+    		IFeature matchingTarget = getRelatedFeature(feature, inRelations, targetRelation);
+    		//continue if not matching target is found
+    		if(matchingTarget == null)
+    			continue;
+    		//get feature representation by id
+    		matchingTarget = inTarget.getFeatureById(matchingTarget.getFeatureId());
     		//build new feature
     		SimpleFeature newFeature = buildFeature(((GTFeature) feature).getFeature(), newFType, (GTFeature) matchingTarget, attributeSet);
     		//add feature to new collection
@@ -146,18 +162,18 @@ public class AttributeTransfer extends AbstractOperation {
      * @param inTargetRel target relation type
      * @return best matching target feature
      */
-	private IFeature getRelatedFeature(IFeature feature, IFeatureRelationCollection inRelations, IRelationType inTargetRel) {
+	private IFeature getRelatedFeature(IFeature feature, IFeatureRelationCollection inRelations, IIdentifiableResource targetRelation) {
 		//get feature id
-    	String sID = feature.getIdentifier().asString();
+    	String sID = feature.getFeatureId();
     	//get relations with corresponding reference id and specified relation type
     	List<IFeatureRelation> matchingTarget = new ArrayList<IFeatureRelation>();
     	for(IFeatureRelation relation : inRelations){
-    		if(relation.getReference().getIdentifier().asString().endsWith(sID) && relation.containsRelationType(inTargetRel))
+    		if(relation.getReference().getFeatureId().endsWith(sID) && relation.containsRelationMeasurement(targetRelation))
     			matchingTarget.add(relation);
     	}
     	if(matchingTarget.size() == 0) return null;
     	if(matchingTarget.size() == 1) return matchingTarget.get(0).getTarget();
-    	if(matchingTarget.size() > 1) return getBestMatch(matchingTarget, inTargetRel);
+    	if(matchingTarget.size() > 1) return getBestMatch(matchingTarget, targetRelation);
     	return null;
 	}
 	
@@ -168,15 +184,15 @@ public class AttributeTransfer extends AbstractOperation {
 	 * @param inTargetRel target relation type to compare
 	 * @return best matching target feature
 	 */
-	private <T> IFeature getBestMatch(List<IFeatureRelation> matchingTarget, IRelationType inTargetRel){
+	private <T> IFeature getBestMatch(List<IFeatureRelation> matchingTarget, IIdentifiableResource targetRelation){
 		IFeatureRelation rBest = null;
 		for(IFeatureRelation rCurrent : matchingTarget){
 			if(rBest == null) rBest = rCurrent;
 			else {
 				@SuppressWarnings("unchecked")
-				IMeasurementValue<T> mCurrent = (IMeasurementValue<T>) rCurrent.getMeasurement(inTargetRel).getMeasurementValue();
+				IMeasurementValue<T> mCurrent = (IMeasurementValue<T>) rCurrent.getRelationMeasurement(targetRelation).getMeasurementValue();
 				@SuppressWarnings("unchecked")
-				IMeasurementValue<T> mBest = (IMeasurementValue<T>) rBest.getMeasurement(inTargetRel).getMeasurementValue();
+				IMeasurementValue<T> mBest = (IMeasurementValue<T>) rBest.getRelationMeasurement(targetRelation).getMeasurementValue();
 				if(mCurrent.compareTo(mBest) > 0)
 					rBest = rCurrent;
 			}
@@ -214,32 +230,75 @@ public class AttributeTransfer extends AbstractOperation {
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
 	protected String getProcessTitle() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.getClass().getSimpleName();
+	}
+
+	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 	@Override
 	protected String getProcessDescription() {
-		// TODO Auto-generated method stub
-		return null;
+		return "Transfer of attributes based on specified relation type";
 	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_REFERENCE, "Reference features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET, "Target features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET_ATT, "Target Attribute to transfer; if not set, all attributes are transferred from target to reference",
+					new IIORestriction[]{
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_RELATIONS, "Input relations",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET_RELATION, "Target relation that must be present to transfer feature attributes",
+					new IIORestriction[]{
+							ERestrictions.BINDING_URIRESOURCE.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+		)};
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					OUT_REFERENCE, "Reference features with transferred attributes",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+					}
+			)
+		};
 	}
 
 }

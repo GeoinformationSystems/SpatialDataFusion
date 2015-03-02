@@ -1,30 +1,33 @@
 package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.ISimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.metadata.data.SimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.operation.ASimilarityMeasurementOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
+public class DamerauLevenshteinDistance extends ASimilarityMeasurementOperation {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -37,12 +40,22 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#DamerauLevenshteinDistance";
-	private final String RELATION_STRING_DAMLEV = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#damerauLevenshtein";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+			EProcessType.OP_REL_PROP_STRING.resource()
+	};
+	
+	private final IIRI MEASUREMENT_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle());
+	private final String MEASUREMENT_DESC = "Distance between bounding boxes";
+	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.STRING_DIST.resource()
+	};
 	
 	private String referenceAtt;
 	private String targetAtt;
 	private int iThreshold;
+	private boolean bDropRelations;
 	
 	@Override
 	public void execute() {
@@ -53,12 +66,12 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 		referenceAtt = ((StringLiteral) getInput(IN_REFERENCE_ATT)).getIdentifier();
 		targetAtt = ((StringLiteral) getInput(IN_TARGET_ATT)).getIdentifier();
 		iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).getValue();
-		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).getValue();
 		
 		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
-				calculateRelation(inReference, inTarget));
+				relate(inReference, inTarget, (IFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				relate(inReference, inTarget));
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
@@ -66,19 +79,25 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 	}
 	
 	@Override
-	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
+	protected boolean dropRelations() {
+		return bDropRelations;
+	}
+	
+	@Override
+	protected SimilarityMeasurement relate(IFeature reference, IFeature target) {
 		//get attributes
 		String sReference = getAttributeValue(reference, referenceAtt);
 		String sTarget = getAttributeValue(target, targetAtt);
 		if(sReference == null || sReference.isEmpty() || sTarget == null || sTarget.isEmpty())
 			return null;
 		//get distance
-		int distance = getDLDistance(sReference, sTarget);
+		int iDistance = getDLDistance(sReference, sTarget);
 		//add similarity measurement, if distance <= threshold 
-		if(distance <= iThreshold){
+		if(iDistance <= iThreshold){
 			return new SimilarityMeasurement( 
-					new IntegerLiteral(distance), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_STRING_DAMLEV)))
+				new IntegerLiteral(iDistance),
+				this.PROCESS_RESOURCE,
+				this.getMeasurementDescription(MEASUREMENT_ID)
 			);
 		}
 		else return null;
@@ -139,8 +158,13 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
+	}
+	
+	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 	@Override
@@ -154,74 +178,83 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_REFERENCE_ATT), "Reference attribute name",
-				new IDataRestriction[]{
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				IN_REFERENCE, "Reference features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_LINE.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_TARGET, "Target features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.GEOMETRY_LINE.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_REFERENCE_ATT, "Reference attribute name",
+				new IIORestriction[]{
 					ERestrictions.BINDING_STRING.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET_ATT), "Target attribute name",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_STRING.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "String distance threshold for relations",
-					new IntegerLiteral(5),
-					new IDataRestriction[]{
-						ERestrictions.BINDING_INTEGER.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return inputs;
+				}
+			),
+			new IODescription(
+				IN_TARGET_ATT, "Target attribute name",
+				new IIORestriction[]{
+					ERestrictions.BINDING_STRING.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_THRESHOLD, "String distance threshold for relations",
+				new IntegerLiteral(5),
+				new IIORestriction[]{
+					ERestrictions.BINDING_INTEGER.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_DROP_RELATIONS, "relations that do not satisfy the threshold are dropped",
+				new BooleanLiteral(false),
+				new IIORestriction[]{
+					ERestrictions.BINDING_BOOLEAN.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_RELATIONS, "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+		)};
 	}
 	
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Damerau Levenshtein Distance between feature attributes", 
-					new RelationType(new IRI(RELATION_STRING_DAMLEV)),
-					new MeasurementRange<Integer>(
-							new IntegerLiteral[]{new IntegerLiteral(0), new IntegerLiteral(Integer.MAX_VALUE)}, 
-							true
-					))
-		);
-		return measurements;
+	protected ISimilarityMeasurementDescription[] getSupportedMeasurements() {		
+		return new SimilarityMeasurementDescription[]{
+				new SimilarityMeasurementDescription(
+				MEASUREMENT_ID, MEASUREMENT_DESC,
+				new MeasurementRange<Integer>(
+						new IntegerLiteral[]{new IntegerLiteral(0), new IntegerLiteral(Integer.MIN_VALUE)}, 
+						true
+				),
+				DataUtilities.toSet(MEASUREMENT_CLASSIFICATION)
+			)
+		};
 	}
 	
 }

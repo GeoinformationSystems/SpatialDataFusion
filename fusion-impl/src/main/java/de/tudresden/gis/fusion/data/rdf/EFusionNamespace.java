@@ -1,23 +1,46 @@
 package de.tudresden.gis.fusion.data.rdf;
 
 public enum EFusionNamespace {
-
-	//relation predicates
-	HAS_REFERENCE("hasReference"),
-	HAS_TARGET("hasTarget"),
-	HAS_RELATION_MEASUREMENT("hasRelationMeasurement"),
 	
-	//description predicates
+	//feature relation types
+	RDF_TYPE_FEATURE_RELATION("featureRelation"),
+	RELATION_HAS_REFERENCE("relationHasReference"),
+	RELATION_HAS_TARGET("relationHasTarget"),
+	RELATION_HAS_RELATION_MEASUREMENT("relationHasRelationMeasurement"),
+	
+	//specific relation measurement types
+	RDF_TYPE_SIMILARITY_MEASUREMENT("similarityMeasurement"),
+	RDF_TYPE_CONFIDENCE_MEASUREMENT("confidenceMeasurement"),
+	
+	//relation measurement types
+	RDF_TYPE_RELATION_MEASUREMENT("relationMeasurement"),
+	
+	//measurement types
+	RDF_TYPE_MEASUREMENT("measurement"),
+	MEASUREMENT_HAS_PROCESS_URI("measurementHasProcessURI"),
+	MEASUREMENT_HAS_DESCRIPTION("measurementHasDescription"),
+	
+	//measurement description types
+	RDF_TYPE_MEASUREMENT_DESCRIPTION("measurementDescription"),
+	MEASUREMENT_DESCRIPTION_HAS_RANGE("hasMeasurementRange"),
+	
+	//description types
+	RDF_TYPE_DESCRIPTION("description"),
+	DESCRIPTION_HAS_ABSTRACT("descriptionHasAbstract"),
+	
+	//measurement range types
+	RDF_TYPE_MEASUREMENT_RANGE("measurementRange"),
+	RANGE_IS_CONTINUOUS("rangeIsContinuous"),
+	RANGE_HAS_VALUE("rangeHasValue"),
+	RANGE_HAS_MIN("rangeHasMin"),
+	RANGE_HAS_MAX("rangeHasMax"),
+	
+	//misc
 	HAS_RELATION_TYPE("hasRelationType"),
-	HAS_TITLE("hasTitle"),
-	HAS_DESCRIPTION("hasDescription"),
-	HAS_ABSTRACT("hasAbstract"),
-	HAS_PROCESS_URI("hasProcessURI"),
+	HAS_TITLE("hasTitle"),	
+	HAS_ABSTRACT("hasAbstract"),	
 	HAS_MEMBER("hasMember"),
-	HAS_RANGE("hasRange"),
-	HAS_MIN("hasMin"),
-	HAS_MAX("hasMax"),
-	IS_CONTINUOUS("isContinuous"),
+	HAS_DESCRIPTION("hasDescription"),
 	HAS_IDENTIFIER("hasIdentifier"),
 	SUPPORTED_MEASUREMENT("supportedMeasurement"),
 	HAS_INPUT("hasInput"),
@@ -29,12 +52,7 @@ public enum EFusionNamespace {
 	HAS_RESTRICTION("hasRestriction"),
 	HAS_DEFAULT("hasDefault"),
 	
-	//relation element types
-	RDF_TYPE_RELATION_MEASUREMENT("relationMeasurement"),
-	RDF_TYPE_SIMILARITY_MEASUREMENT("similarityMeasurement"),
-	RDF_TYPE_CONFIDENCE_MEASUREMENT("confidenceMeasurement"),
-	RDF_TYPE_FEATURE_RELATION("featureRelation"),	
-	RDF_TYPE_MEASUREMENT_RANGE("measurementRange");
+	;
 	
 	private final String BASE = "http://tu-dresden.de/uw/geo/gis/fusion#";
 	private IIdentifiableResource resource;

@@ -9,9 +9,8 @@ import org.junit.Test;
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
 
@@ -24,11 +23,11 @@ public class TopologyRelationTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI()));
 		Map<String,IData> output = parser.execute(input);		
 		IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI()));
 		output = parser.execute(input);		
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");
 		
@@ -41,7 +40,7 @@ public class TopologyRelationTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + process.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + process.getProfile().getProcessName() + "\n\t" +
 				"number of reference features: " + reference.size() + "\n\t" + 
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +

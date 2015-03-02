@@ -42,7 +42,7 @@ public class RDFTurtleDecoder {
 			if(aTripleSet[i].startsWith("["))
 				continue;
 				
-			String[] elements = aTripleSet[i].split(" ");			
+			String[] elements = splitRDFLine(aTripleSet[i]);			
 			
 			//first line (subject, predicate, object)
 			if(elements.length == 3){
@@ -67,6 +67,16 @@ public class RDFTurtleDecoder {
 		return new RDFTripleSet(subject, objectSet);
 	}
 	
+	/**
+	 * split line within RDF file
+	 * @param line RDF line
+	 * @return splitted RDF elements
+	 */
+	private static String[] splitRDFLine(String line) {
+		//handles RDF literals that contain spaces between quotes
+		return line.split("[\\s]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+	}
+
 	private static void addToObjectSet(Map<IIdentifiableResource,Set<INode>> objectSet, IIdentifiableResource predicate, INode node){
 		if(objectSet.containsKey(predicate))
 			objectSet.get(predicate).add(node);
@@ -167,7 +177,7 @@ public class RDFTurtleDecoder {
 		}
 		else {
 			URI identifier = DataUtilities.resolveIdentifier(resource, prefixes);
-			return new Resource(new IRI(identifier));
+			return new IdentifiableResource(new IRI(identifier));
 		}
 	}
 	

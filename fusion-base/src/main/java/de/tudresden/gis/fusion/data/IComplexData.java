@@ -1,10 +1,15 @@
 package de.tudresden.gis.fusion.data;
 
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 
-public interface IComplexData extends IData,IRDFTripleSet {
+/**
+ * complex data object
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public interface IComplexData extends IData {
 	
-	public IIRI getIdentifier();
+	@Override
+	public IRDFRepresentation getRDFRepresentation();
 	
 }

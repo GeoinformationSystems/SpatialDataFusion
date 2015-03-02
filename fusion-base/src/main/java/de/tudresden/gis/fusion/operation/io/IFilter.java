@@ -1,14 +1,13 @@
 package de.tudresden.gis.fusion.operation.io;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 
 /**
  * basic filter for complex data
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public interface IFilter extends IRDFTripleSet {
+public interface IFilter {
 	
 	/**
 	 * filter input data

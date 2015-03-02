@@ -112,7 +112,7 @@ public class WPSOrchestration implements Serializable {
 //    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 //    xsi:schemaLocation="http://www.opengis.net/wps/1.0.0
 //    http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd">
-//    <ows:Identifier>de.tudresden.gis.fusion.algorithm.RelationAggregate</ows:Identifier>
+//    <ows:Identifier>de.tudresden.gis.fusion.algorithm.OperationAggregate</ows:Identifier>
 //       <wps:DataInputs>
 //         <wps:Input>
 //           <ows:Identifier>IN_REFERENCE</ows:Identifier>
@@ -131,15 +131,14 @@ public class WPSOrchestration implements Serializable {
 //         <wps:Input>
 //           <ows:Identifier>IN_OPERATIONS</ows:Identifier>
 //           <wps:Data>
-//             <wps:LiteralData dataType="xs:string">BoundingBoxDistance,IN_THRESHOLD,50,IN_DROP_RELATIONS,true;AngleDifference,IN_THRESHOLD,0.063,IN_DROP_RELATIONS,false;TopologyRelation</wps:LiteralData>
+//             <wps:LiteralData dataType="xs:string">BoundingBoxDistance,IN_THRESHOLD,LITERAL,50,IN_DROP_RELATIONS,LITERAL,true;LengthDifference,IN_THRESHOLD,LITERAL,30,IN_DROP_RELATIONS,LITERAL,false,IN_RELATIONS,AngleDifference,OUT_RELATIONS;AngleDifference,IN_THRESHOLD,LITERAL,0.063,IN_DROP_RELATIONS,LITERAL,true,IN_RELATIONS,BoundingBoxDistance,OUT_RELATIONS;</wps:LiteralData>
 //           </wps:Data>
 //         </wps:Input>
 //       </wps:DataInputs>
 //       <wps:ResponseForm>
-//       <wps:RawDataOutput mimeType="text/turtle">
-//           <ows:Identifier>OUT_RELATIONS</ows:Identifier>
-//         </wps:RawDataOutput>
+//             <wps:RawDataOutput>
+//             <ows:Identifier>OUT_OUTPUT</ows:Identifier>
+//           </wps:RawDataOutput>
 //       </wps:ResponseForm>
 //    </wps:Execute>
-	
 }

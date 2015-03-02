@@ -1,8 +1,6 @@
 package de.tudresden.gis.fusion.operation.provision;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,25 +11,27 @@ import com.hp.hpl.jena.update.UpdateExecutionFactory;
 import com.hp.hpl.jena.update.UpdateRequest;
 
 import de.tudresden.gis.fusion.data.IComplexData;
-import de.tudresden.gis.fusion.data.IDataResource;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFTurtleEncoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
 import de.tudresden.gis.fusion.operation.IDataProvision;
 import de.tudresden.gis.fusion.operation.ProcessException;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class TripleStoreGenerator extends AbstractOperation implements IDataProvision {
+public class TripleStoreGenerator extends AOperation implements IDataProvision {
 	
-	private final String IN_RELATIONS = "IN_RELATIONS";
+	private final String IN_RDF = "IN_RDF";
 	private final String IN_TRIPLE_STORE = "IN_TRIPLE_STORE";
 	private final String IN_CLEAR_STORE = "IN_CLEAR_STORE";	
 	private final String IN_URI_BASE = "IN_URI_BASE";
@@ -39,18 +39,21 @@ public class TripleStoreGenerator extends AbstractOperation implements IDataProv
 	
 	private final String OUT_SUCCESS = "OUT_SUCCESS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#TripleStoreGenerator";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.PROVISION.resource()
+	};
 	
 	@Override
 	public void execute() throws ProcessException {
 		
 		//get input relations and uri pattern
-		IComplexData inData = (IComplexData) getInput(IN_RELATIONS);
-		IDataResource inTripleStore = (IDataResource) getInput(IN_TRIPLE_STORE);
+		IComplexData inData = (IComplexData) getInput(IN_RDF);
+		URILiteral inTripleStore = (URILiteral) getInput(IN_TRIPLE_STORE);
 		BooleanLiteral inRemove = (BooleanLiteral) getInput(IN_CLEAR_STORE);
 		
 		boolean bRemove = inputContainsKey(IN_CLEAR_STORE) ? inRemove.getValue() : false;
-		String sTripleStoreURL = inTripleStore.getIdentifier().asString();
+		String sTripleStoreURL = inTripleStore.getIdentifier();
 		
 		StringLiteral uriBase = (StringLiteral) getInput(IN_URI_BASE);
 		StringLiteral uriPrefixes = (StringLiteral) getInput(IN_URI_PREFIXES);
@@ -68,20 +71,20 @@ public class TripleStoreGenerator extends AbstractOperation implements IDataProv
 		}
 		
 		//insert data to triple store
-		insertRDF(inData, sTripleStoreURL, bRemove, prefixes);
+		insertRDF(inData.getRDFRepresentation(), sTripleStoreURL, bRemove, prefixes);
 		
 		//set outpur
 		setOutput(OUT_SUCCESS, new BooleanLiteral(true));
 		
 	}
 	
-	private void insertRDF(IRDFTripleSet tripleSet, String sTripleStoreURL, boolean bRemove, Map<URI,String> prefixes){
+	private void insertRDF(IRDFRepresentation rdf, String sTripleStoreURL, boolean bRemove, Map<URI,String> prefixes){
 		//empty triple store if requested
 		if(bRemove){
 			clearStore(sTripleStoreURL);
 		}
 		//update store
-		updateStore(tripleSet, sTripleStoreURL, prefixes);
+		updateStore(rdf, sTripleStoreURL, prefixes);
 	}
 	
 	private void clearStore(String sTripleStoreURL){
@@ -102,12 +105,12 @@ public class TripleStoreGenerator extends AbstractOperation implements IDataProv
 		return sHeader.toString();
 	}
 		
-	private void updateStore(IRDFTripleSet tripleSet, String sTripleStoreURL, Map<URI,String> prefixes) {
+	private void updateStore(IRDFRepresentation rdf, String sTripleStoreURL, Map<URI,String> prefixes) {
 		//init string buffer
 		StringBuilder sRequest = new StringBuilder();
 		//insert data
-		if(tripleSet instanceof IRDFCollection){
-			List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((IRDFCollection) tripleSet, null, prefixes, 1000);
+		if(rdf instanceof IRDFCollection){
+			List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, null, prefixes, 1000);
 			for(String insert : rdfInserts){
 				sRequest.append(getPrefixHeader(prefixes));
 				sRequest.append("INSERT DATA {\n");
@@ -120,15 +123,15 @@ public class TripleStoreGenerator extends AbstractOperation implements IDataProv
 		else {
 			sRequest.append(getPrefixHeader(prefixes));
 			sRequest.append("INSERT DATA {\n");
-			sRequest.append(RDFTurtleEncoder.encodeTripleResource(tripleSet, null, prefixes));
+			sRequest.append(RDFTurtleEncoder.encodeTripleResource(rdf, null, prefixes));
 			sRequest.append("}");
 			updateStore(sTripleStoreURL, new UpdateRequest().add(sRequest.toString()));
 		}
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -137,59 +140,66 @@ public class TripleStoreGenerator extends AbstractOperation implements IDataProv
 	}
 
 	@Override
-	protected String getProcessDescription() {
-		return "Triple Store Generator for relations";
-	}
-
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-				new IRI(IN_RELATIONS), "Input relations",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction(),
-					ERestrictions.MANDATORY.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_TRIPLE_STORE), "triple store URI",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_IDATARESOURCE.getRestriction(),
-					ERestrictions.MANDATORY.getRestriction()
-				})		
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_CLEAR_STORE), "if set true, the triple store is at first cleared",
-				new BooleanLiteral(false),
-				new IDataRestriction[]{
-					ERestrictions.BINDING_BOOLEAN.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_URI_BASE), "RDF URI base",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_STRING.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_URI_PREFIXES), "RDF URI prefixes (CSV formatted)",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_STRING.getRestriction()
-				})
-		);
-		return inputs;				
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-				new IRI(OUT_SUCCESS), "true, if insert was successful",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_BOOLEAN.getRestriction(),
-					ERestrictions.MANDATORY.getRestriction()
-				})
-		);
-		return outputs;
+	protected String getProcessDescription() {
+		return "Triple Store Generator for relations";
+	}
+	
+	@Override
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_RDF, "Input RDF data",
+					new IIORestriction[]{
+							ERestrictions.BINDING_ICOMPLEX.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_URI_BASE, "RDF URI base",
+					new IIORestriction[]{
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_URI_PREFIXES, "RDF URI prefixes (CSV formatted)",
+					new IIORestriction[]{
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_CLEAR_STORE, "set true, if the triple store should be emptied first",
+					new BooleanLiteral(false),
+					new IIORestriction[]{
+							ERestrictions.BINDING_BOOLEAN.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TRIPLE_STORE, "relations that do not satisfy the threshold are dropped",
+					new BooleanLiteral(false),
+					new IIORestriction[]{
+							ERestrictions.BINDING_URIRESOURCE.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+		};
+	}
+
+	@Override
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					OUT_SUCCESS, "true, if insert operation was successful",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_BOOLEAN.getRestriction()
+					}
+			)
+		};
 	}
 	
 }

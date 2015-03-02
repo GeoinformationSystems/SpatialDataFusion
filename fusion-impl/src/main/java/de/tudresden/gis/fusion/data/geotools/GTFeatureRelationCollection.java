@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.geotools;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -12,24 +13,26 @@ import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.FeatureReference;
 import de.tudresden.gis.fusion.data.complex.FeatureRelation;
-import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.data.IDescription;
 
 /**
  * relation collection backed by collection of features to reduce redundant feature storage
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public class GTFeatureRelationCollection implements IResource,IFeatureRelationCollection {
+public class GTFeatureRelationCollection extends Resource implements IRDFTripleSet,IRDFCollection,IFeatureRelationCollection {
 	
-	private IIRI iri;
-	private IDataDescription description;
+	private IDescription description;
 	
 	private Map<String,FeatureReference> referenceFeatures;
 	private Map<String,FeatureReference> targetFeatures;
@@ -40,14 +43,15 @@ public class GTFeatureRelationCollection implements IResource,IFeatureRelationCo
 		init();
 	}
 	
-	public GTFeatureRelationCollection(IIRI iri, List<IFeatureRelation> relations, IDataDescription description){
-		this.iri = iri;
+	public GTFeatureRelationCollection(IIRI iri, List<IFeatureRelation> relations, IDescription description){
+		super(iri);
 		this.description = description;
 		init();
 		rebuildRelations(relations);
 	}
 	
 	public GTFeatureRelationCollection(IFeatureRelation relation){
+		super();
 		init();
 		this.addRelation(relation);
 	}
@@ -59,14 +63,14 @@ public class GTFeatureRelationCollection implements IResource,IFeatureRelationCo
 	}
 	
 	public void addRelation(IFeatureRelation relation){
-		if(!referenceFeatures.containsKey(relation.getReference().getIdentifier().asString()))
-			referenceFeatures.put(relation.getReference().getIdentifier().asString(), new FeatureReference(relation.getReference().getIdentifier()));
-		if(!targetFeatures.containsKey(relation.getTarget().getIdentifier().asString()))
-			targetFeatures.put(relation.getTarget().getIdentifier().asString(), new FeatureReference(relation.getTarget().getIdentifier()));
+		if(!referenceFeatures.containsKey(relation.getReference().getFeatureId()))
+			referenceFeatures.put(relation.getReference().getFeatureId(), new FeatureReference(relation.getReference().getFeatureId()));
+		if(!targetFeatures.containsKey(relation.getTarget().getFeatureId()))
+			targetFeatures.put(relation.getTarget().getFeatureId(), new FeatureReference(relation.getTarget().getFeatureId()));
 		relations.add(new FeatureRelation(
-				relation.getIdentifier(),
-				referenceFeatures.get(relation.getReference().getIdentifier().asString()),
-				targetFeatures.get(relation.getTarget().getIdentifier().asString()), 
+				relation.getRDFRepresentation().getSubject().getIdentifier(),
+				referenceFeatures.get(relation.getReference().getRDFRepresentation().getSubject().getIdentifier().asString()),
+				targetFeatures.get(relation.getTarget().getRDFRepresentation().getSubject().getIdentifier().asString()), 
 				relation.getMeasurements(), 
 				relation.getDescription()));
 	}
@@ -86,18 +90,13 @@ public class GTFeatureRelationCollection implements IResource,IFeatureRelationCo
 	}
 
 	@Override
-	public IDataDescription getDescription() {
+	public IDescription getDescription() {
 		return description;
 	}
 
-	@Override
-	public boolean isBlank() {
-		return getIdentifier() == null;
-	}
-	
 	public Map<IIdentifiableResource,Set<INode>> getObjectSet(){
 		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
-		objectSet.put(EFusionNamespace.HAS_MEMBER.resource(), DataUtilities.collectionToSet(relations));
+		objectSet.put(EFusionNamespace.HAS_MEMBER.resource(), DataUtilities.dataCollectionToNodeSet(relations));
 		return objectSet;
 	}
 	
@@ -106,22 +105,31 @@ public class GTFeatureRelationCollection implements IResource,IFeatureRelationCo
 	}
 
 	@Override
-	public IIRI getIdentifier() {
-		return iri;
+	public Iterator<IFeatureRelation> iterator() {
+		return relations.iterator();
 	}
 
 	@Override
-	public Iterator<IFeatureRelation> iterator() {
-		return relations.iterator();
+	public IRDFRepresentation getRDFRepresentation() {
+		return this;
+	}
+
+	@Override
+	public Collection<IFeatureRelation> getRelations() {
+		return relations;
 	}
 
 	@Override
 	public IResource getSubject() {
 		return this;
 	}
-	
+
 	@Override
-	public List<? extends IRDFRepresentation> getRDFCollection() {
-		return relations;
+	public Collection<? extends IRDFRepresentation> getRDFCollection() {
+		Collection<IRDFRepresentation> collection = new ArrayList<IRDFRepresentation>();
+		for(IFeatureRelation relation : relations){
+			collection.add(relation.getRDFRepresentation());
+		}
+		return collection;
 	}
 }

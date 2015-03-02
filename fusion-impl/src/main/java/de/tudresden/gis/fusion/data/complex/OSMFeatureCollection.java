@@ -5,40 +5,37 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.opengis.geometry.BoundingBox;
 
 import de.tudresden.gis.fusion.data.IComplexData;
-import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.data.IDescription;
 import de.tudresden.gis.fusion.misc.OSMCollection;
 
-public class OSMFeatureCollection implements IIdentifiableResource,IComplexData {
+public class OSMFeatureCollection extends Resource implements IComplexData {
 
 	private OSMCollection osmCollection;
-	private IIRI iri;
 	
 	public OSMFeatureCollection(IIRI iri) throws MalformedURLException, XMLStreamException, IOException {
+		super(iri);
 		osmCollection = new OSMCollection(iri.asURL());
-		this.iri = iri;
 	}
 	
 	public OSMFeatureCollection(File file) throws FileNotFoundException, XMLStreamException{
+		super(new IRI(file.toURI()));
 		osmCollection = new OSMCollection(file);
-		iri = new IRI(file.toURI());
 	}
 	
 	public OSMFeatureCollection(String type, Map<String,String> tags, BoundingBox bbox) throws MalformedURLException, XMLStreamException, IOException {
-		iri = new IRI(DataUtilities.getOSMOverpassResource(type, tags, bbox));
-		osmCollection = new OSMCollection(iri.asURL());
+		super(new IRI(DataUtilities.getOSMOverpassResource(type, tags, bbox)));
+		osmCollection = new OSMCollection(super.getIdentifier().asURL());
 	}
 	
 	public boolean isResolvable(){
@@ -46,19 +43,9 @@ public class OSMFeatureCollection implements IIdentifiableResource,IComplexData 
 	}
 
 	@Override
-	public IDataDescription getDescription() {
+	public IDescription getDescription() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public boolean isBlank() {
-		return iri == null;
-	}
-
-	@Override
-	public IIRI getIdentifier() {
-		return iri;
 	}
 	
 	public OSMCollection getOSMCollection(){
@@ -66,14 +53,9 @@ public class OSMFeatureCollection implements IIdentifiableResource,IComplexData 
 	}
 
 	@Override
-	public Map<IIdentifiableResource, Set<INode>> getObjectSet() {
+	public IRDFRepresentation getRDFRepresentation() {
 		// TODO Auto-generated method stub
 		return null;
-	}
-
-	@Override
-	public IResource getSubject() {
-		return this;
 	}
 
 }

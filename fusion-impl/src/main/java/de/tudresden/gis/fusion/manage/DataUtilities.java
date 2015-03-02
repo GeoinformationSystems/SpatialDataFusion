@@ -4,14 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.opengis.geometry.BoundingBox;
 
+import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
+import de.tudresden.gis.fusion.data.IMeasurementValue;
 import de.tudresden.gis.fusion.data.ISimpleData;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
@@ -19,11 +23,13 @@ import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.metadata.data.IDescription;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
 
@@ -153,14 +159,55 @@ public class DataUtilities {
 	}
 	
 	/**
-	 * create node set from node collection
-	 * @param collection node collection
+	 * create set of nodes from of data array
+	 * @param array input data array
+	 * @return output node set
+	 */
+	public static Set<INode> toSet(IData[] array){
+		HashSet<INode> nodes = new HashSet<INode>();
+		for(IData data : array){
+			nodes.add(data.getRDFRepresentation());
+		}
+		return nodes;
+	}
+	
+	/**
+	 * create set out of array
+	 * @param array input array
+	 * @return output set
+	 */
+	public static <T> Set<T> toSet(T[] array){
+		return new HashSet<T>(Arrays.asList(array));
+	}
+	
+	/**
+	 * create node set from data collection
+	 * @param collection data collection
 	 * @return node set
 	 */
-	public static HashSet<INode> collectionToSet(Collection<? extends INode> collection){
+	public static Set<INode> dataCollectionToNodeSet(Collection<? extends IData> collection){
 		if(collection == null)
 			return null;
-		return new HashSet<INode>(collection);
+		Set<INode> set = new HashSet<INode>();
+		for(IData data : collection){
+			set.add(data.getRDFRepresentation());
+		}
+		return set;
+	}
+	
+	/**
+	 * create node set from collection of descriptions
+	 * @param collection descriptions
+	 * @return node set
+	 */
+	public static Set<INode> descriptionsToNodeSet(Collection<? extends IDescription> descriptions){
+		if(descriptions == null)
+			return null;
+		Set<INode> set = new HashSet<INode>();
+		for(IDescription desc : descriptions){
+			set.add(desc.getRDFRepresentation());
+		}
+		return set;
 	}
 
 	/**
@@ -222,6 +269,67 @@ public class DataUtilities {
 		} catch (IOException e) {
 			throw new ProcessException(ExceptionKey.ACCESS_RESTRICTION, e);
 		}
+	}
+	
+	/**
+	 * get measurement value from literal
+	 * @param literal input literal
+	 * @return measurement value
+	 */
+	public static IMeasurementValue<?> getMeasurementValue(ITypedLiteral literal){
+		if(literal instanceof IMeasurementValue)
+			return (IMeasurementValue<?>) literal;
+		else
+			return new StringLiteral(literal.getIdentifier());
+	}
+	
+	/**
+	 * get object from object set
+	 * @param objectSet object set
+	 * @param resource resource to search for
+	 * @param clazz target class that needs to be matched
+	 * @return object from object set
+	 * @throws IOException 
+	 */
+	public static INode getSingleFromObjectSet(Map<IIdentifiableResource,Set<INode>> objectSet, IIdentifiableResource resource, Class<? extends INode> clazz, boolean mustHave) throws IOException{
+		//get objects
+		Set<INode> objects = objectSet.get(resource);
+		//check for single object
+		if(objects == null || objects.size() != 1){
+			if(mustHave)
+				throw new IOException("Missing or multiple definition for " + resource.getIdentifier().asString());
+			else return null;
+		}
+		//check for object
+		INode object = objects.iterator().next();
+		if(!clazz.isAssignableFrom(object.getClass()))
+			throw new IOException(object.getClass().getSimpleName() + " is not assignable from " + clazz.getSimpleName());
+		return object;
+	}
+	
+	/**
+	 * get objects from object set
+	 * @param objectSet object set
+	 * @param resource resource to search for
+	 * @param clazz target class that needs to be matched
+	 * @return objects from object set
+	 * @throws IOException 
+	 */
+	public static Set<INode> getMultipleFromObjectSet(Map<IIdentifiableResource,Set<INode>> objectSet, IIdentifiableResource resource, Class<? extends INode> clazz, boolean mustHave) throws IOException{
+		//get objects
+		Set<INode> objects = objectSet.get(resource);
+		//check for multiple object
+		if(objects.size() < 1){
+			if(mustHave)
+				throw new IOException("Missing definition for " + resource.getIdentifier().asString());
+			else return null;
+		}
+		//check objects
+		for(INode object : objects){
+			if(!clazz.isAssignableFrom(object.getClass()))
+				throw new IOException("Object " + resource.getIdentifier().asString() + " cannot be assigned to " + clazz.getSimpleName());
+			}
+		return objects;
 	}
 	
 }

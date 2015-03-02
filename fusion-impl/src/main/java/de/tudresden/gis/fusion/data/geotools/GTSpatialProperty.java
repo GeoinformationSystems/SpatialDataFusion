@@ -19,8 +19,8 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public class GTSpatialProperty implements ISpatialProperty {
 
@@ -79,7 +79,7 @@ public class GTSpatialProperty implements ISpatialProperty {
 	}
 
 	@Override
-	public IIRI getSRSName() {
+	public IIdentifiableResource getSRS() {
 		try {
 			Integer iEPSG;
 			CoordinateReferenceSystem crs = property.getDescriptor().getCoordinateReferenceSystem();
@@ -90,7 +90,7 @@ public class GTSpatialProperty implements ISpatialProperty {
 				iEPSG = CRS.lookupEpsgCode(crs, true);
 			if(iEPSG == null)
 				return null;
-			return new IRI("http://www.opengis.net/def/crs/EPSG/0/" + iEPSG);
+			return new IdentifiableResource("http://www.opengis.net/def/crs/EPSG/0/" + iEPSG);
 		} catch (FactoryException e) {
 			return null;
 		}

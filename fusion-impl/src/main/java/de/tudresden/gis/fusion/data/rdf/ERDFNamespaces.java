@@ -8,6 +8,7 @@ public enum ERDFNamespaces {
 	LITERAL_TYPE_LONG("http://www.w3.org/2001/XMLSchema/#long"),
 	LITERAL_TYPE_DECIMAL("http://www.w3.org/2001/XMLSchema/#decimal"),
 	LITERAL_TYPE_STRING("http://www.w3.org/2001/XMLSchema/#string"),
+	LITERAL_TYPE_ANYURI("http://www.w3.org/2001/XMLSchema/#anyURI"),
 	
 	//RDF basics
 	INSTANCE_OF("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),

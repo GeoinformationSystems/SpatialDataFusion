@@ -1,56 +1,47 @@
 package de.tudresden.gis.fusion.data.complex;
 
-import java.util.LinkedHashMap;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IMeasurementValue;
 import de.tudresden.gis.fusion.data.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.IRelationType;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
-import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.RelationMeasurementDescription;
 
-public class RelationMeasurement implements IResource,IRelationMeasurement,IRDFTripleSet {
+public class RelationMeasurement extends Measurement implements IRelationMeasurement {
 
-	private IIRI iri;
-	private IMeasurementValue<?> measurementValue;
-	private IMeasurementDescription description;
+	private final IIdentifiableResource TYPE = EFusionNamespace.RDF_TYPE_RELATION_MEASUREMENT.resource();
+	private final IIdentifiableResource DESCRIPTION = EFusionNamespace.MEASUREMENT_HAS_DESCRIPTION.resource();
 	
-	public RelationMeasurement(IIRI iri, IMeasurementValue<?> measurementValue, IMeasurementDescription description){
-		this.iri = iri;
-		this.measurementValue = measurementValue;
-		this.description = description;
+	public RelationMeasurement(IIRI iri, IIdentifiableResource process, IMeasurementValue<?> measurementValue, IRelationMeasurementDescription description){
+		super(iri, process, measurementValue, description);
 	}
 	
-	public RelationMeasurement(IMeasurementValue<?> measurementValue, IMeasurementDescription description){
-		this(null, measurementValue, description);
+	public RelationMeasurement(IRDFTripleSet decodedRDFResource) throws IOException {
+		super(decodedRDFResource);
+		//set description
+		Map<IIdentifiableResource,Set<INode>> objectSet = decodedRDFResource.getObjectSet();
+		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, IRDFTripleSet.class, true);
+		this.setDescription(new RelationMeasurementDescription((IRDFTripleSet) nDescription));
 	}
 	
-	@Override
-	public IResource getSubject(){
-		return this;
+	public RelationMeasurement(IMeasurementValue<?> measurementValue, IIdentifiableResource process, IRelationMeasurementDescription description){
+		this(null, process, measurementValue, description);
 	}
 	
 	@Override
 	public Map<IIdentifiableResource,Set<INode>> getObjectSet() {
-		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
-		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(EFusionNamespace.RDF_TYPE_RELATION_MEASUREMENT.resource()));
-		objectSet.put(EFusionNamespace.HAS_RELATION_TYPE.resource(), DataUtilities.toSet(getRelationType()));
-		objectSet.put(ERDFNamespaces.HAS_VALUE.resource(), DataUtilities.toSet(getMeasurementValue()));
-//		objectSet.put(new IdentifiableResource(EFusionNamespace.HAS_DESCRIPTION.getURI()), description);
+		Map<IIdentifiableResource,Set<INode>> objectSet = super.getObjectSet();
+		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(TYPE));
 		return objectSet;
-	}
-
-	@Override
-	public boolean isBlank() {
-		return iri == null || iri.toString().isEmpty();
 	}
 	
 	public boolean isResolvable(){
@@ -58,23 +49,8 @@ public class RelationMeasurement implements IResource,IRelationMeasurement,IRDFT
 	}
 
 	@Override
-	public IIRI getIdentifier() {
-		return iri;
-	}
-
-	@Override
-	public IRelationType getRelationType() {
-		return getDescription().getRelationType();
-	}
-
-	@Override
-	public IMeasurementValue<?> getMeasurementValue() {
-		return measurementValue;
-	}
-
-	@Override
-	public IMeasurementDescription getDescription() {
-		return description;
+	public IRelationMeasurementDescription getDescription() {
+		return (IRelationMeasurementDescription) super.getDescription();
 	}
 
 }

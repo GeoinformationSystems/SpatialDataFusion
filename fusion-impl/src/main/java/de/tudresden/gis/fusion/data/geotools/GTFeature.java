@@ -14,24 +14,27 @@ import de.tudresden.gis.fusion.data.feature.IFeatureProperty;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
 import de.tudresden.gis.fusion.data.feature.ITemporalProperty;
 import de.tudresden.gis.fusion.data.feature.IThematicProperty;
-import de.tudresden.gis.fusion.data.metadata.IFeatureDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.metadata.data.IFeatureDescription;
 
-public class GTFeature implements IIdentifiableResource,IFeature {
+public class GTFeature extends Resource implements IRDFTripleSet,IFeature {
 	
 	private SimpleFeature feature;
-	private IIRI iri;
 	private IFeatureDescription description;
 	
 	private Collection<ISpatialProperty> spatialProperties;
 	private Collection<IThematicProperty> thematicProperties;
 	
 	public GTFeature(IIRI iri, SimpleFeature feature, IFeatureDescription description){
-		this.iri = iri;
+		super(iri);
 		this.feature = feature;
 		this.description = description;
 		initProperties();
@@ -49,18 +52,9 @@ public class GTFeature implements IIdentifiableResource,IFeature {
 		return feature;
 	}
 	
-	public String getID(){
-		return feature.getID();
-	}
-
 	@Override
-	public IIRI getIdentifier() {
-		return iri;
-	}
-
-	@Override
-	public boolean isBlank() {
-		return iri == null;
+	public String getFeatureId() {
+		return getIdentifier().asString();
 	}
 
 	@Override
@@ -97,7 +91,7 @@ public class GTFeature implements IIdentifiableResource,IFeature {
 
 	@Override
 	public IResource getSubject() {
-		return this;
+		return new IdentifiableResource(getIdentifier());
 	}
 	
 	@Override
@@ -128,6 +122,12 @@ public class GTFeature implements IIdentifiableResource,IFeature {
 		}
 		return null;
 	}
+	
+	@Override
+	public IRDFRepresentation getRDFRepresentation() {
+		return this;
+	}
+
 	
 //	private static class GTFeatureIdentifier {
 //		

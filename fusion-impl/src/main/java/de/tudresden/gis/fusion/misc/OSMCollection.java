@@ -421,8 +421,6 @@ public class OSMCollection {
 				try {
 					coordinateList.add(node.getCoordinate());
 				} catch(Exception e){
-					System.out.println(nodeReferences.size());
-					System.out.println(osmId);
 					e.printStackTrace();
 					throw e;
 				}

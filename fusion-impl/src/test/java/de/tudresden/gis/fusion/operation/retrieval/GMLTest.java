@@ -8,9 +8,8 @@ import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.retrieval.GMLParser;
 
@@ -19,7 +18,7 @@ public class GMLTest {
 	@Test
 	public void readGMLFile() throws ProcessException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_RESOURCE", new Resource(new IRI("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));
+		input.put("IN_RESOURCE", new URILiteral("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs"));
 		
 		GMLParser parser = new GMLParser();
 		Map<String,IData> output = parser.execute(input);
@@ -34,10 +33,10 @@ public class GMLTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + parser.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + parser.getProfile().getProcessName() + "\n\t" +
 				"features read from gml: " + features.size() + "\n\t" +
 				"gml feature bounds: " + boundsToString(features.getSpatialProperty().getBounds()) + "\n\t" +
-				"gml feature crs: : " + features.getSpatialProperty().getSRSName().asString() + "\n\t" +
+				"gml feature crs: : " + features.getSpatialProperty().getSRS().getIdentifier().asString() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) parser.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");		
 	}

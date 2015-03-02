@@ -1,7 +1,6 @@
 package de.tudresden.gis.fusion.operation.aggregate;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -13,21 +12,22 @@ import java.util.UUID;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.Namespace;
 import de.tudresden.gis.fusion.manage.Operations;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
 import de.tudresden.gis.fusion.operation.IOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class OperationAggregate extends AbstractOperation {
+public class OperationAggregate extends AOperation {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -38,7 +38,10 @@ public class OperationAggregate extends AbstractOperation {
 	
 	private final String LITERAL_OBJECT = "LITERAL";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#OperationAggregate";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			
+	};
 	
 	Map<String,OperationProxy> operations;
 	List<OperationProxy> sortedOperations;
@@ -50,6 +53,13 @@ public class OperationAggregate extends AbstractOperation {
 
 	@Override
 	protected void execute() {
+		
+		//initialize operations
+		try {
+			initAvailableOperations();
+		} catch (Exception e) {
+			throw new ProcessException(ExceptionKey.ACCESS_RESTRICTION, "Cannot initiate available operations");
+		}
 		
 		//get input
 		inReference = (IFeatureCollection) getInput(IN_REFERENCE);
@@ -138,14 +148,14 @@ public class OperationAggregate extends AbstractOperation {
 	 * @param key process iri
 	 * @return operation instance or null, if no operation was found
 	 */
-	private OperationProxy getOperation(String key) {
-		if(key.equals(LITERAL_OBJECT))
-			return new OperationProxy(key + UUID.randomUUID());
-		if(operations.containsKey(key))
-			return operations.get(key);
+	private OperationProxy getOperation(String name) {
+		if(name.equals(LITERAL_OBJECT))
+			return new OperationProxy(name + UUID.randomUUID());
+		if(operations.containsKey(name))
+			return operations.get(name);
 		for(IOperation operation : availableOperations){
-			if(operation.getProfile().getIdentifier().equals(key) || operation.getProfile().getIdentifier().asString().endsWith(key))
-				return new OperationProxy(key, operation);
+			if(operation.getProfile().getProcessName().equalsIgnoreCase(name) || operation.getProfile().getProcessName().toLowerCase().endsWith(name.toLowerCase()))
+				return new OperationProxy(name, operation);
 		}
 		return null;
 	}
@@ -159,8 +169,8 @@ public class OperationAggregate extends AbstractOperation {
 	}
 	
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -169,55 +179,52 @@ public class OperationAggregate extends AbstractOperation {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Aggregates input relation processes to form feature relations";
 	}
-
-	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_OPERATIONS), "Operations (CSV: operation iri, operation io, in sequence of execution)",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_STRING.getRestriction()
-				})
-		);
-		return inputs;
-	}
-
-	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_OUTPUT), "Operations output (CSV with available output keys)",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_STRING.getRestriction()
-					})
-		);
-		return outputs;
-	}
 	
 	@Override
-	protected void initDescription() {
-		try {
-			initAvailableOperations();
-		} catch (Exception e) {
-			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT);
-		}
-		super.initDescription();
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_REFERENCE, "Reference features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET, "Target features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_OPERATIONS, "Operations (CSV: operation name, operation io)",
+					new IIORestriction[]{
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			),
+		};
+	}
+
+	@Override
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					OUT_OUTPUT, "Operations output (CSV with available output keys)",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			)
+		};
 	}
 	
 	/**
@@ -227,7 +234,7 @@ public class OperationAggregate extends AbstractOperation {
 	 */
 	private void initAvailableOperations() throws InstantiationException, IllegalAccessException {
 		availableOperations = new LinkedHashSet<IOperation>();
-		Set<Class<? extends IOperation>> operations = Operations.getAvalaibleOperations();
+		Set<Class<? extends IOperation>> operations = Operations.getOperations();
 		for(Class<? extends IOperation> clazz : operations) {
 			//do not include this.class to prevent infinite initialization
 			if(clazz.getPackage().getName().contains("aggregate"))

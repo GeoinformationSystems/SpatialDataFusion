@@ -7,16 +7,14 @@ import java.util.Map;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.operation.confidence.SimilarityCountMatch;
 import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
@@ -36,11 +34,11 @@ public class RDFTurtleGeneratorTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI()));
 		Map<String,IData> output = parser.execute(input);		
 		IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_SHAPE_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI()));
 		output = parser.execute(input);		
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");
 		
@@ -104,7 +102,7 @@ public class RDFTurtleGeneratorTest {
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
 		RDFTurtleGenerator generator = new RDFTurtleGenerator();
-		input.put("IN_RELATIONS", relations);
+		input.put("IN_RDF", relations);
 		input.put("IN_URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
@@ -115,17 +113,17 @@ public class RDFTurtleGeneratorTest {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
 				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
 		output = generator.execute(input);	
-		IDataResource file = (IDataResource) output.get("OUT_RESOURCE");
+		URILiteral file = (URILiteral) output.get("OUT_RESOURCE");
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + generator.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + generator.getProfile().getProcessName() + "\n\t" +
 				"number of reference features: " + reference.size() + "\n\t" + 
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) generator.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n\t" +
-				"target relation file: " + file.getIdentifier().asString() + "\n");
+				"target relation file: " + file.getIdentifier() + "\n");
 	}
 	
 }

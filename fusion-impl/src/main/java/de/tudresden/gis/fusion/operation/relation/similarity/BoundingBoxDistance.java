@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.operation.relation.similarity;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -17,21 +15,26 @@ import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractRelationMeasurement;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.ISimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.metadata.data.SimilarityMeasurementDescription;
+import de.tudresden.gis.fusion.operation.ASimilarityMeasurementOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class BoundingBoxDistance extends AbstractRelationMeasurement {
+public class BoundingBoxDistance extends ASimilarityMeasurementOperation {
 
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
@@ -41,11 +44,26 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#BoundingBoxDistance";
-	private final String RELATION_BBOX_OVERLAP = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#overlap_bbox";
-	private final String RELATION_BBOX_DISTANCE = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#distance_bbox";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+			EProcessType.OP_REL_PROP_LOC.resource()
+	};
+	
+	private final IIRI MEASUREMENT_OVERLAP_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#overlap");
+	private final String MEASUREMENT_OVERLAP_DESC = "Overlap between bounding boxes";
+	private final IIdentifiableResource[] MEASUREMENT_OVERLAP_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.TOPO_OVERLAP.resource(),
+			EMeasurementType.TOPO_INTERSECT.resource()
+	};
+	private final IIRI MEASUREMENT_DIST_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle() + "#distance");
+	private final String MEASUREMENT_DIST_DESC = "Distance between bounding boxes";
+	private final IIdentifiableResource[] MEASUREMENT_DIST_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.GEOM_DIST_EUC.resource()
+	};
 	
 	private double dThreshold;
+	private boolean bDropRelations;
 	
 	@Override
 	public void execute() {
@@ -54,11 +72,11 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
 		dThreshold = ((DecimalLiteral) getInput(IN_THRESHOLD)).getValue();
-		setDropRelations((BooleanLiteral) getInput(IN_DROP_RELATIONS));
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).getValue();
 
 		//execute
 		IFeatureRelationCollection relations = (inputContainsKey(IN_RELATIONS) ?
-				calculateRelation(inReference, inTarget, (GTFeatureRelationCollection) getInput(IN_RELATIONS)) :
+				relate(inReference, inTarget, (GTFeatureRelationCollection) getInput(IN_RELATIONS)) :
 				calculateRelationDelegate(inReference, inTarget));
 			
 		//return
@@ -66,12 +84,17 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 		
 	}
 	
+	@Override
+	protected boolean dropRelations() {
+		return bDropRelations;
+	}
+	
 	private IFeatureRelationCollection calculateRelationDelegate(IFeatureCollection reference, IFeatureCollection target) {
 
 		if(reference instanceof GTIndexedFeatureCollection)
 			return calculateRelationWithIndex((GTIndexedFeatureCollection) reference, target);
 		else
-			return calculateRelation(reference, target);
+			return relate(reference, target);
 		
 	}
 	
@@ -81,7 +104,7 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 	    for(IFeature fTar : target) {
 		    List<IFeature> intersections = reference.intersects(fTar, dThreshold);
 		    for(IFeature fRef : intersections){
-		    	SimilarityMeasurement similarity = calculateSimilarity(fRef, fTar);
+		    	SimilarityMeasurement similarity = relate(fRef, fTar);
 		    	//only adds measurement, if distance is <= threshold (index can return features that are more distant by different expand strategy)
 		    	if(similarity != null)
 		    		relations.addRelation(new FeatureRelation(fRef, fTar, similarity, null));
@@ -92,7 +115,7 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 	}
 	
 	@Override
-	protected SimilarityMeasurement calculateSimilarity(IFeature reference, IFeature target) {
+	protected SimilarityMeasurement relate(IFeature reference, IFeature target) {
 		//get bounding boxes
 		ReferencedEnvelope eReference = getEnvelope(reference.getDefaultSpatialProperty());
 		ReferencedEnvelope eTarget = getEnvelope(target.getDefaultSpatialProperty());
@@ -100,18 +123,20 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 		boolean overlap = intersects(eReference, eTarget);
 		if(overlap){
 			double dOverlap = getOverlap(eReference, eTarget);
-			return new SimilarityMeasurement(
-					new DecimalLiteral(dOverlap), 
-					this.getMeasurementDescription(new RelationType(new IRI(RELATION_BBOX_OVERLAP)))
+			return new SimilarityMeasurement( 
+				new DecimalLiteral(dOverlap),
+				this.PROCESS_RESOURCE,
+				this.getMeasurementDescription(MEASUREMENT_OVERLAP_ID)
 			);
 		}
 		else {
 			//get distance
-			double distance = getDistance(eReference, eTarget);
-			if(distance <= dThreshold)
-				return new SimilarityMeasurement(
-						new DecimalLiteral(distance), 
-						this.getMeasurementDescription(new RelationType(new IRI(RELATION_BBOX_DISTANCE)))
+			double dDistance = getDistance(eReference, eTarget);
+			if(dDistance <= dThreshold)
+				return new SimilarityMeasurement( 
+					new DecimalLiteral(dDistance),
+					this.PROCESS_RESOURCE,
+					this.getMeasurementDescription(MEASUREMENT_DIST_ID)
 				);
 			else
 				return null;
@@ -144,10 +169,15 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 	private double getArea(ReferencedEnvelope envelope){
 		return envelope.getArea();
 	}
-
+	
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
+	}
+	
+	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 	@Override
@@ -159,80 +189,79 @@ public class BoundingBoxDistance extends AbstractRelationMeasurement {
 	protected String getProcessDescription() {
 		return "Calculates the distance between input feature bounds";
 	}
+	
+	@Override
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				IN_REFERENCE, "Reference features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_TARGET, "Target features",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+					ERestrictions.MANDATORY.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_THRESHOLD, "Distance threshold for relations",
+				new DecimalLiteral(0),
+				new IIORestriction[]{
+					ERestrictions.BINDING_DECIMAL.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_DROP_RELATIONS, "relations that do not satisfy the threshold are dropped",
+				new BooleanLiteral(false),
+				new IIORestriction[]{
+					ERestrictions.BINDING_BOOLEAN.getRestriction()
+				}
+			),
+			new IODescription(
+				IN_RELATIONS, "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
+				new IIORestriction[]{
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+		)};
+	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Distance threshold for relations",
-					new DecimalLiteral(0),
-					new IDataRestriction[]{
-						ERestrictions.BINDING_DECIMAL.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_DROP_RELATIONS), "relations that do not satisfy the threshold are dropped",
-				new BooleanLiteral(false),
-				new IDataRestriction[]{
-					ERestrictions.BINDING_BOOLEAN.getRestriction()
-				})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_RELATIONS), "Input relations; if set, similarity measures are added to the relations (reference and target inputs are ignored)",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return inputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
-	}
-	
-	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Bounding box overlap between geometries", 
-					new RelationType(new IRI(RELATION_BBOX_OVERLAP)),
+	protected ISimilarityMeasurementDescription[] getSupportedMeasurements() {		
+		return new SimilarityMeasurementDescription[]{
+			new SimilarityMeasurementDescription(
+					MEASUREMENT_OVERLAP_ID, MEASUREMENT_OVERLAP_DESC,
 					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(100)},  
-							false
-					))
-		);
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Bounding box distance between geometries", 
-					new RelationType(new IRI(RELATION_BBOX_DISTANCE)),
-					new MeasurementRange<Double>(
-							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(Double.MAX_VALUE)}, 
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(100)},
 							true
-					))
-		);
-		return measurements;
-	}	
+					),
+					DataUtilities.toSet(MEASUREMENT_OVERLAP_CLASSIFICATION)
+			),
+			new SimilarityMeasurementDescription(
+					MEASUREMENT_DIST_ID, MEASUREMENT_DIST_DESC,
+					new MeasurementRange<Double>(
+							new DecimalLiteral[]{new DecimalLiteral(0), new DecimalLiteral(Double.MAX_VALUE)},
+							true
+					),
+					DataUtilities.toSet(MEASUREMENT_DIST_CLASSIFICATION)
+			)
+		};
+	}
 
 }

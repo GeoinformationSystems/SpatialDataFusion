@@ -2,8 +2,6 @@ package de.tudresden.gis.fusion.operation.provision;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 import org.geotools.data.FeatureWriter;
 import org.geotools.data.Transaction;
@@ -15,27 +13,31 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
 import de.tudresden.gis.fusion.operation.IDataProvision;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class ShapefileGenerator extends AbstractOperation implements IDataProvision {
+public class ShapefileGenerator extends AOperation implements IDataProvision {
 
 	private final String IN_FEATURES = "IN_FEATURES";	
 	private final String OUT_RESOURCE = "OUT_RESOURCE";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#ShapefileGenerator";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.PROVISION.resource()
+	};
 	
 	@Override
 	public void execute() {
@@ -44,7 +46,7 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
 		IFeatureCollection features = (IFeatureCollection) getInput(IN_FEATURES);
 		
 		//write file
-		IDataResource shape;
+		URILiteral shape;
 		try {
 			shape = writeShapefile(features);
 		} catch (IOException e) {
@@ -56,7 +58,7 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
 		
 	}
 	
-	private IDataResource writeShapefile(IFeatureCollection features) throws IOException {
+	private URILiteral writeShapefile(IFeatureCollection features) throws IOException {
 		
 		SimpleFeatureCollection collection = DataUtilities.getGTFeatureCollection(features);
 		if(collection == null)
@@ -85,13 +87,13 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
         
         shapeDataStore.dispose();
 
-        return new Resource(new IRI(file.toURI()));
+        return new URILiteral(file.toURI());
       
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -100,33 +102,39 @@ public class ShapefileGenerator extends AbstractOperation implements IDataProvis
 	}
 
 	@Override
-	protected String getProcessDescription() {
-		return "Generator for ESRI Shapefiles";
-	}
-
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_FEATURES), "Input features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-							ERestrictions.MANDATORY.getRestriction()
-						})
-		);
-		return inputs;				
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RESOURCE), "Output shapefile",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IDATARESOURCE.getRestriction()
-					})
-		);
-		return outputs;
+	protected String getProcessDescription() {
+		return "Generator for ESRI Shapefiles";
+	}
+	
+	@Override
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_FEATURES, "Input features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			)
+		};
+	}
+
+	@Override
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					OUT_RESOURCE, "Output shapefile",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_URIRESOURCE.getRestriction()
+					}
+			)
+		};
 	}
 
 }

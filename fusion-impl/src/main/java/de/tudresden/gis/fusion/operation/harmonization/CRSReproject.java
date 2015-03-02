@@ -2,7 +2,6 @@ package de.tudresden.gis.fusion.operation.harmonization;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.geotools.feature.AttributeTypeBuilder;
@@ -28,15 +27,21 @@ import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.operation.AbstractOperation;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class CRSReproject extends AbstractOperation {
+public class CRSReproject extends AOperation {
 	
 	private final String IN_REFERENCE = "IN_REFERENCE";
 	private final String IN_TARGET = "IN_TARGET";
@@ -46,24 +51,28 @@ public class CRSReproject extends AbstractOperation {
 	private final String OUT_REFERENCE = "OUT_REFERENCE";
 	private final String OUT_TARGET = "OUT_TARGET";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#CRSReproject";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.HARMONIZATION.resource(),
+			EProcessType.OP_HAR_CRS.resource()
+	};
 	
 	@Override
 	public void execute() throws ProcessException {
 
 		//get inputs
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
-		IResource inReferenceCRS = (IResource) getInput(IN_REFERENCE_CRS);
+		URILiteral inReferenceCRS = (URILiteral) getInput(IN_REFERENCE_CRS);
 		IFeatureCollection inTarget = (IFeatureCollection) getInput(IN_TARGET);
-		IResource inTargetCRS = (IResource) getInput(IN_TARGET_CRS);
-		IResource inCRS = (IResource) getInput(IN_CRS);
+		URILiteral inTargetCRS = (URILiteral) getInput(IN_TARGET_CRS);
+		URILiteral inCRS = (URILiteral) getInput(IN_CRS);
 		
 		//get reference and target crs
 		CoordinateReferenceSystem crsReference = inReferenceCRS == null ? 
-				getCRSFromIRI(inReference.getSpatialProperty().getSRSName()) : 
+				getCRSFromIRI(inReference.getSpatialProperty().getSRS().getIdentifier().asString()) : 
 				getCRSFromIRI(inReferenceCRS.getIdentifier());
 		CoordinateReferenceSystem crsTarget = inTargetCRS == null ? 
-				getCRSFromIRI(inTarget.getSpatialProperty().getSRSName()) : 
+				getCRSFromIRI(inTarget.getSpatialProperty().getSRS().getIdentifier().asString()) : 
 				getCRSFromIRI(inTargetCRS.getIdentifier());
 		
 		//get final crs
@@ -80,9 +89,9 @@ public class CRSReproject extends AbstractOperation {
 		
 	}
 	
-	private CoordinateReferenceSystem getCRSFromIRI(IIRI iri){
+	private CoordinateReferenceSystem getCRSFromIRI(String identifier){
 		try {
-			return CRS.decode(iri.asString());
+			return CRS.decode(identifier);
 		} catch (FactoryException e1) {
 			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT, "input crs cannot be detected");
 		}
@@ -121,7 +130,7 @@ public class CRSReproject extends AbstractOperation {
 		}
 	    
 		//return
-		return new GTFeatureCollection(inFeature.getIdentifier(), features_proj, inFeature.getDescription());
+		return new GTFeatureCollection(new IRI(inFeature.getCollectionId()), features_proj, inFeature.getDescription());
 	}
 
 	/**
@@ -231,8 +240,8 @@ public class CRSReproject extends AbstractOperation {
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -241,20 +250,69 @@ public class CRSReproject extends AbstractOperation {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Reprojects coordinate reference system of input features";
 	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_REFERENCE, "Reference features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET, "Target features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_REFERENCE_CRS, "CRS of reference features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_URIRESOURCE.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET_CRS, "CRS of target feature",
+					new IIORestriction[]{
+							ERestrictions.BINDING_URIRESOURCE.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_CRS, "Target CRS, if not set the crs of the reference features is set as target",
+					new IIORestriction[]{
+							ERestrictions.BINDING_URIRESOURCE.getRestriction()
+					}
+		)};
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					OUT_REFERENCE, "Reference features",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+					}
+			),
+			new IODescription(
+					OUT_TARGET, "Target features",
+					new IIORestriction[]{
+							ERestrictions.MANDATORY.getRestriction(),
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction()
+					}
+			)
+		};
 	}
-
 }

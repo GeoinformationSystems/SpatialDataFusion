@@ -1,7 +1,7 @@
 package de.tudresden.gis.fusion.data.restrictions;
 
+import de.tudresden.gis.fusion.data.IComplexData;
 import de.tudresden.gis.fusion.data.ICoverage;
-import de.tudresden.gis.fusion.data.IDataResource;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.complex.OSMFeatureCollection;
@@ -11,7 +11,8 @@ import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
 public enum ERestrictions {
 	
@@ -28,20 +29,21 @@ public enum ERestrictions {
 	BINDING_DECIMAL(new JavaBindingRestriction(DecimalLiteral.class)),
 	BINDING_BOOLEAN(new JavaBindingRestriction(BooleanLiteral.class)),
 	BINDING_STRING(new JavaBindingRestriction(StringLiteral.class)),
+	BINDING_URIRESOURCE(new JavaBindingRestriction(URILiteral.class)),
 	BINDING_IFEATUReCOLLECTION(new JavaBindingRestriction(IFeatureCollection.class)),
 	BINDING_OSMFEATUReCOLLECTION(new JavaBindingRestriction(OSMFeatureCollection.class)),
 	BINDING_IFEATUReRELATIOnCOLLECTION(new JavaBindingRestriction(IFeatureRelationCollection.class)),
 	BINDING_ICOVERAGE(new JavaBindingRestriction(ICoverage.class)),
-	BINDING_IDATARESOURCE(new JavaBindingRestriction(IDataResource.class)),
+	BINDING_ICOMPLEX(new JavaBindingRestriction(IComplexData.class)),
 	
 	//mandatory restriction
 	MANDATORY(new MandatoryIORestriction(true));
 	
-	private IDataRestriction restriction;
-	private ERestrictions(IDataRestriction restriction){
+	private IIORestriction restriction;
+	private ERestrictions(IIORestriction restriction){
 		this.restriction = restriction;
 	}
-	public IDataRestriction getRestriction() {
+	public IIORestriction getRestriction() {
 		return restriction;
 	}
 

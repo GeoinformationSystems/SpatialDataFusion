@@ -1,27 +1,29 @@
 package de.tudresden.gis.fusion.operation.confidence;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.complex.ConfidenceMeasurement;
 import de.tudresden.gis.fusion.data.complex.SimilarityMeasurement;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
-import de.tudresden.gis.fusion.data.simple.RelationType;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.metadata.MeasurementDescription;
-import de.tudresden.gis.fusion.metadata.MeasurementRange;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EMeasurementType;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
+import de.tudresden.gis.fusion.metadata.data.ConfidenceMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.IConfidenceMeasurementDescription;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.metadata.data.MeasurementRange;
+import de.tudresden.gis.fusion.operation.AConfidenceMeasurementOperation;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class SimilarityCountMatch extends AbstractMeasurementOperation {
+public class SimilarityCountMatch extends AConfidenceMeasurementOperation {
 
 	//process definitions
 	private final String IN_THRESHOLD = "IN_THRESHOLD";
@@ -29,37 +31,45 @@ public class SimilarityCountMatch extends AbstractMeasurementOperation {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#SimilarityCountMatch";
-	private final String CONFIDENCE_SIMILARITY_COUNT = "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#count_similarity";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource(),
+	};
+	
+	private final IIRI MEASUREMENT_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle());
+	private final String MEASUREMENT_DESC = "Count of relation measurements";
+	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
+			EMeasurementType.SUM.resource()
+	};
+	
+	int iThreshold;
 		
 	@Override
 	public void execute() {
 		
 		//get input
 		GTFeatureRelationCollection inRelations = (GTFeatureRelationCollection) getInput(IN_RELATIONS);
-		IntegerLiteral inThreshold = (IntegerLiteral) getInput(IN_THRESHOLD);
+		iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).getValue();
 		
-		//set defaults
-		int iThreshold = inThreshold.getValue();
-		
-		GTFeatureRelationCollection outRelations = countSimilarityMeasures(inRelations, iThreshold);
+		GTFeatureRelationCollection outRelations = countSimilarityMeasures(inRelations);
 			
 		//return
 		setOutput(OUT_RELATIONS, outRelations);
 		
 	}
 	
-	private GTFeatureRelationCollection countSimilarityMeasures(GTFeatureRelationCollection relations, int iThreshold){
+	private GTFeatureRelationCollection countSimilarityMeasures(GTFeatureRelationCollection relations){
 		
 		GTFeatureRelationCollection outRelations = new GTFeatureRelationCollection();
 		for(IFeatureRelation relation : relations){
-			int count = countSimilarityMeasurements(relation);
-			if(count >= iThreshold){
+			int iCount = countSimilarityMeasurements(relation);
+			if(iCount >= iThreshold){
 				relation.addRelationMeasurement(
-						new ConfidenceMeasurement( 
-								new IntegerLiteral(count),
-								this.getMeasurementDescription(new RelationType(new IRI(CONFIDENCE_SIMILARITY_COUNT)))
-						)	
+					new ConfidenceMeasurement( 
+						new IntegerLiteral(iCount),
+						this.PROCESS_RESOURCE,
+						this.getMeasurementDescription(MEASUREMENT_ID)
+					)
 				);
 				outRelations.addRelation(relation);
 			}
@@ -77,8 +87,8 @@ public class SimilarityCountMatch extends AbstractMeasurementOperation {
 	}
 	
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -87,55 +97,58 @@ public class SimilarityCountMatch extends AbstractMeasurementOperation {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Calculates similarity measurements for input relations, deletes relations with count < threshold";
 	}
 
 	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-					new IRI(IN_THRESHOLD), "Count threshold for relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_THRESHOLD, "Count threshold for relations, if count is lower than threshold the relation is dropped",
+					new IntegerLiteral(0),
+					new IIORestriction[]{
 						ERestrictions.BINDING_INTEGER.getRestriction()
-					})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_RELATIONS), "Input relations for which similarity measurements are counted",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return inputs;
+					}
+			),
+			new IODescription(
+				IN_RELATIONS, "Input relations for which similarity measurements are counted",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+		)};
 	}
 
 	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();		
-		measurements.add(new MeasurementDescription(
-					this.getProcessIRI(),
-					"Number of similarity measurements for this relation", 
-					new RelationType(new IRI(CONFIDENCE_SIMILARITY_COUNT)),
-					new MeasurementRange<Integer>(
-							new IntegerLiteral[]{new IntegerLiteral(0), new IntegerLiteral(Integer.MAX_VALUE)},
-							true
-					))
-		);
-		return measurements;
+	protected IConfidenceMeasurementDescription[] getSupportedMeasurements() {		
+		return new ConfidenceMeasurementDescription[]{
+			new ConfidenceMeasurementDescription(
+				MEASUREMENT_ID, MEASUREMENT_DESC,
+				new MeasurementRange<Integer>(
+					new IntegerLiteral[]{new IntegerLiteral(0), new IntegerLiteral(Integer.MAX_VALUE)}, 
+					true
+				),
+				DataUtilities.toSet(MEASUREMENT_CLASSIFICATION)
+			)
+		};
 	}	
 }

@@ -9,11 +9,10 @@ import org.junit.Test;
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
+import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
 
@@ -26,12 +25,12 @@ public class BoundingBoxDistanceTest {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "atkis_dd.shp").toURI()));
 		input.put("IN_WITH_INDEX", new BooleanLiteral(true));
 		Map<String,IData> output = parser.execute(input);		
 		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_RESOURCE", new Resource(new IRI(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI())));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/GIS/Programmierung/testdata/fusion_test", "osm_dd.shp").toURI()));
 		output = parser.execute(input);	
 		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
@@ -45,7 +44,7 @@ public class BoundingBoxDistanceTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("executing " + process.getProcessIRI().asString() + "\n\t" +
+		System.out.print("executing " + process.getProfile().getProcessName() + "\n\t" +
 				"number of reference features: " + reference.size() + "\n\t" + 
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +

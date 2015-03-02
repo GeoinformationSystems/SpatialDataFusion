@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.complex;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,27 +10,29 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.metadata.IDataDescription;
 import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.metadata.data.IDescription;
 
-public class FeatureRelationCollection implements IResource,IFeatureRelationCollection {
+public class FeatureRelationCollection extends Resource implements IRDFTripleSet,IRDFCollection,IFeatureRelationCollection {
 	
-	private IIRI iri;
 	private List<IFeatureRelation> relations;
-	private IDataDescription description;
+	private IDescription description;
 	
 	public FeatureRelationCollection(){
 		initCollection();
 	}
 	
-	public FeatureRelationCollection(IIRI iri, List<IFeatureRelation> relations, IDataDescription description){
-		this.iri = iri;
+	public FeatureRelationCollection(IIRI iri, List<IFeatureRelation> relations, IDescription description){
+		super(iri);
 		this.relations = relations;
 		this.description = description;
 	}
@@ -56,7 +59,7 @@ public class FeatureRelationCollection implements IResource,IFeatureRelationColl
 	}
 
 	@Override
-	public IDataDescription getDescription() {
+	public IDescription getDescription() {
 		return description;
 	}
 
@@ -67,17 +70,12 @@ public class FeatureRelationCollection implements IResource,IFeatureRelationColl
 	
 	public Map<IIdentifiableResource,Set<INode>> getObjectSet(){
 		Map<IIdentifiableResource,Set<INode>> objectSet = new LinkedHashMap<IIdentifiableResource,Set<INode>>();
-		objectSet.put(EFusionNamespace.HAS_MEMBER.resource(), DataUtilities.collectionToSet(relations));
+		objectSet.put(EFusionNamespace.HAS_MEMBER.resource(), DataUtilities.dataCollectionToNodeSet(relations));
 		return objectSet;
 	}
 	
 	public boolean isResolvable(){
 		return true;
-	}
-
-	@Override
-	public IIRI getIdentifier() {
-		return iri;
 	}
 
 	@Override
@@ -91,7 +89,21 @@ public class FeatureRelationCollection implements IResource,IFeatureRelationColl
 	}
 
 	@Override
-	public List<? extends IRDFRepresentation> getRDFCollection() {
+	public Collection<? extends IRDFRepresentation> getRDFCollection() {
+		Collection<IRDFRepresentation> collection = new ArrayList<IRDFRepresentation>();
+		for(IFeatureRelation relation : relations){
+			collection.add(relation.getRDFRepresentation());
+		}
+		return collection;
+	}
+
+	@Override
+	public IRDFRepresentation getRDFRepresentation() {
+		return this;
+	}
+
+	@Override
+	public Collection<IFeatureRelation> getRelations() {
 		return relations;
 	}
 }

@@ -1,9 +1,9 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-import java.util.List;
+import java.util.Collection;
 
-public interface IRDFCollection {
+public interface IRDFCollection extends IRDFRepresentation {
 
-	public List<? extends IRDFRepresentation> getRDFCollection();
+	public Collection<? extends IRDFRepresentation> getRDFCollection();
 	
 }

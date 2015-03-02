@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.operation.aggregate;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -12,22 +10,23 @@ import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.ISimpleData;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.metadata.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IIRI;
-import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
+import de.tudresden.gis.fusion.manage.EProcessType;
+import de.tudresden.gis.fusion.manage.Namespace;
 import de.tudresden.gis.fusion.manage.Operations;
-import de.tudresden.gis.fusion.metadata.IODescription;
-import de.tudresden.gis.fusion.operation.AbstractMeasurementOperation;
-import de.tudresden.gis.fusion.operation.IMeasurement;
+import de.tudresden.gis.fusion.metadata.data.IIODescription;
+import de.tudresden.gis.fusion.metadata.data.IODescription;
+import de.tudresden.gis.fusion.operation.AOperation;
+import de.tudresden.gis.fusion.operation.IMeasurementOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
-import de.tudresden.gis.fusion.operation.io.IDataRestriction;
-import de.tudresden.gis.fusion.operation.metadata.IIODescription;
+import de.tudresden.gis.fusion.operation.io.IIORestriction;
 
-public class RelationAggregate extends AbstractMeasurementOperation {
+public class RelationAggregate extends AOperation {
 	
 	//process definitions
 	private final String IN_REFERENCE = "IN_REFERENCE";
@@ -36,13 +35,23 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private final String PROCESS_ID = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#RelationAggregate";
+	private final IIdentifiableResource PROCESS_RESOURCE = new IdentifiableResource(Namespace.uri_process() + "/" + this.getProcessTitle());
+	private final IIdentifiableResource[] PROCESS_CLASSIFICATION = new IIdentifiableResource[]{
+			EProcessType.RELATION.resource()
+	};
 	
-	Set<IMeasurement> availableOperations;
-	Map<IIRI,Map<String,ISimpleData>> operationInputs;
+	Set<IMeasurementOperation> availableOperations;
+	Map<String,Map<String,ISimpleData>> operationInputs;
 	
 	@Override
 	public void execute() {
+		
+		//initialize operations
+		try {
+			initAvailableOperations();
+		} catch (Exception e) {
+			throw new ProcessException(ExceptionKey.ACCESS_RESTRICTION, "Cannot initiate available operations");
+		}
 		
 		//get input
 		IFeatureCollection inReference = (IFeatureCollection) getInput(IN_REFERENCE);
@@ -66,8 +75,8 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	private IFeatureRelationCollection executeOperations(IFeatureCollection inReference, IFeatureCollection inTarget) {
 		//run operations
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
-		for(Map.Entry<IIRI,Map<String,ISimpleData>> inOperation : operationInputs.entrySet()){
-			IMeasurement operation = getOperation(inOperation.getKey());
+		for(Map.Entry<String,Map<String,ISimpleData>> inOperation : operationInputs.entrySet()){
+			IMeasurementOperation operation = getOperation(inOperation.getKey());
 			if(operation != null)
 				relations = executeRelationOperation(operation, inReference, inTarget, relations, inOperation.getValue());
 		}
@@ -75,13 +84,13 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	}
 	
 	/**
-	 * get operation based on IRI
+	 * get operation based on process name
 	 * @param key process iri
 	 * @return operation instance or null, if no operation was found
 	 */
-	private IMeasurement getOperation(IIRI key) {
-		for(IMeasurement operation : availableOperations){
-			if(operation.getProfile().getIdentifier().equals(key) || operation.getProfile().getIdentifier().asString().endsWith(key.asString()))
+	private IMeasurementOperation getOperation(String name) {
+		for(IMeasurementOperation operation : availableOperations){
+			if(operation.getProfile().getProcessName().equalsIgnoreCase(name) || operation.getProfile().getProcessName().toLowerCase().endsWith(name.toLowerCase()))
 				return operation;
 		}
 		return null;
@@ -96,7 +105,7 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	 * @param literalInputs literal operation inputs
 	 * @return relations
 	 */
-	private IFeatureRelationCollection executeRelationOperation(IMeasurement operation, IFeatureCollection inReference, IFeatureCollection inTarget, IFeatureRelationCollection relations, Map<String,ISimpleData> literalInputs){
+	private IFeatureRelationCollection executeRelationOperation(IMeasurementOperation operation, IFeatureCollection inReference, IFeatureCollection inTarget, IFeatureRelationCollection relations, Map<String,ISimpleData> literalInputs){
 		Map<String,IData> input = new HashMap<String,IData>();
 		//set feature inputs 
 		input.put("IN_REFERENCE", inReference);
@@ -109,18 +118,8 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 			input.put(literalInput.getKey(), literalInput.getValue());
 		}
 		//return relations
-		Map<String,IData> output = operation.execute(input);	
+		Map<String,IData> output = operation.execute(input);
 		return (IFeatureRelationCollection) output.get("OUT_RELATIONS");
-	}
-	
-	@Override
-	protected void initDescription() {
-		try {
-			initAvailableOperations();
-		} catch (Exception e) {
-			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT);
-		}
-		super.initDescription();
 	}
 	
 	/**
@@ -128,7 +127,7 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	 * @param inOperations
 	 */
 	private void initOperationInputs(StringLiteral inOperations) {
-		operationInputs = new HashMap<IIRI,Map<String,ISimpleData>>();
+		operationInputs = new HashMap<String,Map<String,ISimpleData>>();
 		String[] sOperations = inOperations.getValue().split(";");
 		for(String sOperation : sOperations){
 			setOperationInput(sOperation);
@@ -144,8 +143,8 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 		//return if param length is null or with even length
 		if(param.length == 0 || param.length % 2 == 0)
 			return;
-		//set IRI
-		IIRI key = new IRI(param[0]);
+		//set key
+		String key = param[0];
 		//set additional literals
 		Map<String,ISimpleData> literalParam = new HashMap<String,ISimpleData>();
 		for(int i=1; i<param.length; i+=2){
@@ -156,8 +155,8 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	}
 
 	@Override
-	protected IIRI getProcessIRI() {
-		return new IRI(PROCESS_ID);
+	protected IIdentifiableResource getResource() {
+		return PROCESS_RESOURCE;
 	}
 
 	@Override
@@ -166,54 +165,52 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	}
 
 	@Override
+	public IIdentifiableResource[] getClassification() {
+		return PROCESS_CLASSIFICATION;
+	}
+
+	@Override
 	protected String getProcessDescription() {
 		return "Aggregates input relation processes to form feature relations";
 	}
-
-	@Override
-	protected Collection<IIODescription> getInputDescriptions() {
-		Collection<IIODescription> inputs = new ArrayList<IIODescription>();
-		inputs.add(new IODescription(
-						new IRI(IN_REFERENCE), "Reference features",
-						new IDataRestriction[]{
-							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-						})
-		);
-		inputs.add(new IODescription(
-					new IRI(IN_TARGET), "Target features",
-					new IDataRestriction[]{
-						ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
-					})
-		);
-		inputs.add(new IODescription(
-				new IRI(IN_OPERATIONS), "Operations (CSV: operation iri, literal inputs...)",
-				new IDataRestriction[]{
-					ERestrictions.BINDING_STRING.getRestriction()
-				})
-		);
-		return inputs;
-	}
-
-	@Override
-	protected Collection<IIODescription> getOutputDescriptions() {
-		Collection<IIODescription> outputs = new ArrayList<IIODescription>();
-		outputs.add(new IODescription(
-					new IRI(OUT_RELATIONS), "Output relations",
-					new IDataRestriction[]{
-						ERestrictions.MANDATORY.getRestriction(),
-						ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
-					})
-		);
-		return outputs;
-	}
 	
 	@Override
-	protected Collection<IMeasurementDescription> getSupportedMeasurements() {
-		Collection<IMeasurementDescription> measurements = new ArrayList<IMeasurementDescription>();
-		for(IMeasurement operation : availableOperations){
-			measurements.addAll(operation.getProfile().getSupportedMeasurements());
-		}
-		return measurements;
+	protected IIODescription[] getInputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+					IN_REFERENCE, "Reference features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_TARGET, "Target features",
+					new IIORestriction[]{
+							ERestrictions.BINDING_IFEATUReCOLLECTION.getRestriction(),
+							ERestrictions.MANDATORY.getRestriction()
+					}
+			),
+			new IODescription(
+					IN_OPERATIONS, "Operations (CSV: operation iri, literal inputs...)",
+					new IIORestriction[]{
+							ERestrictions.BINDING_STRING.getRestriction()
+					}
+			),
+		};
+	}
+
+	@Override
+	protected IIODescription[] getOutputDescriptions() {
+		return new IIODescription[]{
+			new IODescription(
+				OUT_RELATIONS, "Output relations",
+				new IIORestriction[]{
+					ERestrictions.MANDATORY.getRestriction(),
+					ERestrictions.BINDING_IFEATUReRELATIOnCOLLECTION.getRestriction()
+				}
+			)
+		};
 	}
 	
 	/**
@@ -222,9 +219,9 @@ public class RelationAggregate extends AbstractMeasurementOperation {
 	 * @throws IllegalAccessException
 	 */
 	private void initAvailableOperations() throws InstantiationException, IllegalAccessException {
-		availableOperations = new LinkedHashSet<IMeasurement>();
-		Set<Class<? extends IMeasurement>> operations = Operations.getAvalaibleMeasurementOperations();
-		for(Class<? extends IMeasurement> clazz : operations) {
+		availableOperations = new LinkedHashSet<IMeasurementOperation>();
+		Set<Class<? extends IMeasurementOperation>> operations = Operations.getRelationMeasurementOperations();
+		for(Class<? extends IMeasurementOperation> clazz : operations) {
 			//do not include this.class to prevent infinite initialization
 			if(clazz.getPackage().getName().contains("aggregate"))
 				continue;
