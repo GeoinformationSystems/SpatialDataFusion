@@ -1,7 +1,17 @@
 package de.tudresden.gis.fusion.operation.retrieval;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 import org.geotools.xml.Configuration;
 
@@ -43,41 +53,147 @@ public class GMLParser extends AOperation implements IDataRetrieval {
 		//get input url
 		URILiteral gmlResource = (URILiteral) getInput(IN_RESOURCE);		
 		BooleanLiteral inWithIndex = (BooleanLiteral) getInput(IN_WITH_INDEX);
-		
-		IIRI identifier = new IRI(gmlResource.getIdentifier());		
+				
 		boolean bWithIndex = inWithIndex == null ? false : inWithIndex.getValue();
+		IIRI identifier = new IRI(gmlResource.getIdentifier());
+
+		GTFeatureCollection gmlFC = null;
 		
-		//parse feature collection		
-		Configuration configuration;
-		GTFeatureCollection wfsFC;
-		InputStream gmlStream = null;
-		try {
-			gmlStream = identifier.asURL().openStream();
-			configuration = new org.geotools.gml3.GMLConfiguration();
-			if(bWithIndex)
-				wfsFC = new GTIndexedFeatureCollection(identifier, gmlStream, configuration);
-	        else
-	        	wfsFC = new GTFeatureCollection(identifier, gmlStream, configuration);
+		//parse HTTP connection
+		if(gmlResource.getProtocol().toLowerCase().startsWith("http"))
+			gmlFC = parseGMLFromHTTP(identifier, gmlResource, bWithIndex);		
+		//parse file
+		else if(gmlResource.getProtocol().toLowerCase().startsWith("file"))
+			gmlFC = parseGMLFromFile(identifier, gmlResource, bWithIndex);
+		
+		if(gmlFC == null)
+			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT, "An error occurred while parsing GML input");
 			
-		} catch (IOException e1) {
-			try {
-				gmlStream = identifier.asURL().openStream();
-				configuration = new org.geotools.gml2.GMLConfiguration();
-				wfsFC = new GTFeatureCollection(identifier, gmlStream, configuration);
-			} catch (IOException e2) {
-				throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e2);
-			}
+		//set output
+		setOutput(OUT_FEATURES, gmlFC);
+		
+	}
+
+	private GTFeatureCollection parseGMLFromHTTP(IIRI identifier, URILiteral gmlResource, boolean bWithIndex) {
+		try {
+			//get connection
+			HttpURLConnection urlConnection = (HttpURLConnection) new URL(gmlResource.getIdentifier()).openConnection();
+			urlConnection.connect();
+			return parseGML(urlConnection.getContentType(), identifier, urlConnection.getInputStream(), bWithIndex);						
+		} catch (IOException e){
+			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
+		}
+	}
+	
+	private GTFeatureCollection parseGMLFromFile(IIRI identifier, URILiteral gmlResource, boolean bWithIndex) {
+		File file = new File(identifier.asURL().getFile());
+		if(!file.exists() || file.isDirectory())
+			return null;
+		//redirect based on content type
+		try {
+			return parseGML(getContentType(file), identifier, new FileInputStream(file), bWithIndex);			
+		} catch (IOException | XMLStreamException e) {
+			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
+		}
+	}
+	
+	private GTFeatureCollection parseGML(String contentType, IIRI identifier, InputStream stream, boolean bWithIndex) {		
+		try {
+			//brute force if content type is null
+			if(contentType == null)
+				return bruteParse(identifier, stream, bWithIndex);
+			//redirect based on content type
+			if(contentType.contains("3.2"))
+				return parseGML32(identifier, stream, bWithIndex);
+			else if(contentType.contains("3."))
+				return parseGML3(identifier, stream, bWithIndex);
+			else if(contentType.contains("2."))
+				return parseGML2(identifier, stream, bWithIndex);
+			else
+				return null;
+			
+		} catch (IOException e) {
+			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
+			
 		} finally {
 			try {
-				gmlStream.close();
+				stream.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private GTFeatureCollection bruteParse(IIRI identifier, InputStream stream, boolean bWithIndex) {
+		GTFeatureCollection gmlFC = null;
+		try {
+			gmlFC = parseGML32(identifier, stream, bWithIndex);
+			if(gmlFC == null || gmlFC.size() == 0)
+				gmlFC = parseGML3(identifier, stream, bWithIndex);
+			if(gmlFC == null || gmlFC.size() == 0)
+				gmlFC = parseGML2(identifier, stream, bWithIndex);
+			
+		} catch (IOException e){ 
+			throw new ProcessException(ExceptionKey.GENERAL_EXCEPTION, e);
+		}
 		
-		//set output
-		setOutput(OUT_FEATURES, wfsFC);
-		
+		return gmlFC;
+	}
+
+	private String getContentType(File file) throws FileNotFoundException, XMLStreamException {
+		XMLInputFactory factory = XMLInputFactory.newInstance();
+		XMLStreamReader reader = factory.createXMLStreamReader(new FileReader(file));
+		String contentType = null;
+		while(reader.hasNext()){
+			int event = reader.next();
+			if(event == XMLStreamConstants.START_ELEMENT){
+				//get content type from xml namespace
+				for(int i=0; i<reader.getNamespaceCount(); i++) {
+			        String nsURI = reader.getNamespaceURI(i);
+			        contentType = getGMLContentTypeFromString(nsURI);
+			        if(contentType != null)
+			        	break;
+				}
+				//get content type from xsi:schemaLocation
+				String schemaLocation = reader.getAttributeValue("http://www.w3.org/2001/XMLSchema-instance", "schemaLocation");
+				contentType = getGMLContentTypeFromString(schemaLocation);
+				break;
+			}
+		}
+		reader.close();
+		return contentType;
+	}
+	
+	private String getGMLContentTypeFromString(String input){
+		if(input.matches("(.*gml/3\\.2.*)|(.*wfs/2\\.0.*)")){
+        	return "gml/3.2.1";
+        }
+        else if(input.matches("(.*gml/3\\.2.*)|(.*wfs/1\\.1\\.0.*)")){
+        	return "gml/3.1.1";
+		}
+        else if(input.matches("(.*gml/2.*)|(.*wfs/1\\.0\\.0.*)")){
+        	return "gml/2.1.2";
+		}
+		return null;
+	}
+
+	private GTFeatureCollection parseGML32(IIRI identifier, InputStream stream, boolean bWithIndex) throws IOException {
+		return parseGML(identifier, stream, new org.geotools.gml3.v3_2.GMLConfiguration(), bWithIndex);
+	}
+
+	private GTFeatureCollection parseGML3(IIRI identifier, InputStream stream, boolean bWithIndex) throws IOException {
+		return parseGML(identifier, stream, new org.geotools.gml3.GMLConfiguration(), bWithIndex);
+	}
+
+	private GTFeatureCollection parseGML2(IIRI identifier, InputStream stream, boolean bWithIndex) throws IOException {
+		return parseGML(identifier, stream, new org.geotools.gml2.GMLConfiguration(), bWithIndex);
+	}
+	
+	private GTFeatureCollection parseGML(IIRI identifier, InputStream stream, Configuration configuration, boolean bWithIndex) throws IOException {
+		if(bWithIndex)
+			return new GTIndexedFeatureCollection(identifier, stream, configuration);
+        else
+        	return new GTFeatureCollection(identifier, stream, configuration);
 	}
 
 	@Override

@@ -46,7 +46,7 @@ public class AttributeTransferTest {
 		input.put("IN_TARGET", target);
 		input.put("IN_TARGET_ATT", new StringLiteral("[name,osm_id]"));
 		input.put("IN_RELATIONS", relations);
-		input.put("IN_TARGET_RELATION", new URILiteral(relationType.getIdentifier().asString()));
+		input.put("IN_TARGET_RELATION", new URILiteral(relationType.getIdentifier().toString()));
 		output = transferProcess.execute(input);	
 		IFeatureCollection features = (IFeatureCollection) output.get("OUT_REFERENCE");
 		

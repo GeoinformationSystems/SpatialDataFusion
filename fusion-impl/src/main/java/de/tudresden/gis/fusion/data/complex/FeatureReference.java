@@ -32,7 +32,7 @@ public class FeatureReference extends Resource implements IRDFTripleSet,IFeature
 	
 	@Override
 	public String getFeatureId() {
-		return getIdentifier().asString();
+		return getIdentifier().toString();
 	}
 
 	@Override

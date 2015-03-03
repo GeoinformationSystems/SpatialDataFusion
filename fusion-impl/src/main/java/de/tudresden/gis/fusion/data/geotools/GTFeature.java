@@ -54,7 +54,7 @@ public class GTFeature extends Resource implements IRDFTripleSet,IFeature {
 	
 	@Override
 	public String getFeatureId() {
-		return getIdentifier().asString();
+		return getIdentifier().toString();
 	}
 
 	@Override

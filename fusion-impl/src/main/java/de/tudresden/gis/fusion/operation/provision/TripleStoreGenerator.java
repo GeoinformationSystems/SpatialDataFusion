@@ -15,7 +15,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFTurtleEncoder;
+import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleEncoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
@@ -110,7 +110,7 @@ public class TripleStoreGenerator extends AOperation implements IDataProvision {
 		StringBuilder sRequest = new StringBuilder();
 		//insert data
 		if(rdf instanceof IRDFCollection){
-			List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, null, prefixes, 1000);
+			List<String> rdfInserts = RDFBasicTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, null, prefixes, 1000);
 			for(String insert : rdfInserts){
 				sRequest.append(getPrefixHeader(prefixes));
 				sRequest.append("INSERT DATA {\n");
@@ -123,7 +123,7 @@ public class TripleStoreGenerator extends AOperation implements IDataProvision {
 		else {
 			sRequest.append(getPrefixHeader(prefixes));
 			sRequest.append("INSERT DATA {\n");
-			sRequest.append(RDFTurtleEncoder.encodeTripleResource(rdf, null, prefixes));
+			sRequest.append(RDFBasicTurtleEncoder.encodeTripleResource(rdf, null, prefixes));
 			sRequest.append("}");
 			updateStore(sTripleStoreURL, new UpdateRequest().add(sRequest.toString()));
 		}

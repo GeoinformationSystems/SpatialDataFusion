@@ -19,7 +19,7 @@ import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 
-public class RDFTurtleEncoder {
+public class RDFBasicTurtleEncoder {
 	
 	public static List<String> encodeTripleResource(IRDFCollection data, URI base, Map<URI,String> prefixes, int chunkSize) {
 		List<String> sList = new ArrayList<String>();
@@ -61,7 +61,7 @@ public class RDFTurtleEncoder {
 		}
 		//write resource, if objects are not defined
 		else
-			sTriple.append(RDFTurtleEncoder.encodeResource(data.getSubject(), base, prefixes));
+			sTriple.append(RDFBasicTurtleEncoder.encodeResource(data.getSubject(), base, prefixes));
 		//return
 		return sTriple.toString();
 	}
@@ -70,7 +70,7 @@ public class RDFTurtleEncoder {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject, if requested
 		if(writeSubject)
-			sTriple.append(indent + RDFTurtleEncoder.encodeResource(tripleSet.getSubject(), base, prefixes) + "\n");
+			sTriple.append(indent + RDFBasicTurtleEncoder.encodeResource(tripleSet.getSubject(), base, prefixes) + "\n");
 		//increase indent
 		indent += "\t";
 		int i = tripleSet.getObjectSet().size();
@@ -85,7 +85,7 @@ public class RDFTurtleEncoder {
 				if(objects.getKey() == null || object == null)
 					continue;
 				//write predicate
-				sTriple.append(indent + RDFTurtleEncoder.encodeResource(objects.getKey(), base, prefixes));
+				sTriple.append(indent + RDFBasicTurtleEncoder.encodeResource(objects.getKey(), base, prefixes));
 				//write object
 				if(object instanceof IRDFTripleSet){
 					if(((IRDFTripleSet) object).getObjectSet() != null){
@@ -94,7 +94,7 @@ public class RDFTurtleEncoder {
 						sTriple.append(indent + "]" + (setClose ? " ." : " ;") + "\n");
 					}
 					else
-						sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) object, base, prefixes) + " ;\n");		
+						sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) object, base, prefixes) + " ;\n");		
 				}
 				else if(object instanceof IRDFTriple){
 					if(((IRDFTriple) object).getObject() != null){
@@ -103,12 +103,12 @@ public class RDFTurtleEncoder {
 						sTriple.append(indent + "]" + (setClose ? " ." : " ;") + "\n");
 					}
 					else
-						sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) object, base, prefixes) + " ;\n");		
+						sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) object, base, prefixes) + " ;\n");		
 				}
 				else if(object instanceof ILiteral)
-					sTriple.append(" " + RDFTurtleEncoder.encodeLiteral((ILiteral) object, base, prefixes) + (setClose ? " ." : " ;") + "\n");
+					sTriple.append(" " + RDFBasicTurtleEncoder.encodeLiteral((ILiteral) object, base, prefixes) + (setClose ? " ." : " ;") + "\n");
 				else if(object instanceof IResource){
-					sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) object, base, prefixes) + (setClose ? " ." : " ;") + "\n");
+					sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) object, base, prefixes) + (setClose ? " ." : " ;") + "\n");
 				}
 				else
 					//this should not be reached
@@ -122,9 +122,9 @@ public class RDFTurtleEncoder {
 	public static String encodeTriple(IRDFTriple triple, URI base, Map<URI,String> prefixes, String indent, boolean close) {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject
-		sTriple.append(indent + RDFTurtleEncoder.encodeResource(triple.getSubject(), base, prefixes) + " ");
+		sTriple.append(indent + RDFBasicTurtleEncoder.encodeResource(triple.getSubject(), base, prefixes) + " ");
 		//write predicate
-		sTriple.append(RDFTurtleEncoder.encodeResource(triple.getPredicate(), base, prefixes));
+		sTriple.append(RDFBasicTurtleEncoder.encodeResource(triple.getPredicate(), base, prefixes));
 		//write object
 		if(triple.getObject() instanceof IRDFTripleSet){
 			if(((IRDFTripleSet) triple.getObject()).getObjectSet() != null){
@@ -133,7 +133,7 @@ public class RDFTurtleEncoder {
 				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
 			}
 			else
-				sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + " ;\n");		
+				sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + " ;\n");		
 		}
 		else if(triple.getObject() instanceof IRDFTriple){
 			if(((IRDFTriple) triple.getObject()).getObject() != null){
@@ -142,12 +142,12 @@ public class RDFTurtleEncoder {
 				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
 			}
 			else
-				sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + " ;\n");		
+				sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + " ;\n");		
 		}
 		else if(triple.getObject() instanceof ILiteral)
-			sTriple.append(" " + RDFTurtleEncoder.encodeLiteral((ILiteral) triple.getObject(), base, prefixes) + (close ? " ." : " ;") + "\n");
+			sTriple.append(" " + RDFBasicTurtleEncoder.encodeLiteral((ILiteral) triple.getObject(), base, prefixes) + (close ? " ." : " ;") + "\n");
 		else if(triple.getObject()instanceof IResource){
-			sTriple.append(" " + RDFTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + (close ? " ." : " ;") + "\n");
+			sTriple.append(" " + RDFBasicTurtleEncoder.encodeResource((IResource) triple.getObject(), base, prefixes) + (close ? " ." : " ;") + "\n");
 		}
 		else
 			//this should not be reached
@@ -163,7 +163,7 @@ public class RDFTurtleEncoder {
 			URI uriPrefix = DataUtilities.relativizeIdentifier(resource.getIdentifier().asURI(), base, prefixes);
 			//write full resource, if it has not been relativized
 			if(resource.getIdentifier().asURI().equals(uriPrefix))
-				return "<" + resource.getIdentifier().asString() + ">";
+				return "<" + resource.getIdentifier().toString() + ">";
 			else
 				return uriPrefix.toString();
 		}

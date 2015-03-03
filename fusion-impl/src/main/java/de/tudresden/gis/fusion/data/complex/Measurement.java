@@ -50,8 +50,9 @@ public class Measurement extends Resource implements IMeasurement,IRDFTripleSet 
 		INode nValue = DataUtilities.getSingleFromObjectSet(objectSet, ERDFNamespaces.HAS_VALUE.resource(), ITypedLiteral.class, true);
 		this.measurementValue = DataUtilities.getMeasurementValue((ITypedLiteral) nValue);
 		//set description
-		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, IRDFTripleSet.class, true);
-		this.description = new MeasurementDescription((IRDFTripleSet) nDescription);
+		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, IRDFTripleSet.class, false);
+		if(nDescription != null)
+			this.description = new MeasurementDescription((IRDFTripleSet) nDescription);
 	}
 
 	@Override
@@ -60,7 +61,7 @@ public class Measurement extends Resource implements IMeasurement,IRDFTripleSet 
 		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(TYPE));
 		objectSet.put(PROCESS, DataUtilities.toSet(getProcess()));
 		objectSet.put(ERDFNamespaces.HAS_VALUE.resource(), DataUtilities.toSet(getMeasurementValue().getRDFRepresentation()));
-		objectSet.put(DESCRIPTION, DataUtilities.toSet(getDescription().getRDFRepresentation()));
+//		objectSet.put(DESCRIPTION, DataUtilities.toSet(getDescription().getRDFRepresentation()));
 		return objectSet;
 	}
 

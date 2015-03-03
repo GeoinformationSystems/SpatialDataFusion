@@ -69,8 +69,8 @@ public class GTFeatureRelationCollection extends Resource implements IRDFTripleS
 			targetFeatures.put(relation.getTarget().getFeatureId(), new FeatureReference(relation.getTarget().getFeatureId()));
 		relations.add(new FeatureRelation(
 				relation.getRDFRepresentation().getSubject().getIdentifier(),
-				referenceFeatures.get(relation.getReference().getRDFRepresentation().getSubject().getIdentifier().asString()),
-				targetFeatures.get(relation.getTarget().getRDFRepresentation().getSubject().getIdentifier().asString()), 
+				referenceFeatures.get(relation.getReference().getRDFRepresentation().getSubject().getIdentifier().toString()),
+				targetFeatures.get(relation.getTarget().getRDFRepresentation().getSubject().getIdentifier().toString()), 
 				relation.getMeasurements(), 
 				relation.getDescription()));
 	}

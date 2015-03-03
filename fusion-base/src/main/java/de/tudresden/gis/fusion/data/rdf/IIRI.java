@@ -7,7 +7,7 @@ public interface IIRI {
 
 	public URI asURI();
 	
-	public String asString();
+	public String toString();
 	
 	public boolean equals(IIRI iri);
 

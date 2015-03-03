@@ -19,8 +19,9 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.feature.ISpatialProperty;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 
 public class GTSpatialProperty implements ISpatialProperty {
 
@@ -79,12 +80,12 @@ public class GTSpatialProperty implements ISpatialProperty {
 	}
 
 	@Override
-	public IIdentifiableResource getSRS() {
+	public IResource getSRS() {
 		try {
 			Integer iEPSG;
 			CoordinateReferenceSystem crs = property.getDescriptor().getCoordinateReferenceSystem();
 			if(crs == null)
-				return null;
+				return Resource.newEmptyResource();
 			iEPSG = CRS.lookupEpsgCode(crs, false);
 			if(iEPSG == null)
 				iEPSG = CRS.lookupEpsgCode(crs, true);

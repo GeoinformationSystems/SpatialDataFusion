@@ -28,7 +28,7 @@ public class GDALCoverageReference extends Resource implements ICoverage {
 	
 	@Override
 	public String getFeatureId() {
-		return getIdentifier().asString();
+		return getIdentifier().toString();
 	}
 	
 	/**

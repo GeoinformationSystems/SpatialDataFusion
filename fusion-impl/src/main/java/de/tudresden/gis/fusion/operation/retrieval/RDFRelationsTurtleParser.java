@@ -17,7 +17,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFTurtleDecoder;
+import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleDecoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.manage.EProcessType;
@@ -69,13 +69,13 @@ public class RDFRelationsTurtleParser extends AOperation implements IDataRetriev
 	    while ((line = reader.readLine()) != null) {
 	    	line = line.trim();
 	    	if(line.startsWith("@")){
-	    		String[] aPrefix = RDFTurtleDecoder.getPrefix(line);
+	    		String[] aPrefix = RDFBasicTurtleDecoder.getPrefix(line);
 	    		prefixes.put(aPrefix[0], URI.create(aPrefix[1]));
 	    	}
 	    	else {
 	    		sBuilder.append(line + "\n");
 	    		if(line.endsWith(".")){
-	    			FeatureRelation relation = new FeatureRelation((IRDFTripleSet) RDFTurtleDecoder.decodeRDFResource(sBuilder.toString(), prefixes));
+	    			FeatureRelation relation = new FeatureRelation((IRDFTripleSet) RDFBasicTurtleDecoder.decodeRDFResource(sBuilder.toString(), prefixes));
 	    			if(relation != null)
 	    				relations.addRelation(relation);
 	    			sBuilder.setLength(0);

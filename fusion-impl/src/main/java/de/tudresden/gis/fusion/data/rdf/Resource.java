@@ -16,7 +16,7 @@ public class Resource implements IResource {
 
 	@Override
 	public boolean isBlank() {
-		return (iri == null || iri.asString().length() == 0);
+		return (iri == null || iri.toString().length() == 0);
 	}
 	
 	/**

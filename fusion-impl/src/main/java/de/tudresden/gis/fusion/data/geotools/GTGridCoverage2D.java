@@ -35,7 +35,7 @@ public class GTGridCoverage2D extends Resource implements ICoverage {
 	
 	@Override
 	public String getFeatureId() {
-		return getIdentifier().asString();
+		return getIdentifier().toString();
 	}
 	
 	private void parseCoverage(File file) throws IOException {

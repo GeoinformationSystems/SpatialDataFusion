@@ -69,10 +69,10 @@ public class CRSReproject extends AOperation {
 		
 		//get reference and target crs
 		CoordinateReferenceSystem crsReference = inReferenceCRS == null ? 
-				getCRSFromIRI(inReference.getSpatialProperty().getSRS().getIdentifier().asString()) : 
+				getCRSFromIRI(inReference.getSpatialProperty().getSRS().getIdentifier().toString()) : 
 				getCRSFromIRI(inReferenceCRS.getIdentifier());
 		CoordinateReferenceSystem crsTarget = inTargetCRS == null ? 
-				getCRSFromIRI(inTarget.getSpatialProperty().getSRS().getIdentifier().asString()) : 
+				getCRSFromIRI(inTarget.getSpatialProperty().getSRS().getIdentifier().toString()) : 
 				getCRSFromIRI(inTargetCRS.getIdentifier());
 		
 		//get final crs

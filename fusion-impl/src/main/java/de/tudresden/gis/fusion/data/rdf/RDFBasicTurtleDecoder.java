@@ -15,7 +15,7 @@ import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 
-public class RDFTurtleDecoder {
+public class RDFBasicTurtleDecoder {
 
 	/**
 	 * decode triples resource

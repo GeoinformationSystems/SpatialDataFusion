@@ -297,7 +297,7 @@ public class DataUtilities {
 		//check for single object
 		if(objects == null || objects.size() != 1){
 			if(mustHave)
-				throw new IOException("Missing or multiple definition for " + resource.getIdentifier().asString());
+				throw new IOException("Missing or multiple definition for " + resource.getIdentifier().toString());
 			else return null;
 		}
 		//check for object
@@ -321,13 +321,13 @@ public class DataUtilities {
 		//check for multiple object
 		if(objects.size() < 1){
 			if(mustHave)
-				throw new IOException("Missing definition for " + resource.getIdentifier().asString());
+				throw new IOException("Missing definition for " + resource.getIdentifier().toString());
 			else return null;
 		}
 		//check objects
 		for(INode object : objects){
 			if(!clazz.isAssignableFrom(object.getClass()))
-				throw new IOException("Object " + resource.getIdentifier().asString() + " cannot be assigned to " + clazz.getSimpleName());
+				throw new IOException("Object " + resource.getIdentifier().toString() + " cannot be assigned to " + clazz.getSimpleName());
 			}
 		return objects;
 	}

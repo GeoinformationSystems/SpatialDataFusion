@@ -37,13 +37,17 @@ public class IRI implements IIRI {
 	}
 
 	@Override
-	public String asString() {
+	public String toString() {
 		return sIri;
 	}
 
 	@Override
 	public boolean equals(IIRI iri) {
-		return this.asString().equals(iri.asString());
+		return this.toString().equals(iri.toString());
+	}
+	
+	public boolean equals(URI uri) {
+		return this.toString().equals(uri.toString());
 	}
 
 }

@@ -37,7 +37,7 @@ public class ShapefileTest {
 		System.out.print("executing " + parser.getProfile().getProcessName() + "\n\t" +
 				"features read from shape: " + features.size() + "\n\t" +
 				"gml feature bounds: " + boundsToString(features.getSpatialProperty().getBounds()) + "\n\t" +
-				"gml feature crs: : " + features.getSpatialProperty().getSRS().getIdentifier().asString() + "\n\t" +
+				"gml feature crs: : " + features.getSpatialProperty().getSRS().getIdentifier().toString() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) parser.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");	
 	}

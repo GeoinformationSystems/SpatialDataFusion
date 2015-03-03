@@ -14,6 +14,10 @@ public class URILiteral extends Literal {
 	public URILiteral(URI value){
 		this(value.toString());
 	}
+	
+	public String getProtocol(){
+		return URI.create(getIdentifier()).getScheme();
+	}
 
 	@Override
 	public IIdentifiableResource getType() {

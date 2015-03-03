@@ -53,7 +53,7 @@ public class CRSReprojectTest {
 		System.out.print("executing " + process.getProfile().getProcessName() + "\n\t" +
 				"target features reprojected: " + reprojected.size() + "\n\t" + 
 				"new target feature bounds: " + boundsToString(reprojected.getSpatialProperty().getBounds()) + "\n\t" +
-				"new target feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojected.getSpatialProperty().getSRS().getIdentifier().asString()), true) + "\n\t" +
+				"new target feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojected.getSpatialProperty().getSRS().getIdentifier().toString()), true) + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) process.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 	}
@@ -96,10 +96,10 @@ public class CRSReprojectTest {
 		System.out.print("executing " + process.getProfile().getProcessName() + "\n\t" +
 				"reference features reprojected: " + reprojReference.size() + "\n\t" + 
 				"new reference feature bounds: " + boundsToString(reprojReference.getSpatialProperty().getBounds()) + "\n\t" +
-				"new reference feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojReference.getSpatialProperty().getSRS().getIdentifier().asString()), true) + "\n\t" +
+				"new reference feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojReference.getSpatialProperty().getSRS().getIdentifier().toString()), true) + "\n\t" +
 				"target features reprojected: " + reprojTarget.size() + "\n\t" +
 				"new target feature bounds: " + boundsToString(reprojTarget.getSpatialProperty().getBounds()) + "\n\t" +
-				"new target feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojTarget.getSpatialProperty().getSRS().getIdentifier().asString()), true) + "\n\t" +
+				"new target feature crs: EPSG:" + CRS.lookupEpsgCode(CRS.decode(reprojTarget.getSpatialProperty().getSRS().getIdentifier().toString()), true) + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) process.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 	}

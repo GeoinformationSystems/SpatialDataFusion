@@ -39,7 +39,7 @@ public class GTFeatureCollection extends Resource implements IFeatureCollection 
 		features = new HashMap<String,IFeature>();
 		for(SimpleFeature feature : featureList){
 			IIRI featureIRI = getCollectionId() == null ? new IRI(feature.getID()) : new IRI(getCollectionId() + "#" + feature.getID());
-			features.put(featureIRI.asString(), new GTFeature(featureIRI, feature));
+			features.put(featureIRI.toString(), new GTFeature(featureIRI, feature));
 		}
 	}
 	
@@ -62,8 +62,8 @@ public class GTFeatureCollection extends Resource implements IFeatureCollection 
 		SimpleFeature feature = null;
         try {
 	        while((feature = (SimpleFeature) gmlParser.parse()) != null) {        	
-	        	IIRI featureIRI = iri == null ? new IRI(feature.getID()) : new IRI(iri.asString() + "#" + feature.getID());
-				features.put(featureIRI.asString(), new GTFeature(featureIRI, feature));
+	        	IIRI featureIRI = iri == null ? new IRI(feature.getID()) : new IRI(iri.toString() + "#" + feature.getID());
+				features.put(featureIRI.toString(), new GTFeature(featureIRI, feature));
 	        }
         } catch (SAXException se){
         	throw new IOException("Error in parsing GML input stream: " + se.getMessage());
@@ -73,7 +73,7 @@ public class GTFeatureCollection extends Resource implements IFeatureCollection 
 	}
 	
 	public String getCollectionId(){
-		return this.getIdentifier().asString();
+		return this.getIdentifier().toString();
 	}
 	
 	private void setSpatialProperty(SimpleFeatureCollection fc){

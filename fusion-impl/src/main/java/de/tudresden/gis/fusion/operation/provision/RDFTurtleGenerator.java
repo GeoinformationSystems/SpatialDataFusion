@@ -15,7 +15,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFTurtleEncoder;
+import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleEncoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
@@ -112,13 +112,13 @@ public class RDFTurtleGenerator extends AOperation implements IDataProvision {
 			}
 		}
 		if(rdf instanceof IRDFCollection){
-			List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, base, prefixes, 1000);
+			List<String> rdfInserts = RDFBasicTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, base, prefixes, 1000);
 			for(String insert : rdfInserts){
 				writer.append(insert);
 			}
 		}
 		else
-			writer.append(RDFTurtleEncoder.encodeTripleResource(rdf, base, prefixes));
+			writer.append(RDFBasicTurtleEncoder.encodeTripleResource(rdf, base, prefixes));
 		
 	}
 

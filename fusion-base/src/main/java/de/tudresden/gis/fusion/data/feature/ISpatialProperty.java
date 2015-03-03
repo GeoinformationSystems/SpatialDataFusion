@@ -1,6 +1,6 @@
 package de.tudresden.gis.fusion.data.feature;
 
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 
 public interface ISpatialProperty extends IFeatureProperty {
 	
@@ -26,6 +26,6 @@ public interface ISpatialProperty extends IFeatureProperty {
 	 * get name of the geometry CRS
 	 * @return CRS
 	 */
-	public IIdentifiableResource getSRS();
+	public IResource getSRS();
 
 }
