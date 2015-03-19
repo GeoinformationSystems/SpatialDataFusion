@@ -5,7 +5,7 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.INode;
 
 public class SimilarityMeasurementDescription extends RelationMeasurementDescription implements ISimilarityMeasurementDescription {
 
@@ -13,7 +13,7 @@ public class SimilarityMeasurementDescription extends RelationMeasurementDescrip
 		super(iri, description, range, classification);
 	}
 	
-	public SimilarityMeasurementDescription(IRDFTripleSet decodedRDFResource) throws IOException {
+	public SimilarityMeasurementDescription(INode decodedRDFResource) throws IOException {
 		super(decodedRDFResource);
 	}
 

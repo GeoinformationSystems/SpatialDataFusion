@@ -280,7 +280,7 @@ public class ZonalStatistics extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Determines zonal statistics for reference polygons on target raster";
 	}
 	

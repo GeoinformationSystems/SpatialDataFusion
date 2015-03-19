@@ -5,8 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
@@ -14,9 +12,13 @@ import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IDescription;
+import de.tudresden.gis.fusion.operation.ProcessException;
+import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
 
 public class DataDescription extends Resource implements IDescription,IRDFTripleSet {
 
@@ -30,14 +32,22 @@ public class DataDescription extends Resource implements IDescription,IRDFTriple
 		this.description = description;
 	}
 	
-	public DataDescription(IRDFTripleSet decodedRDFResource) throws IOException {
-		//set iri
-		super(decodedRDFResource.getSubject().getIdentifier());
-		//get object set
-		Map<IIdentifiableResource,Set<INode>> objectSet = decodedRDFResource.getObjectSet();
-		//set abstract
-		INode nAbstract = DataUtilities.getSingleFromObjectSet(objectSet, ABSTRACT, StringLiteral.class, true);
-		this.description = ((StringLiteral) nAbstract).getValue();
+	public DataDescription(INode decodedRDFResource) throws IOException {
+		if(decodedRDFResource instanceof IRDFTripleSet){
+			//set iri
+			super.setIdentifier(((IRDFTripleSet) decodedRDFResource).getSubject().getIdentifier());
+			//get object set
+			Map<IIdentifiableResource,Set<INode>> objectSet = ((IRDFTripleSet) decodedRDFResource).getObjectSet();
+			//set abstract
+			INode nAbstract = DataUtilities.getSingleFromObjectSet(objectSet, ABSTRACT, StringLiteral.class, true);
+			this.description = ((StringLiteral) nAbstract).getValue();
+		}
+		else if (decodedRDFResource instanceof IResource){
+			super.setIdentifier(((IResource) decodedRDFResource).getIdentifier());
+			this.description = null;
+		}
+		else
+			throw new ProcessException(ExceptionKey.NO_APPLICABLE_INPUT, "Description must implement IRDFTripleSet or IResource");
 	}
 	
 	@Override

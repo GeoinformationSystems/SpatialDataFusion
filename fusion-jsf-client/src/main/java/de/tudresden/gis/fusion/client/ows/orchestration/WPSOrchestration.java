@@ -2,81 +2,45 @@ package de.tudresden.gis.fusion.client.ows.orchestration;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import javax.faces.application.FacesMessage;
 import javax.faces.application.FacesMessage.Severity;
 import javax.faces.context.FacesContext;
 
-import org.primefaces.json.JSONArray;
-import org.primefaces.json.JSONException;
-import org.primefaces.json.JSONObject;
 import org.w3c.dom.Document;
-
-import de.tudresden.gis.fusion.client.ows.WFSHandler;
-import de.tudresden.gis.fusion.client.ows.WPSHandler;
 
 public class WPSOrchestration implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
-	private final String AGGREGATE_SERVICE_URL = "http://localhost:8080/52n-wps-webapp/WebProcessingService";
-	private final String AGGREGATE_SERVICE_NAME = "de.tudresden.gis.fusion.algorithm.RelationAggregate";
-	private final String AGGREGATE_SERVICE_IN_TARGET = "IN_TARGET";
-	private final String AGGREGATE_SERVICE_IN_REFERENCE = "IN_REFERENCE";
-	private final String AGGREGATE_SERVICE_IN_OPERATIONS = "IN_OPERATIONS";
-	
-	private final String CONNECTION_COLLECTION = "connections";
-	private final String CONNECTION_REF_DESC = "ref_description";
-	private final String CONNECTION_REF_OUTPUT = "ref_output";
-	private final String CONNECTION_TAR_DESC = "tar_description";
-	private final String CONNECTION_TAR_INPUT = "tar_input";
-	private final String CONNECTION_ID = "identifier";
-	
-	private boolean isNotExecuted = true;
-	public boolean getIsNotExecuted() { return isNotExecuted; }
 
-	public void executeProcess(WFSHandler referenceWFSHandler, WFSHandler targetWFSHandler, WPSHandler wpsConnection) throws IOException, JSONException {
-		this.isNotExecuted = true;
-		//get reference WFS url
-		String referenceWFS = referenceWFSHandler.getBaseURL();
-		//get target WFS url
-		String targetWFS = targetWFSHandler.getBaseURL();
-		//get connections as required by aggregation service
-		String operations = getRelationOperations(wpsConnection);
-		//get request
-		String request = getWPSRequest(referenceWFS, targetWFS, operations);
-		//execute
-		Document response = executeRequest(request);
-		//validate response
-		if(!isSuccess(response))
-			throw new IOException();
-		else
-			this.isNotExecuted = false;
-	}
-	
-	private String getRelationOperations(WPSHandler wpsConnection) throws JSONException {
-		//get connections as JSON object
-		JSONArray connections = wpsConnection.decodeConnections().getJSONArray(CONNECTION_COLLECTION);
-		Map<String,String> orderedOperationIdentifier = new LinkedHashMap<String,String>();
-		for(int i=0; i<connections.length(); i++){
-			JSONObject connection = connections.getJSONObject(i);
-			String ref_id = connection.getJSONObject(CONNECTION_REF_DESC).getString(CONNECTION_ID);
-			String tar_id = connection.getJSONObject(CONNECTION_TAR_DESC).getString(CONNECTION_ID);			
-			String ref_out = connection.getString(CONNECTION_REF_OUTPUT);
-			String tar_in = connection.getString(CONNECTION_TAR_INPUT);
-		}
+	public WPSOrchestration(ConnectionHandler connectionHandler) throws IOException {
 		
-		
-		// TODO Auto-generated method stub
-		return null;
 	}
 
-	private String getWPSRequest(String referenceWFS, String targetWFS,
-			String operations) {
+	public void execute() throws IOException {
+//		try {
+//			if(getConnectionInvalid())
+//				throw new IOException("Connections are invalid");
+//
+//			//get request
+//			String request = getWPSRequest();
+//			//execute
+//			Document response = executeRequest(request);
+//			
+//			//validate response
+//			if(isSuccess(response)){
+//				setIsNotExecuted(false);
+//				this.sendMessage(FacesMessage.SEVERITY_INFO, "Success",  "Process successfully executed");
+//			}
+//			else {
+//				throw new IOException("Process failed");
+//			}
+//		} catch (IOException ioe) {
+//			setIsNotExecuted(true);
+//			this.sendMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not perform process: " + ioe.getLocalizedMessage());
+//		}
+	}
+
+	private String getWPSRequest() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -91,16 +55,8 @@ public class WPSOrchestration implements Serializable {
 		return false;
 	}
 
-	/**
-	 * append message to faces context
-	 * @param severity message severity level
-	 * @param summary message string
-	 * @param detail detailed message string
-	 */
-	protected void sendMessage(Severity severity, String summary, String detail){
-		FacesContext context = FacesContext.getCurrentInstance();
-		context.addMessage(null, new FacesMessage(severity, summary, detail) );		
-	}
+	
+	
 	
 
 //	<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

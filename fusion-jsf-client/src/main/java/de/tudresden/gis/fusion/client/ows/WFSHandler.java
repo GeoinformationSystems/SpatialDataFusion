@@ -23,7 +23,7 @@ public class WFSHandler extends OWSHandler {
 	private final String PARAM_BBOX = "bbox";
 	
 	//flag: force WGS84 as default crs
-	private final String DEFAULT_CRS_WGS84 = "epsg:4326";
+	private final String DEFAULT_CRS_WGS84 = "EPSG:4326";
 	private boolean forceWGS84 = false;
 	public boolean getForceWGS84() { return this.forceWGS84; }
 	public void setForceWGS84(boolean forceWGS84) { 

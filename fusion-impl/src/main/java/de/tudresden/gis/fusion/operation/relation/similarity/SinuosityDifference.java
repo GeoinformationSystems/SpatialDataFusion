@@ -130,7 +130,7 @@ public class SinuosityDifference extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates sinuosity difference between linear input geometries";
 	}
 

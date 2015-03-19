@@ -10,8 +10,6 @@ import java.util.Set;
 import de.tudresden.gis.fusion.data.IFeature;
 import de.tudresden.gis.fusion.data.IFeatureRelation;
 import de.tudresden.gis.fusion.data.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
@@ -19,6 +17,8 @@ import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IDescription;
 import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
@@ -100,7 +100,6 @@ public class FeatureRelation extends Resource implements IFeatureRelation,IRDFTr
 		objectSet.put(TARGET, DataUtilities.toSet(this.getTarget().getRDFRepresentation()));
 		objectSet.put(MEASUREMENTS, DataUtilities.dataCollectionToNodeSet(relationMeasurements));
 		//TODO add metadata
-//		objectSet.put(EnumPredicates.HAS_METADATA.getResource(), description);
 		return objectSet;
 	}
 

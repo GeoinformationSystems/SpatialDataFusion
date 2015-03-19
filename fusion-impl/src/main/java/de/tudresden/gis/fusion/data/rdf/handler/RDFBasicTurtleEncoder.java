@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.data.rdf;
+package de.tudresden.gis.fusion.data.rdf.handler;
 
 import java.net.URI;
 import java.util.ArrayList;

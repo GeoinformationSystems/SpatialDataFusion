@@ -5,7 +5,7 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
 
 public class RelationMeasurementDescription extends MeasurementDescription implements IRelationMeasurementDescription {
@@ -17,7 +17,7 @@ public class RelationMeasurementDescription extends MeasurementDescription imple
 		this.classification = classification;
 	}
 	
-	public RelationMeasurementDescription(IRDFTripleSet decodedRDFResource) throws IOException {
+	public RelationMeasurementDescription(INode decodedRDFResource) throws IOException {
 		super(decodedRDFResource);
 	}
 

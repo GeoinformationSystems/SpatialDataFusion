@@ -165,11 +165,8 @@ public class RoadUpdate {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#;demo;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#;statisticalConfidence;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#;spatialRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/process#;process;"));
+//				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/;measurement;"));
 		output = generator.execute(input);
 		
 		runtime.gc();

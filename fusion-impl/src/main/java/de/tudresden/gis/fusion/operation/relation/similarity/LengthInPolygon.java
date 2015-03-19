@@ -112,7 +112,7 @@ public class LengthInPolygon extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates length of reference feature within target polygon (in percent of total length)";
 	}
 	

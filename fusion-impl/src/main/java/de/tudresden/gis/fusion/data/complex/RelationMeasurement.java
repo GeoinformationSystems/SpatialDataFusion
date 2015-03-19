@@ -6,12 +6,12 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IMeasurementValue;
 import de.tudresden.gis.fusion.data.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IRelationMeasurementDescription;
 import de.tudresden.gis.fusion.metadata.data.RelationMeasurementDescription;
@@ -29,8 +29,8 @@ public class RelationMeasurement extends Measurement implements IRelationMeasure
 		super(decodedRDFResource);
 		//set description
 		Map<IIdentifiableResource,Set<INode>> objectSet = decodedRDFResource.getObjectSet();
-		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, IRDFTripleSet.class, true);
-		this.setDescription(new RelationMeasurementDescription((IRDFTripleSet) nDescription));
+		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, INode.class, true);
+		this.setDescription(new RelationMeasurementDescription(nDescription));
 	}
 	
 	public RelationMeasurement(IMeasurementValue<?> measurementValue, IIdentifiableResource process, IRelationMeasurementDescription description){

@@ -5,7 +5,7 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.INode;
 
 public class ConfidenceMeasurementDescription extends RelationMeasurementDescription implements IConfidenceMeasurementDescription {
 
@@ -13,7 +13,7 @@ public class ConfidenceMeasurementDescription extends RelationMeasurementDescrip
 		super(iri, description, range, classification);
 	}
 	
-	public ConfidenceMeasurementDescription(IRDFTripleSet decodedRDFResource) throws IOException {
+	public ConfidenceMeasurementDescription(INode decodedRDFResource) throws IOException {
 		super(decodedRDFResource);
 	}
 

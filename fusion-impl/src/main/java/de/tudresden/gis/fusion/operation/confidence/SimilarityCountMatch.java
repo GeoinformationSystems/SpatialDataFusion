@@ -102,7 +102,7 @@ public class SimilarityCountMatch extends AConfidenceMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates similarity measurements for input relations, deletes relations with count < threshold";
 	}
 

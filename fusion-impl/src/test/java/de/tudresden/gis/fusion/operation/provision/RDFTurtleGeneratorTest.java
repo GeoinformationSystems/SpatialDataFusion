@@ -11,18 +11,12 @@ import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
-import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
-import de.tudresden.gis.fusion.operation.confidence.SimilarityCountMatch;
 import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
-import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
-import de.tudresden.gis.fusion.operation.relation.similarity.AngleDifference;
 import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
-import de.tudresden.gis.fusion.operation.relation.similarity.GeometryDistance;
 import de.tudresden.gis.fusion.operation.relation.similarity.HausdorffDistance;
-import de.tudresden.gis.fusion.operation.relation.similarity.LengthDifference;
 import de.tudresden.gis.fusion.operation.retrieval.ShapefileParser;
 
 public class RDFTurtleGeneratorTest {
@@ -46,60 +40,18 @@ public class RDFTurtleGeneratorTest {
 		BoundingBoxDistance process1 = new BoundingBoxDistance();		
 		input.put("IN_REFERENCE", reference);
 		input.put("IN_TARGET", target);
-		input.put("IN_THRESHOLD", new DecimalLiteral(50));
+		input.put("IN_THRESHOLD", new DecimalLiteral(20));
 		output = process1.execute(input);	
 		IFeatureRelationCollection relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 				
-		
+		//add hausdorff distance
 		HausdorffDistance process = new HausdorffDistance();		
 		input.put("IN_REFERENCE", reference);
 		input.put("IN_TARGET", target);
 		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new DecimalLiteral(50));
+		input.put("IN_THRESHOLD", new DecimalLiteral(20));
 		output = process.execute(input);	
 		relations = (IFeatureRelationCollection) output.get("OUT_RELATIONS");
-		
-		//add angle difference
-		AngleDifference process2 = new AngleDifference();
-		input.put("IN_REFERENCE", reference);
-		input.put("IN_TARGET", target);
-		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
-		output = process2.execute(input);	
-		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
-		
-		//add geometry distance
-		GeometryDistance process3 = new GeometryDistance();
-		input.put("IN_REFERENCE", reference);
-		input.put("IN_TARGET", target);
-		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new DecimalLiteral(0.0005));
-		output = process3.execute(input);	
-		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
-		
-		//add length difference
-		LengthDifference process4 = new LengthDifference();	
-		input.put("IN_REFERENCE", reference);
-		input.put("IN_TARGET", target);
-		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new DecimalLiteral(0.0002));
-		output = process4.execute(input);	
-		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
-		
-		//add topology relation
-		TopologyRelation process5 = new TopologyRelation();
-		input.put("IN_REFERENCE", reference);
-		input.put("IN_TARGET", target);
-		input.put("IN_RELATIONS", relations);
-		output = process5.execute(input);	
-		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
-		
-		//add confidence count
-		SimilarityCountMatch process6 = new SimilarityCountMatch();
-		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new IntegerLiteral(4));
-		output = process6.execute(input);	
-		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
 		RDFTurtleGenerator generator = new RDFTurtleGenerator();
 		input.put("IN_RDF", relations);
@@ -107,11 +59,8 @@ public class RDFTurtleGeneratorTest {
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#;demo;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#;statisticalConfidence;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#;spatialRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/process#;process;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/;measurement;"));
 		output = generator.execute(input);	
 		URILiteral file = (URILiteral) output.get("OUT_RESOURCE");
 		

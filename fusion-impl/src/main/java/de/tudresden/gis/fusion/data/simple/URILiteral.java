@@ -2,8 +2,8 @@ package de.tudresden.gis.fusion.data.simple;
 
 import java.net.URI;
 
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 
 public class URILiteral extends Literal {
 	

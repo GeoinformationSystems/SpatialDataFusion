@@ -1,4 +1,8 @@
-package de.tudresden.gis.fusion.data.rdf;
+package de.tudresden.gis.fusion.data.rdf.namespace;
+
+import de.tudresden.gis.fusion.data.rdf.IIRI;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
 public enum EFusionNamespace {
 	

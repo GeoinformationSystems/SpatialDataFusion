@@ -29,13 +29,13 @@ function f_removeProcess(identifier){
  * reset jsPlumb
  */
 function f_reset() {
-	//uncheck all processes
-	var selection = PrimeFaces.widgets.p_selectedProcesses;
-	selection.inputs.each(function() {
-		if($(this).prop('checked') === true)
-			$(this).trigger('click');
-	});
-	//remove rest
+//	//uncheck all processes
+//	var selection = PrimeFaces.widgets.p_selectedProcesses;
+//	selection.inputs.each(function() {
+//		if($(this).prop('checked') === true)
+//			$(this).trigger('click');
+//	});
+	//remove remaining content
 	jsPlumbInstance.deleteEveryEndpoint();
 	var identifiers = [];
 	for(var process in activeProcesses){
@@ -47,7 +47,7 @@ function f_reset() {
 }
 
 /**
- * parse and add process description
+ * parse and add process description #called from WPS Handler Bean
  * @param descriptionAsJSON
  */
 function f_addProcessfromJSON(descriptionAsJSON){
@@ -99,7 +99,7 @@ jsPlumb.ready(function() {
 	jsPlumbInstance = jsPlumb.getInstance({
 		DragOptions : { cursor: 'pointer', zIndex:2000 },
 		Endpoint: "Dot",
-		EndpointStyle : {radius:2, fillStyle:"#000066"},
+		EndpointStyle : {radius:2, fillStyle:"#339"},
 		EndpointHoverStyle: { fillStyle:"#990000" },
 		HoverPaintStyle : {strokeStyle:"#990000", lineWidth:2 },
 		ConnectionOverlays : [
@@ -114,10 +114,10 @@ jsPlumb.ready(function() {
 	});	
 	jsPlumbInstance.bind("click", function(c) {
 		jsPlumbInstance.detach(c);
-		f_validateConnections();
+		f_setConnections();
 	});
 	jsPlumbInstance.bind("connection", function(info, originalEvent) {
-		f_validateConnections();
+		f_setConnections();
 	});
 });
 
@@ -127,7 +127,7 @@ jsPlumb.ready(function() {
  */
 function f_addProcessInstance(description){
 
-	var process = $('<div>').attr('id', description.identifier_norm).addClass('plumb_process color_main');
+	var process = $('<div>').attr('id', description.identifier_norm).addClass('plumb_process');
 	process.text(description.identifier_short);
 	$('#plumb_processes').append(process);
 	
@@ -191,7 +191,6 @@ function f_addLiteralProcess(value, defaultFormat, supportedformats){
 		output.supportedFormats.push(f_createLiteralFormat(supportedformats[i]));
 	}
 	description.outputs.push(output);
-	console.log(description);
 	//add process
 	f_addProcess(description);
 }
@@ -224,7 +223,7 @@ function f_removeProcessInstance(id_norm){
  */
 function f_addProcessIO(identifier_norm, ioDescription, input){
 	var processIOId = identifier_norm + ioSeparator + ioDescription.identifier;
-	var processIO = $('<div>').attr('id', processIOId).addClass((input ? 'plumb_process_in color_subsub_border' : 'plumb_process_out color_subsub_border'));
+	var processIO = $('<div>').attr('id', processIOId).addClass((input ? 'plumb_process_in' : 'plumb_process_out'));
 	processIO.text(ioDescription.identifier);
 	processIO.mouseover(function() {
 		$('#plumb_desc').html(f_getIODetails(ioDescription));
@@ -246,7 +245,8 @@ function f_addProcessIO(identifier_norm, ioDescription, input){
 	else {
 		jsPlumbInstance.makeSource(io, {
 			anchor:"RightMiddle",
-			connector:"Bezier",
+			connector:["Flowchart", {stub:30, cornerRadius:5}],
+//			connector:["StateMachine"],
 			connectorStyle:{strokeStyle:"#000066", lineWidth:2, outlineColor:"transparent", outlineWidth:4 }
 		});
 	}
@@ -264,7 +264,7 @@ function f_getIODetails(ioDescription){
 	for(var i=0; i<ioDescription.supportedFormats.length; i++) {
 		details += f_getFormatString(ioDescription.supportedFormats[i]);
 		if(i >= 5){
-			details += '<div class="ioFormat color_txt_sub">... (' + 
+			details += '<div class="ioFormat">... (' + 
 					(ioDescription.supportedFormats.length - 5) + ' more)</div>';
 			break;
 		}
@@ -278,7 +278,7 @@ function f_getIODetails(ioDescription){
  * @returns {String} formatted string
  */
 function f_getFormatString(format){
-	var string = '<div class="ioFormat color_txt_sub">';
+	var string = '<div class="ioFormat">';
 	if(typeof format === 'undefined')
 		string += 'no format defined<br />';
 	else
@@ -290,113 +290,116 @@ function f_getFormatString(format){
 	return string + '</div>';
 }
 
-/**
- * set connections valid, used for enabling execute button
- * @param flag
- */
-function setConnectionsValid(flag){
-	if(flag === true)
-		p_setConnectionsInvalidFromJS([{name:"invalid", value:"false"}]);
-	else
-		p_setConnectionsInvalidFromJS([{"invalid":"true"}]);
-		
-}
+///**
+// * set connections valid, used for enabling execute button
+// * @param flag
+// */
+//function setConnectionsValid(flag){
+//	if(flag === true)
+//		p_setConnectionsInvalidFromJS([{name:"invalid", value:"false"}]);
+//	else
+//		p_setConnectionsInvalidFromJS([{"invalid":"true"}]);
+//		
+//}
 
 /**
  * validate connections
  */
-function f_validateConnections() {
-	var connectionsValid = true;
-	var errors = "";
+function f_setConnections() {
 	var connections = f_getConnections();
-	if(connections.length == 0){
-		setConnectionsValid(false);
-		document.getElementById('p_validationResult').innerHTML = '';
-		document.getElementById('form:p_connections').value = '';
-		return;
-	}
-	//check connections
-	for(var i=0; i<connections.length; i++) {
-		var validationError = f_validateConnection(connections[i]);
-		if(validationError !== null){
-			connectionsValid = false;
-			errors += validationError + '<br />';
-		}
-	}
-	//set connections input field
-	if(connectionsValid) {
-		setConnectionsValid(true);
-		document.getElementById('p_validationResult').innerHTML = '<span class="good">Connections are valid</span>';
-		document.getElementById('form:p_connections').value = '{ "connections" : ' + JSON.stringify(connections) + '}';
-	}
-	else {
-		setConnectionsValid(false);
-		document.getElementById('p_validationResult').innerHTML = '<span class="bad">Connections are not valid</span><br />' + errors;
-		document.getElementById('form:p_connections').value = '';
-	}
+	document.getElementById('form:p_connections').value = JSON.stringify(connections);
+	p_connectionsChanged();
+//	var connectionsValid = true;
+//	var errors = "";
+//	
+//	if(connections.length == 0){
+//		setConnectionsValid(false);
+//		document.getElementById('p_validationResult').innerHTML = '';
+//		document.getElementById('form:p_connections').value = '';
+//		return;
+//	}
+//	//check connections
+//	for(var i=0; i<connections.length; i++) {
+//		var validationError = f_validateConnection(connections[i]);
+//		if(validationError !== null){
+//			connectionsValid = false;
+//			errors += validationError + '<br />';
+//		}
+//	}
+//	//set connections input field
+//	if(connectionsValid) {
+//		setConnectionsValid(true);
+//		document.getElementById('p_validationResult').innerHTML = '<span class="good">Connections are valid</span>';
+//		document.getElementById('form:p_connections').value = '{ "connections" : ' + JSON.stringify(connections) + '}';
+//	}
+//	else {
+//		setConnectionsValid(false);
+//		document.getElementById('p_validationResult').innerHTML = '<span class="bad">Connections are not valid</span><br />' + errors;
+//		document.getElementById('form:p_connections').value = '';
+//	}
 }
 
-/**
- * validate connection
- * @param connection input connection
- */
-function f_validateConnection(connection) {
-	
-	//get output list
-	var outputs = null;
-	for(var i=0; i<connection['ref_description'].outputs.length; i++) {
-		if(connection['ref_description'].outputs[i].identifier == connection['ref_output'])
-			outputs = connection['ref_description'].outputs[i].supportedFormats;
-	}
-	//get input list
-	var inputs = null;
-	for(i=0; i<connection['tar_description'].inputs.length; i++) {
-		if(connection['tar_description'].inputs[i].identifier == connection['tar_input'])
-			inputs = connection['tar_description'].inputs[i].supportedFormats;
-	}
-	//check if inputs and outputs are set	
-	if(typeof outputs === null || typeof inputs === null)
-		return 'inputs or outputs are not set properly for : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
-	else if(!f_haveCommonFormat(inputs, outputs))
-		return 'inputs and outputs have no common format : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
-	else
-		return null;
-}
+///**
+// * validate connection
+// * @param connection input connection
+// */
+//function f_validateConnection(connection) {
+//	
+//	//get output list
+//	var outputs = null;
+//	for(var i=0; i<connection['ref_description'].outputs.length; i++) {
+//		if(connection['ref_description'].outputs[i].identifier == connection['ref_output'])
+//			outputs = connection['ref_description'].outputs[i].supportedFormats;
+//	}
+//	//get input list
+//	var inputs = null;
+//	for(i=0; i<connection['tar_description'].inputs.length; i++) {
+//		if(connection['tar_description'].inputs[i].identifier == connection['tar_input'])
+//			inputs = connection['tar_description'].inputs[i].supportedFormats;
+//	}
+//	//check if inputs and outputs are set	
+//	if(typeof outputs === null || typeof inputs === null)
+//		return 'inputs or outputs are not set properly for : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+//	else if(!f_haveCommonFormat(inputs, outputs))
+//		return 'inputs and outputs have no common format : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+//	else
+//		return null;
+//}
 
-/**
- * check two lists for common entry
- * @param inputs first list
- * @param outputs second list
- */
-function f_haveCommonFormat(inputs, outputs){
-	for(var i=0; i<inputs.length; i++){
-		for(var j=0; j<outputs.length; j++){
-			if(f_compareFormats(inputs[i], outputs[j]))
-				return true;
-		}
-	}
-	return false;
-}
+///**
+// * check two lists for common entry
+// * @param inputs first list
+// * @param outputs second list
+// */
+//function f_haveCommonFormat(inputs, outputs){
+//	for(var i=0; i<inputs.length; i++){
+//		for(var j=0; j<outputs.length; j++){
+//			if(f_compareFormats(inputs[i], outputs[j]))
+//				return true;
+//		}
+//	}
+//	return false;
+//}
 
-/**
- * compare two formats, returns 0 if equal
- * @param input first format
- * @param output second format
- */
-function f_compareFormats(input, output){
-	
-	if(typeof input.mimetype !== 'undefined' || typeof output.mimetype !== 'undefined')
-		if(input.mimetype !== output.mimetype)
-			return false;
-	if(typeof input.schema !== 'undefined' || typeof output.schema !== 'undefined')
-		if(input.schema !== output.schema)
-			return false;
-	if(typeof input.type !== 'undefined' || typeof output.type !== 'undefined')
-		if(input.type !== output.type)
-			return false;		
-	
-	return true;
-}
+///**
+// * compare two formats, returns 0 if equal
+// * @param input first format
+// * @param output second format
+// */
+//function f_compareFormats(input, output){
+//	
+//	if(typeof input.mimetype !== 'undefined' || typeof output.mimetype !== 'undefined')
+//		if(input.mimetype !== output.mimetype)
+//			return false;
+//	if(typeof input.schema !== 'undefined' || typeof output.schema !== 'undefined')
+//		if(input.schema !== output.schema)
+//			return false;
+//	if(typeof input.type !== 'undefined' || typeof output.type !== 'undefined')
+//		if(input.type !== output.type)
+//			return false;		
+//	
+//	return true;
+//}
 
 /**
  * get jsPlumb connections

@@ -190,7 +190,7 @@ public class AngleDifference extends ASimilarityMeasurementOperation {
 	}
 	
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates angle difference between linear input geometries";
 	}
 

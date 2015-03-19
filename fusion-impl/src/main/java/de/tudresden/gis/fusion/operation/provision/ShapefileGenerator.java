@@ -107,7 +107,7 @@ public class ShapefileGenerator extends AOperation implements IDataProvision {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Generator for ESRI Shapefiles";
 	}
 	

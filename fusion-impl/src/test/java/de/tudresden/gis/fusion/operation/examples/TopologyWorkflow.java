@@ -1,9 +1,7 @@
 package de.tudresden.gis.fusion.operation.examples;
 
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,8 +11,6 @@ import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
 import de.tudresden.gis.fusion.data.geotools.GTFeatureRelationCollection;
-import de.tudresden.gis.fusion.data.rdf.IRI;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
@@ -71,18 +67,15 @@ public class TopologyWorkflow {
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
 		TripleStoreGenerator generator = new TripleStoreGenerator();
-		input.put("IN_DATA", relations);
+		input.put("IN_RDF", relations);
 		input.put("IN_TRIPLE_STORE", new URILiteral(FUSEKI_URI));
-		input.put("IN_CLEAR_STORE", new BooleanLiteral(true));
-		input.put("URI_PREFIXES", new StringLiteral(""
+		input.put("IN_CLEAR_STORE", new BooleanLiteral(false));
+		input.put("IN_URI_PREFIXES", new StringLiteral(""
 				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#;demo;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#;statisticalConfidence;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#;spatialRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#;topologyRelation;"
-				+ "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#;stringRelation"));
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/process#;process;"));
+//				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/;measurement;"));
 		output = generator.execute(input);
 		
 		runtime.gc();

@@ -110,7 +110,7 @@ public class TopologyRelation extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Determines topology relation between input geometries, stored as DE-9IM";
 	}
 	

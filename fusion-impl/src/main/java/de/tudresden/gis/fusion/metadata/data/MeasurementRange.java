@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
@@ -17,6 +15,8 @@ import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IMeasurementRange;

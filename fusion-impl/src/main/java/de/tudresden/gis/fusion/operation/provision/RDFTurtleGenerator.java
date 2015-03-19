@@ -15,7 +15,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleEncoder;
+import de.tudresden.gis.fusion.data.rdf.handler.RDFBasicTurtleEncoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
@@ -138,7 +138,7 @@ public class RDFTurtleGenerator extends AOperation implements IDataProvision {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "RDF Turtle Generator for triples";
 	}
 	

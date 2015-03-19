@@ -146,7 +146,7 @@ public class GeometryDistance extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates the distance between input feature geometries";
 	}
 

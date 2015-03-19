@@ -44,6 +44,11 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 		buildIndex();
 	}
 	
+	public GTIndexedFeatureCollection(GTFeatureCollection collection) throws IOException {
+		super(collection.getIdentifier(), collection.getFeatureCollectionList(), collection.getDescription());
+		buildIndex();
+	}
+	
 	private void buildIndex(){
 		this.index = new STRtree();
 		Iterator<IFeature> iter = this.iterator();
@@ -58,14 +63,14 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<IFeature> intersects(IFeature feature){
+	public List<IFeature> boundsIntersect(IFeature feature){
 		double[] bounds = feature.getDefaultSpatialProperty().getBounds();
 		Envelope envelope = new Envelope(bounds[0], bounds[2], bounds[1], bounds[3]);
 		return this.index.query(envelope);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<IFeature> intersects(IFeature feature, double buffer){
+	public List<IFeature> boundsIntersect(IFeature feature, double buffer){
 		double[] bounds = feature.getDefaultSpatialProperty().getBounds();
 		Envelope envelope = new Envelope(bounds[0], bounds[2], bounds[1], bounds[3]);
 		envelope.expandBy(buffer);

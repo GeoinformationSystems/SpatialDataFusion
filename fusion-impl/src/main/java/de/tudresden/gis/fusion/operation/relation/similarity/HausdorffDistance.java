@@ -189,7 +189,7 @@ public class HausdorffDistance extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates the Hausdorff distance between input feature geometries";
 	}
 

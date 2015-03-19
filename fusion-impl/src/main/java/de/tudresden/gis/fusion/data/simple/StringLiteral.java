@@ -1,10 +1,10 @@
 package de.tudresden.gis.fusion.data.simple;
 
 import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IPlainLiteral;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 
 public class StringLiteral extends Literal implements IPlainLiteral,ITypedLiteral,IMeasurementValue<String> {
 

@@ -2,11 +2,11 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.tudresden.gis</groupId>
   <artifactId>fusion-impl</artifactId>
-  <version>0.0.4-SNAPSHOT</version>
+  <version>0.0.5-SNAPSHOT</version>
   
   <properties>
 		<geotools.version>12.2</geotools.version>
-		<fusion.version>0.0.4-SNAPSHOT</fusion.version>
+		<fusion.version>0.0.5-SNAPSHOT</fusion.version>
   </properties>
   
   <build>

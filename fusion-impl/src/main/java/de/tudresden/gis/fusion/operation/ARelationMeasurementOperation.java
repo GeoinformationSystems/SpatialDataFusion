@@ -19,7 +19,7 @@ public abstract class ARelationMeasurementOperation extends AMeasurementOperatio
 					getResource().getIdentifier(),
 					new HashSet<IIdentifiableResource>(Arrays.asList(getClassification())),
 					getProcessTitle(),
-					getProcessDescription(),
+					getProcessAbstract(),
 					new HashSet<IIODescription>(Arrays.asList(getInputDescriptions())),
 					new HashSet<IIODescription>(Arrays.asList(getOutputDescriptions())),
 					new HashSet<IRelationMeasurementDescription>(Arrays.asList(getSupportedMeasurements()))

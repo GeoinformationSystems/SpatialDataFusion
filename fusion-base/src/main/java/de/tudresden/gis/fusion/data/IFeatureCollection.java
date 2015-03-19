@@ -27,7 +27,7 @@ public interface IFeatureCollection extends IComplexData,Iterable<IFeature> {
 	 * get feature collection
 	 * @return features
 	 */
-	public Collection<IFeature> getFeatures();
+	public Collection<? extends IFeature> getFeatures();
 	
 	/**
 	 * get feature by identifier

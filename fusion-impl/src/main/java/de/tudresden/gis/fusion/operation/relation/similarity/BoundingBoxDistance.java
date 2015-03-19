@@ -102,7 +102,7 @@ public class BoundingBoxDistance extends ASimilarityMeasurementOperation {
 
 		IFeatureRelationCollection relations = new GTFeatureRelationCollection();
 	    for(IFeature fTar : target) {
-		    List<IFeature> intersections = reference.intersects(fTar, dThreshold);
+		    List<IFeature> intersections = reference.boundsIntersect(fTar, dThreshold);
 		    for(IFeature fRef : intersections){
 		    	SimilarityMeasurement similarity = relate(fRef, fTar);
 		    	//only adds measurement, if distance is <= threshold (index can return features that are more distant by different expand strategy)
@@ -186,7 +186,7 @@ public class BoundingBoxDistance extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates the distance between input feature bounds";
 	}
 	

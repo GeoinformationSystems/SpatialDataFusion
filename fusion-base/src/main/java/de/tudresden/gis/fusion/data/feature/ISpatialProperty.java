@@ -5,6 +5,12 @@ import de.tudresden.gis.fusion.data.rdf.IResource;
 public interface ISpatialProperty extends IFeatureProperty {
 	
 	/**
+	 * get geometry object
+	 * @return geometry object
+	 */
+	public Object getGeometry();
+	
+	/**
 	 * get bounds for geometry (minx, miny, maxx, maxy)
 	 * @return geometry bounds
 	 */

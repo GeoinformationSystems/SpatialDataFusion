@@ -26,7 +26,7 @@ public abstract class ASimilarityMeasurementOperation extends ARelationMeasureme
 					getResource().getIdentifier(),
 					new HashSet<IIdentifiableResource>(Arrays.asList(getClassification())),
 					getProcessTitle(),
-					getProcessDescription(),
+					getProcessAbstract(),
 					new HashSet<IIODescription>(Arrays.asList(getInputDescriptions())),
 					new HashSet<IIODescription>(Arrays.asList(getOutputDescriptions())),
 					new HashSet<ISimilarityMeasurementDescription>(Arrays.asList(getSupportedMeasurements()))

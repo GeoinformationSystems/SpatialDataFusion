@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IIODescription;
 import de.tudresden.gis.fusion.metadata.data.IMeasurementDescription;

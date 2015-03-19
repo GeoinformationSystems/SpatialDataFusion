@@ -14,10 +14,10 @@
 </h:head>
 <h:body>
 
-<div id="header" class="content color_main"><div id="header_text">Fusion Client</div>
+<div id="header" class="content ui-state-active"><div id="header_text">Fusion Client</div>
 	<div id="status"><p:ajaxStatus>  
 	    <f:facet name="start">  
-	        <p:graphicImage value="resources/images/ajax-loader.gif" />  
+	        <p:graphicImage value="resources/images/ajax-loader.png" />  
 	    </f:facet>						      
 	    <f:facet name="complete">  
 	        <h:outputText value="" />  
@@ -29,7 +29,7 @@
 	<h:form id="form">
 	<p:growl id="message" showDetail="true" />	
 	
-	<!-- <div class="content section color_sub">Reference Data</div>	         		
+	<!-- <div class="content section ui-state-hover">Reference Data</div>	         		
    	<h:panelGrid columns="3" styleClass="content alignTop">
       	<h:panelGrid columns="4" styleClass="alignMiddle">
 	        
@@ -86,7 +86,7 @@
 		
 	</h:panelGrid>
             
-	<div class="content section color_sub">Target Data</div>
+	<div class="content section ui-state-hover">Target Data</div>
 	<h:panelGrid columns="3" styleClass="content alignTop">
       	<h:panelGrid columns="4" styleClass="alignMiddle">
 	        
@@ -143,101 +143,60 @@
 		
 	</h:panelGrid>
 	
-	<div class="content section color_sub">Stats</div>  
+	<div class="content section ui-state-hover">Stats</div>  
 	
 	<p:outputPanel rendered="true" styleClass="content">
 		<div id="stats_rt" />
 	</p:outputPanel> -->
 	
-	<div class="content section color_sub">Dataset Fusion</div>
+	<div class="content section ui-state-hover">Dataset Fusion</div>
 	
-	<h:panelGrid columns="5" styleClass="content alignMiddle">
-	
-		<p:selectOneButton id="f_service" value="wps">
-			 <f:selectItem itemLabel="WPS" itemValue="wps" />
+	<h:panelGrid columns="2" styleClass="content alignTop">
+		<p:selectOneButton value="wps">
+			<f:selectItem itemLabel="WPS" itemValue="wps" />
 		</p:selectOneButton>
-		<h:outputText for="f_service" value="Base URL: " />
-		<h:inputText id="f_base" value="#{wpsConnection.baseURL}" styleClass="inputText" style="width:500px;" />
-		<p:commandButton title="retrieve capabilities from server" value="get capabilities" action="#{wpsConnection.initCapabilities}" update="f_processes :form:message" icon="ui-icon-circle-arrow-s" />
+		<h:panelGrid columns="1" id="p_wpsConnectors">
+		    <c:forEach items="#{wpsConnector.handlers}" var="handler">
+			    <h:panelGroup>
+			    	<h:outputText value=" Base URL: " />
+					<h:inputText value="#{handler.baseURL}" styleClass="inputText" style="width:500px;" />
+					<p:commandButton title="Retrieve capabilities from server" value="get capabilities" action="#{handler.initCapabilities}" update="f_processes_#{handler.id} :form:message" icon="ui-icon-circle-arrow-s" />
+					<p:commandButton title="Remove WPS" icon="ui-icon-minus" action="#{wpsConnector.removeWPSHandler(handler.id)}" update="p_wpsConnectors" disabled="#{wpsConnector.numberOfHandlers eq 1}" />
+					<p:commandButton title="Add WPS" icon="ui-icon-plus" action="#{wpsConnector.addWPSHandler}" update="p_wpsConnectors" rendered="#{handler.id eq wpsConnector.lastId}" />
+			    </h:panelGroup>
+			    <p:selectManyCheckbox id="f_processes_#{handler.id}" layout="grid" value="#{handler.selectedProcesses}" valueChangeListener="#{handler.updateProcesses}" columns="1">
+					<f:selectItems value="#{handler.processDescriptions.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
+					<f:ajax />
+        		</p:selectManyCheckbox>
+		    </c:forEach>
+		</h:panelGrid>
 	</h:panelGrid>
-	
-	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
-	
-		<p:selectManyCheckbox id="f_processes" layout="grid" widgetVar="p_selectedProcesses" value="#{wpsConnection.selectedProcesses}" valueChangeListener="#{wpsConnection.updateProcesses}" columns="1">
-			<f:selectItems value="#{wpsConnection.processDescriptions.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
-			<f:ajax />
-        </p:selectManyCheckbox>
-        
-    </h:panelGrid>
     
 	<h:panelGrid columns="2" styleClass="content alignTop" style="padding-top:0px;">
      	<h:panelGroup layout="block">
-			<div id="plumb_processes" class="color_border" style="margin-bottom:0px;"/>
+			<div id="plumb_processes" style="margin-bottom:0px;"/>
 		</h:panelGroup>
 		<h:panelGroup layout="block">
-			<div id="plumb_desc" class="color_txt_main" />
+			<div id="plumb_desc" />
 		</h:panelGroup>
 		<h:panelGroup>
 	     	<h:inputText id="p_literal" styleClass="inputText" style="width:80px;" />
      		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
-     		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsExecute.executeProcess}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnection.connectionInvalid}" update=":form:message f_useFusionResult" />
-     		<p:remoteCommand name="p_setConnectionsInvalidFromJS" update="p_execute" actionListener="#{wpsConnection.setConnectionsInvalidFromJS}" />
-     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" onclick="f_reset();" style="float:right;margin-right:0px;" />
+     		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsConnector.execute}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnector.connectionInvalid}" update=":form:message f_useFusionResult" />
+     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" action="#{wpsConnector.reset}" update="p_wpsConnectors p_validation" onclick="f_reset();" style="float:right;margin-right:0px;" />
      	</h:panelGroup>
-     	<h:inputHidden id="p_connections" value="#{wpsConnection.connections}" />
-     	<h:panelGroup layout="block">
-			<div id="p_validationResult" class="color_txt_main p_validationResult" />
-		</h:panelGroup>
-    </h:panelGrid>
+     	<h:outputText />
+     	<h:panelGroup>
+     		<h:outputText id="p_validation" value="#{wpsConnector.validationMessage}"/>
+	     	<h:inputHidden id="p_connections" value="#{wpsConnector.connections}" />
+	     	<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation"/>
+     	</h:panelGroup>
+    </h:panelGrid>   
         
-    <!-- <h:outputText value="Data Harmonization: " />
-        <p:selectManyCheckbox id="f_processes_dh" layout="grid" columns="1">
-            <f:selectItem itemLabel="CRSReproject ('Reprojects coordinate reference system of input features')" itemValue="false" />
-        </p:selectManyCheckbox>
-        
-        <p:separator /><p:separator />
-        
-        <h:outputText value="Relation Measurement: " />
-        <p:selectManyCheckbox id="f_processes_rm" layout="grid" columns="2">
-            <f:selectItem itemLabel="AngleDifference ('Calculates angle difference between linear input geometries')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false"/>
-            <f:selectItem itemLabel="BoundingBoxDistance ('Calculates the distance between input feature bounds')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="GeometryDistance ('Calculates the distance between input feature geometries')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="HausdorffDistance ('Calculates the Hausdorff distance between input feature geometries')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="LengthDifference ('Calculates length difference between input geometries')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="SinuosityDifference ('Calculates sinuosity difference between linear input geometries')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="DamerauLevenshteinDistance ('Calculates Damerau-Levenshtein Distance for feature attributes')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-            <f:selectItem itemLabel="TopologyRelation ('Determines topology relation between input geometries, stored as DE-9IM')" itemValue="false" />
-            <f:selectItem itemLabel="hard criterion" itemValue="false" />
-        </p:selectManyCheckbox>
-        
-        <p:separator /><p:separator />
-        
-        <h:outputText value="Confidence Measurement: " />
-        <p:selectManyCheckbox id="f_processes_cm" layout="grid" columns="2">
-            <f:selectItem itemLabel="SimilarityCountMatch ('Counts the number of similarity measurements for a feature relation')" itemValue="false" />
-        </p:selectManyCheckbox>
-        
-        <p:separator /><p:separator />
-        
-        <h:outputText value="Resolving: " />
-        <p:selectManyCheckbox id="f_processes_rs" layout="grid" columns="1">
-            <f:selectItem itemLabel="AttributeTransfer ('Transfers all attributes from target to linked reference')" itemValue="false" />
-        </p:selectManyCheckbox> -->
-        
-      
-   
-        
-	<div class="content section color_sub">Compare Datasets</div>
+	<div class="content section ui-state-hover">Compare Datasets</div>
 	
-	<h:panelGrid columns="2" styleClass="content alignTop" style="margin-bottom:0px;">
-		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " disabled="#{wpsExecute.isNotExecuted}" />
+	<h:panelGrid columns="2" styleClass="content" style="margin-bottom:0px;">
+		<h:outputLabel for="f_useFusionResult" value="Use fusion results for comparison: " disabled="#{wpsConnector.isNotExecuted}" />
 		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
 	</h:panelGrid>
 	
@@ -261,7 +220,7 @@
 			<div id="map_ct_coord" class="coord" />			
 		</h:panelGroup>
 		
-	</h:panelGrid>   
+	</h:panelGrid>
       
 	</h:form>
 </div>

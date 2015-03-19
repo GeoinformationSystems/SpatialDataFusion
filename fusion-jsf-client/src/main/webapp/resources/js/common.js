@@ -33,8 +33,8 @@ function f_clearText(elementId, resize) {
 		element.style = '';
 }
 
-function f_getSimpleId(id){
-	if(id.indexOf('#') !== -1)
+function f_getSimpleId(id, splitNumberSign){
+	if(splitNumberSign !== 'undefined' && splitNumberSign === true && id.indexOf('#') !== -1)
 		return id.split('#')[1];
 	else if(id.indexOf('/') !== -1)
 		return id.split('/')[id.split('/').length - 1];

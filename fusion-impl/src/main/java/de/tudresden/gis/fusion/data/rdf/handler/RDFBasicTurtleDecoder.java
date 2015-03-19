@@ -1,4 +1,4 @@
-package de.tudresden.gis.fusion.data.rdf;
+package de.tudresden.gis.fusion.data.rdf.handler;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,6 +8,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ILiteral;
+import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IPlainLiteral;
+import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.IRDFTriple;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.IRI;
+import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.RDFTriple;
+import de.tudresden.gis.fusion.data.rdf.RDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.DecimalLiteral;
 import de.tudresden.gis.fusion.data.simple.IntegerLiteral;

@@ -1,7 +1,5 @@
 //init map resource
 function f_initOlResource(resource, olMaps, fRequest, crs, extent, style) {
-	//if fRequest == map.fRequest, do nothing
-	if(resource != null && resource.fRequest == fRequest) return;
 	//reset maps if resource is not null
 	if(resource != null) {
 		for(var map in olMaps){
@@ -152,10 +150,10 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 			for(var i=0; i<array.length; i++){
 				for(var j=0; j<array[i].length; j++){
 					//add relation attributes and add feature to target selection
-					var feature = f_cloneFeatureWithId(t_olMapObject.getFeatureById(f_getSimpleId(array[i][j].featureId)));
+					var feature = f_cloneFeatureWithId(t_olMapObject.getFeatureById(f_getSimpleId(array[i][j].featureId, true)));
 					var measures = array[i][j].relation.relationMeasures;
 					for(var k=0; k<measures.length; k++){
-						feature.set(f_getSimpleId(measures[k].relationType), f_getSimpleMeasurementValue(measures[k].relationValue));
+						feature.set(f_getSimpleId(measures[k].relationType, false), f_getSimpleMeasurementValue(measures[k].relationValue));
 					}
 					t_olMapObject.selection.getFeatures().push(feature);
 				}
@@ -230,12 +228,12 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 	
 	//function: get id property field as HTML
 	this.getHTMLIdProperty = function() {
-		return '<span class="idproperty color_main">&nbsp;ID&nbsp;</span>';
+		return '<span class="idproperty ui-state-hover">&nbsp;ID&nbsp;</span>';
 	};
 
 	//function: get id property value as HTML
 	this.getHTMLIdValue = function(featureId, featureIdDefined) {
-		return '<span class="idvalue color_sub" ' +
+		return '<span class="idvalue" ' +
 			(featureIdDefined ?
 				'onmouseover="f_highlightFeature(\'' + this.div + '\', \'' + featureId + '\')" ' +
 				'onmouseout="f_clearHighlight(\'' + this.div + '\')"' : '') +
@@ -245,12 +243,12 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 
 	//function: get feature property field as HTML
 	this.getHTMLAttProperty = function(property) {
-		return '<span class="property color_txt_main">' + property + '</span>';
+		return '<span class="ui-state-hover property">' + property + '</span>';
 	};
 
 	//function: get feature property value as HTML
 	this.getHTMLAttValue = function(feature, property) {
-		return '<span class="value color_txt_sub">' + ((feature.get(property) == null || feature.get(property).length == 0) ? '<i>null</i>' : feature.get(property)) + '</span>';
+		return '<span class="value">' + ((feature.get(property) == null || feature.get(property).length == 0) ? '<i>null</i>' : feature.get(property)) + '</span>';
 	};
 	
 	//function: highlight feature identified by id

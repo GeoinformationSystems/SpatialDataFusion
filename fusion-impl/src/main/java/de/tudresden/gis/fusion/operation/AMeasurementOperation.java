@@ -19,7 +19,7 @@ public abstract class AMeasurementOperation extends AOperation implements IMeasu
 					getResource().getIdentifier(),
 					new HashSet<IIdentifiableResource>(Arrays.asList(getClassification())),
 					getProcessTitle(),
-					getProcessDescription(),
+					getProcessAbstract(),
 					new HashSet<IIODescription>(Arrays.asList(getInputDescriptions())),
 					new HashSet<IIODescription>(Arrays.asList(getOutputDescriptions())),
 					new HashSet<IMeasurementDescription>(Arrays.asList(getSupportedMeasurements()))

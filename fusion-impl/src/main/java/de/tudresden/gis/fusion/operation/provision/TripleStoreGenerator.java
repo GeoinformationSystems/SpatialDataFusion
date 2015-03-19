@@ -15,7 +15,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
 import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleEncoder;
+import de.tudresden.gis.fusion.data.rdf.handler.RDFBasicTurtleEncoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
@@ -145,7 +145,7 @@ public class TripleStoreGenerator extends AOperation implements IDataProvision {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Triple Store Generator for relations";
 	}
 	

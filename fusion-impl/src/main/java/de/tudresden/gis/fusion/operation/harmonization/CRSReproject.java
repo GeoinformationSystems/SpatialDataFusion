@@ -255,7 +255,7 @@ public class CRSReproject extends AOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Reprojects coordinate reference system of input features";
 	}
 

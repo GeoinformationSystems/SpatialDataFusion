@@ -111,7 +111,7 @@ public class LengthDifference extends ASimilarityMeasurementOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates length difference between input geometries";
 	}
 	

@@ -184,7 +184,7 @@ public class OperationAggregate extends AOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Aggregates input relation processes to form feature relations";
 	}
 	

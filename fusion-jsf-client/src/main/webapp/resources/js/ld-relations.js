@@ -5,12 +5,9 @@ var sparql_endpoint = "http://localhost:3030/fusion/sparql?&output=json&query=";
 var prefixes = {};
 prefixes["rdf"] = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 prefixes["xsd"] = "http://www.w3.org/TR/xmlschema11-2#";
-prefixes["demo"] = "http://tu-dresden.de/uw/geo/gis/fusion/process/demo#";
-prefixes["statisticalConfidence"] = "http://tu-dresden.de/uw/geo/gis/fusion/confidence/statisticalConfidence#";
-prefixes["spatialRelation"] = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/spatial#";
-prefixes["topologyRelation"] = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/topology#";
-prefixes["stringRelation"] = "http://tu-dresden.de/uw/geo/gis/fusion/similarity/string#";
 prefixes["fusion"] = "http://tu-dresden.de/uw/geo/gis/fusion#";
+prefixes["process"] = "http://tu-dresden.de/uw/geo/gis/fusion/process#";
+prefixes["measurement"] = "http://tu-dresden.de/uw/geo/gis/measurement/";
 prefixes["fn"] = "http://www.w3.org/2005/xpath-functions#";
 
 //function: get SPARQL PREFIX definition
@@ -45,18 +42,18 @@ var f_getSPARQLFeatureRequest = function(featureId, isReference){
 		"SELECT ?id ?relationType ?relationValue " +
 		"WHERE {" +
 			"?relation rdf:type fusion:featureRelation . " +
-			"?relation fusion:" + (isReference ? "hasReference" : "hasTarget") + " ?featureURI . " +
+			"?relation fusion:" + (isReference ? "relationHasReference" : "relationHasTarget") + " ?featureURI . " +
 			"FILTER fn:ends-with(str(?featureURI), \"" + featureId + "\") . " +
-			"?relation fusion:" + (isReference ? "hasTarget " : "hasReference ") + "?id . " +
-			"?relation fusion:hasRelationMeasurement ?relationMeasure . " +
-			"?relationMeasure fusion:hasRelationType ?relationType . " +
+			"?relation fusion:" + (isReference ? "relationHasTarget " : "relationHasReference ") + "?id . " +
+			"?relation fusion:relationHasRelationMeasurement ?relationMeasure . " +
+			"?relationMeasure fusion:measurementHasDescription ?relationType . " +
 			"?relationMeasure rdf:value ?relationValue" +
 		"}"; +
 		"ORDER BY ?id";
 	return f_getSPARQLUrl(encodeURIComponent(request));
 };
 
-//function: parse json rsponse 
+//function: parse json response 
 var f_parseResponse = function(response){
 	//use built-in JSON parser
 	var jsonObj = JSON.parse(response);

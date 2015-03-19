@@ -7,8 +7,6 @@ import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.rdf.EFusionNamespace;
-import de.tudresden.gis.fusion.data.rdf.ERDFNamespaces;
 import de.tudresden.gis.fusion.data.rdf.IIRI;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
@@ -17,6 +15,8 @@ import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.namespace.EFusionNamespace;
+import de.tudresden.gis.fusion.data.rdf.namespace.ERDFNamespaces;
 import de.tudresden.gis.fusion.manage.DataUtilities;
 import de.tudresden.gis.fusion.metadata.data.IMeasurementDescription;
 import de.tudresden.gis.fusion.metadata.data.MeasurementDescription;
@@ -50,9 +50,9 @@ public class Measurement extends Resource implements IMeasurement,IRDFTripleSet 
 		INode nValue = DataUtilities.getSingleFromObjectSet(objectSet, ERDFNamespaces.HAS_VALUE.resource(), ITypedLiteral.class, true);
 		this.measurementValue = DataUtilities.getMeasurementValue((ITypedLiteral) nValue);
 		//set description
-		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, IRDFTripleSet.class, false);
+		INode nDescription = DataUtilities.getSingleFromObjectSet(objectSet, DESCRIPTION, INode.class, false);
 		if(nDescription != null)
-			this.description = new MeasurementDescription((IRDFTripleSet) nDescription);
+			this.description = new MeasurementDescription(nDescription);
 	}
 
 	@Override
@@ -61,7 +61,8 @@ public class Measurement extends Resource implements IMeasurement,IRDFTripleSet 
 		objectSet.put(ERDFNamespaces.INSTANCE_OF.resource(), DataUtilities.toSet(TYPE));
 		objectSet.put(PROCESS, DataUtilities.toSet(getProcess()));
 		objectSet.put(ERDFNamespaces.HAS_VALUE.resource(), DataUtilities.toSet(getMeasurementValue().getRDFRepresentation()));
-//		objectSet.put(DESCRIPTION, DataUtilities.toSet(getDescription().getRDFRepresentation()));
+		//only set description identifier that should lead to measurement description
+		objectSet.put(DESCRIPTION, DataUtilities.toSet(new Resource(getDescription().getRDFRepresentation().getSubject().getIdentifier())));
 		return objectSet;
 	}
 

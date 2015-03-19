@@ -2,6 +2,9 @@
 var r_resource;
 var r_olMaps = [];
 function f_initMapResource_r(fRequest, crs, center_wgs84, extent){
+	//if fRequest == map.fRequest, do nothing
+	if(r_resource != null && r_resource.fRequest == fRequest) 
+		return;
 	r_resource = f_initOlResource(r_resource, r_olMaps, fRequest, crs, extent, styleDefault);
 	r_olMaps['map_r'] = new olMap(r_resource, 'map_r', crs, center_wgs84, defaultZoom);
 	r_olMaps['map_r'].registerBasicInteractions();
@@ -14,6 +17,9 @@ function f_initMapResource_r(fRequest, crs, center_wgs84, extent){
 var t_resource;
 var t_olMaps = [];
 function f_initMapResource_t(fRequest, crs, center_wgs84, extent){
+	//if fRequest == map.fRequest, do nothing
+	if(r_resource != null && r_resource.fRequest == fRequest) 
+		return;
 	t_resource = f_initOlResource(t_resource, t_olMaps, fRequest, crs, extent, styleDefault);
 	t_olMaps['map_t'] = new olMap(t_resource, 'map_t', crs, center_wgs84, defaultZoom);
 	t_olMaps['map_t'].registerBasicInteractions();

@@ -19,7 +19,7 @@ public abstract class AConfidenceMeasurementOperation extends ARelationMeasureme
 					getResource().getIdentifier(),
 					new HashSet<IIdentifiableResource>(Arrays.asList(getClassification())),
 					getProcessTitle(),
-					getProcessDescription(),
+					getProcessAbstract(),
 					new HashSet<IIODescription>(Arrays.asList(getInputDescriptions())),
 					new HashSet<IIODescription>(Arrays.asList(getOutputDescriptions())),
 					new HashSet<IConfidenceMeasurementDescription>(Arrays.asList(getSupportedMeasurements()))

@@ -245,7 +245,7 @@ public class AttributeTransfer extends AOperation {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Transfer of attributes based on specified relation type";
 	}
 

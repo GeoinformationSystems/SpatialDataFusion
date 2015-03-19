@@ -15,6 +15,10 @@ public enum EProcessType {
 	RESOLVING("#resolving"),
 	PROVISION("#dataProvision"),
 	
+	//enhancement operations
+	OP_ENH_GEOM_REP("/dataEnhancement/feature/geometry#repair"),
+	OP_ENH_GEOM_SEG("/dataEnhancement/feature/geometry#segmentation"),
+	
 	//harmonization operations
 	OP_HAR_CRS("/dataHarmonization/transformation/feature/property/spatial#crs"),
 

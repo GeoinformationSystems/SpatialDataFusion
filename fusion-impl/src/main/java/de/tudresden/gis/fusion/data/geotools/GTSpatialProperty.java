@@ -43,6 +43,11 @@ public class GTSpatialProperty implements ISpatialProperty {
 	}
 	
 	@Override
+	public Object getGeometry() {
+		return property.getValue();
+	}
+	
+	@Override
 	public String getIdentifier() {
 		return property.getName().toString();
 	}

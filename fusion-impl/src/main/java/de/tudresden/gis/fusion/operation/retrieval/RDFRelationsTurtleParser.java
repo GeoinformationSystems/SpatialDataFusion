@@ -17,7 +17,7 @@ import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
 import de.tudresden.gis.fusion.data.rdf.IRI;
 import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFBasicTurtleDecoder;
+import de.tudresden.gis.fusion.data.rdf.handler.RDFBasicTurtleDecoder;
 import de.tudresden.gis.fusion.data.restrictions.ERestrictions;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
 import de.tudresden.gis.fusion.manage.EProcessType;
@@ -96,7 +96,7 @@ public class RDFRelationsTurtleParser extends AOperation implements IDataRetriev
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Parser for RDF relations";
 	}
 

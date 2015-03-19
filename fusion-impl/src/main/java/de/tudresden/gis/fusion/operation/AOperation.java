@@ -117,7 +117,7 @@ public abstract class AOperation implements IOperation {
 					getResource().getIdentifier(),
 					new HashSet<IIdentifiableResource>(Arrays.asList(getClassification())),
 					getProcessTitle(),
-					getProcessDescription(),
+					getProcessAbstract(),
 					new HashSet<IIODescription>(Arrays.asList(getInputDescriptions())),
 					new HashSet<IIODescription>(Arrays.asList(getOutputDescriptions()))
 			));
@@ -131,7 +131,7 @@ public abstract class AOperation implements IOperation {
 	protected abstract IIdentifiableResource getResource();
 	protected abstract IIdentifiableResource[] getClassification();
 	protected abstract String getProcessTitle();
-	protected abstract String getProcessDescription();
+	protected abstract String getProcessAbstract();
 	protected abstract IIODescription[] getInputDescriptions();
 	protected abstract IIODescription[] getOutputDescriptions();
 	

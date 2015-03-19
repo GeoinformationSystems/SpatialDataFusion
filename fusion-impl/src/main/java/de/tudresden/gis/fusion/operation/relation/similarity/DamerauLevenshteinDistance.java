@@ -173,7 +173,7 @@ public class DamerauLevenshteinDistance extends ASimilarityMeasurementOperation 
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Calculates Damerau-Levenshtein Distance between feature attributes";
 	}
 

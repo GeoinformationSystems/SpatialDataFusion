@@ -207,7 +207,7 @@ public class GMLParser extends AOperation implements IDataRetrieval {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Parser for GML";
 	}
 	

@@ -75,7 +75,7 @@ public class ShapefileParser extends AOperation implements IDataRetrieval {
 	}
 
 	@Override
-	protected String getProcessDescription() {
+	protected String getProcessAbstract() {
 		return "Parser for ESRI Shapefiles";
 	}
 
