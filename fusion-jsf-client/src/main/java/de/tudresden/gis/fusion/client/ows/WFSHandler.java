@@ -1,12 +1,17 @@
 package de.tudresden.gis.fusion.client.ows;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 
 import de.tudresden.gis.fusion.client.ows.document.WFSCapabilities;
+import de.tudresden.gis.fusion.client.ows.document.desc.IOFormat;
+import de.tudresden.gis.fusion.client.ows.orchestration.IONode;
+import de.tudresden.gis.fusion.client.ows.orchestration.IONode.NodeType;
+import de.tudresden.gis.fusion.client.ows.orchestration.IOProcess;
 
 public class WFSHandler extends OWSHandler {
 
@@ -149,5 +154,19 @@ public class WFSHandler extends OWSHandler {
 
 	public String getBBox() { return this.getParameter(PARAM_BBOX); }
 	public void setBBox(String value) { this.setParameter(PARAM_BBOX, value); }
+	
+	/**
+	 * get WFS layer as IOProcess for chaining purposes
+	 * @return io process
+	 */
+	public IOProcess getIOProcess(){
+		IOFormat defaultFormat = new IOFormat("text/xml", "http://schemas.opengis.net/gml/3.2.1/base/feature.xsd", "");
+		Set<IOFormat> supportedFormats = new HashSet<IOFormat>();
+		supportedFormats.add(defaultFormat);
+		supportedFormats.add(new IOFormat("application/json", "", ""));
+		IONode node = new IONode(null, "WFS_GML", defaultFormat, supportedFormats, NodeType.OUTPUT);
+		IOProcess process = new IOProcess(this.getBaseURL(), this.getTypename(), node);
+		return process;
+	}
 	
 }

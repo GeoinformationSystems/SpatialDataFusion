@@ -39,7 +39,7 @@ function f_createGeoJSONSourceFromServer(url, crs){
 function f_createGMLSourceFromServer(url, crs){	
 	var source = null;
 	source = new ol.source.ServerVector({
-		format: new ol.format.WFS(),
+		format: new ol.format.GML(),
 		loader: function(extent, resolution, projection) {
 			$.ajax(encodeURI(url)).done(function(response) {
 				source.addFeatures(source.readFeatures(response));
@@ -47,7 +47,6 @@ function f_createGMLSourceFromServer(url, crs){
 		},
 		defaultProjection: crs,
 	});
-	console.log(source);
 	return source;
 }
 
@@ -69,6 +68,7 @@ function f_createMap(layer, target, crs, center, zoom){
 		controls: [
 			new ol.control.Zoom()
 		],
+		interactions: ol.interaction.defaults({mouseWheelZoom:false}),	//disable zoom with mouse wheel
 		view: new ol.View({
 			center: center,
 			projection: crs,
@@ -97,7 +97,7 @@ function f_getSelectBBoxInteraction() {
 //get highlight select interaction
 function f_getHighlightInteraction(){
 	return new ol.interaction.Select({
-//		  condition: ol.events.condition.mouseMove, //very slow, mouse panning does not work if activated
+//		  condition: ol.events.condition.pointerMove, //quite slow, especially if used with WMS GetFeatureInfo
 		  condition: ol.events.condition.never,
 		  style: styleHighlight
 	});

@@ -9,8 +9,11 @@ import javax.faces.application.FacesMessage;
 import javax.faces.event.ValueChangeEvent;
 
 import org.primefaces.context.RequestContext;
+
 import de.tudresden.gis.fusion.client.ows.document.WPSCapabilities;
+import de.tudresden.gis.fusion.client.ows.document.WPSProcessDescription;
 import de.tudresden.gis.fusion.client.ows.document.WPSProcessDescriptions;
+import de.tudresden.gis.fusion.client.ows.orchestration.IOProcess;
 
 public class WPSHandler extends OWSHandler {
 
@@ -21,15 +24,15 @@ public class WPSHandler extends OWSHandler {
 	private final String PARAM_IDENTIFIER = "identifier";	
 	private final String DEFAULT_VERSION = "1.0.0";
 	
-	public WPSHandler(int id) {
+	public WPSHandler(String id) {
 		this.setId(id);
 		this.setService(SERVICE);
 		this.setVersion(DEFAULT_VERSION);
 	}
 	
-	private int id;
-	public int getId(){ return id; }
-	public void setId(int id){ this.id = id; }
+	private String id;
+	public String getId(){ return id; }
+	public void setId(String id){ this.id = id; }
 
 	WPSCapabilities capabilities;
 	WPSProcessDescriptions descriptions;
@@ -49,8 +52,7 @@ public class WPSHandler extends OWSHandler {
 			this.setParameter(PARAM_REQUEST, REQUEST_DESCRIBEPROCESS);
 			this.setParameter(PARAM_IDENTIFIER, identifier2String(capabilities.getWPSProcesses()));
 			String request = this.getKVPRequest(new String[]{PARAM_SERVICE,PARAM_REQUEST,PARAM_VERSION,PARAM_IDENTIFIER}, new String[]{});
-			//get process descriptions
-			descriptions = new WPSProcessDescriptions(request);
+			descriptions = new WPSProcessDescriptions(getId(), request);
 		} catch (Exception e) {
 			//display error message and return
 			e.printStackTrace();
@@ -112,7 +114,18 @@ public class WPSHandler extends OWSHandler {
 	public void setSelectedProcesses(Set<String> processes){ this.selectedProcesses = processes; }
 	public void emptySelectedProcesses() { selectedProcesses.clear(); }
 	
-	public Map<String,String> getProcessDescriptions() { 
+	/**
+	 * get process description for specified identifier
+	 * @param identifier identifier
+	 * @return process description
+	 */
+	public WPSProcessDescription getProcessDescription(String identifier){
+		if(descriptions != null)
+			return descriptions.getProcessDescription(identifier);
+		return null;
+	}
+	
+	public Map<String,String> getProcessDescriptions4Display() { 
 		Map<String,String> map = new LinkedHashMap<String,String>();
 		if(descriptions != null){
 			for(String identifier : descriptions.getProcessIdentifier()){
@@ -136,5 +149,20 @@ public class WPSHandler extends OWSHandler {
 
 	public String getIdentifier() { return this.getParameter(PARAM_IDENTIFIER); }
 	public void setIdentifier(String value) { this.setParameter(PARAM_IDENTIFIER, value); }
+	
+	/**
+	 * get selected processes as IOProcess for chaining purposes
+	 * @return io processes
+	 */
+	public Set<IOProcess> getIOProcesses(){
+		if(descriptions == null)
+			return null;
+		Set<IOProcess> processes = new HashSet<IOProcess>();
+		for(WPSProcessDescription description : descriptions.getProcessDescriptions()){
+			if(this.getSelectedProcesses().contains(description.getIdentifier()))
+				processes.add(new IOProcess(this.getBaseURL(), description.getIdentifier(), description.getIONodes()));
+		}
+		return processes;
+	}
 
 }

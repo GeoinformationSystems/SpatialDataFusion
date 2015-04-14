@@ -88,7 +88,6 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 	};
 	
 	//function: add select interaction with event
-	var selectListenerKey = null;
 	this.addSelectInteraction = function(olMapObject){
 		olMapObject.selection = f_getSelectInteraction();
 		olMapObject.addInteraction(olMapObject.selection);
@@ -118,10 +117,13 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		if(typeof olMapObject.selection === 'undefined') return;
 		olMapObject.selectionBBox = f_getSelectBBoxInteraction();
 		olMapObject.addInteraction(olMapObject.selectionBBox);
-		olMapObject.selectionBBox.on('boxend', function() {
+		olMapObject.selectionBBox.on('boxstart', function() {
 			olMapObject.clearSelection(olMapObject);
-			olMapObject.resource.layer.getSource().forEachFeatureInExtent(olMapObject.selectionBBox.getGeometry().extent, function(evt) {
-				olMapObject.selection.getFeatures().push(evt);
+		});
+		olMapObject.selectionBBox.on('boxend', function() {
+			var extent = olMapObject.selectionBBox.getGeometry().getExtent();
+			olMapObject.resource.layer.getSource().forEachFeatureIntersectingExtent(extent, function(feature) {
+				olMapObject.selection.getFeatures().push(feature);
 		    });
 		});
 	};

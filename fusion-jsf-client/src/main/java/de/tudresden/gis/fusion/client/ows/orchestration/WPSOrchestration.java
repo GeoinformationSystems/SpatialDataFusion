@@ -2,6 +2,8 @@ package de.tudresden.gis.fusion.client.ows.orchestration;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Deque;
+
 import javax.faces.application.FacesMessage;
 import javax.faces.application.FacesMessage.Severity;
 import javax.faces.context.FacesContext;
@@ -11,11 +13,24 @@ import org.w3c.dom.Document;
 public class WPSOrchestration implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	
+	private Deque<IOProcess> processSequence;
+	public void setProcessSequence(Deque<IOProcess> processSequence) { this.processSequence = processSequence; }
 
+	/**
+	 * init orchestration with connection handler
+	 * @param connectionHandler input connection handler
+	 * @throws IOException
+	 */
 	public WPSOrchestration(ConnectionHandler connectionHandler) throws IOException {
+		this.setProcessSequence(connectionHandler.getProcessSequence());
 		
 	}
 
+	/**
+	 * executes the process
+	 * @throws IOException
+	 */
 	public void execute() throws IOException {
 //		try {
 //			if(getConnectionInvalid())

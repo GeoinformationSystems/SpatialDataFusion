@@ -29,13 +29,7 @@ function f_removeProcess(identifier){
  * reset jsPlumb
  */
 function f_reset() {
-//	//uncheck all processes
-//	var selection = PrimeFaces.widgets.p_selectedProcesses;
-//	selection.inputs.each(function() {
-//		if($(this).prop('checked') === true)
-//			$(this).trigger('click');
-//	});
-	//remove remaining content
+	jsPlumbInstance.detachEveryConnection();
 	jsPlumbInstance.deleteEveryEndpoint();
 	var identifiers = [];
 	for(var process in activeProcesses){
@@ -44,10 +38,13 @@ function f_reset() {
 	for(var i=0; i<identifiers.length; i++) {
 		f_removeProcess(identifiers[i]);
 	}
+	jsPlumbInstance.repaintEverything(); //not sure if needed
+	f_setConnections();
+	f_init();
 }
 
 /**
- * parse and add process description #called from WPS Handler Bean
+ * parse and add process description (called from WPSHandler Bean)
  * @param descriptionAsJSON
  */
 function f_addProcessfromJSON(descriptionAsJSON){
@@ -98,16 +95,15 @@ function f_getNormIdentifier(id){
 jsPlumb.ready(function() {	
 	jsPlumbInstance = jsPlumb.getInstance({
 		DragOptions : { cursor: 'pointer', zIndex:2000 },
-		Endpoint: "Dot",
-		EndpointStyle : {radius:2, fillStyle:"#339"},
-		EndpointHoverStyle: { fillStyle:"#990000" },
+		Endpoint: "Blank",
 		HoverPaintStyle : {strokeStyle:"#990000", lineWidth:2 },
 		ConnectionOverlays : [
 			[ "Arrow", {
 				location:1,
 				id:"arrow",
 				width:10,
-                length:15
+                length:15,
+                foldback:1
 			} ]
 		],
 		Container: "plumb_processes"
@@ -119,7 +115,41 @@ jsPlumb.ready(function() {
 	jsPlumbInstance.bind("connection", function(info, originalEvent) {
 		f_setConnections();
 	});
+	f_init();
 });
+
+/**
+ * initialize with reference and target WFS and output relations field
+ */
+function f_init() {
+	
+	//reference input
+	var referenceDescription = {title: 'ReferenceWFS', identifier: 'ReferenceWFS', identifierWithWPSId: '0_ReferenceWFS_WFS_GML',
+			inputs: [],
+			outputs: [{identifier: 'WFS_GML', title: 'WFS GML output', 
+				defaultFormat: {mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				supportedFormats: [{mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				                   {mimetype: 'application/json'}] }] };
+	f_addProcess(referenceDescription);
+	
+	//target input
+	var targetDescription = {title: 'TargetWFS', identifier: 'TargetWFS', identifierWithWPSId: '0_TargetWFS_WFS_GML',
+			inputs: [],
+			outputs: [{identifier: 'WFS_GML', title: 'WFS GML output', 
+				defaultFormat: {mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				supportedFormats: [{mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				                   {mimetype: 'application/json'}] }] };
+	f_addProcess(targetDescription);
+	
+	//output relations
+	var outputDescription = {title: 'OutputRelations', identifier: 'OutputRelations', identifierWithWPSId: '0_OutputRelations',
+			inputs: [{identifier: 'Relations', title: 'Relations output', 
+				defaultFormat: {mimetype: 'text/turtle'},
+				supportedFormats: [{mimetype: 'text/turtle'}] }],
+			outputs: [] };
+	f_addProcess(outputDescription);
+	
+}
 
 /**
  * add a process instance
@@ -161,7 +191,7 @@ function f_addLiteral() {
 		supportedFormats.push("xs:boolean");
 	if( /^\d+$/.test(literal) )
 		supportedFormats.push("xs:integer");
-	if( /^\d+\.?\d+$/.test(literal) )
+	if( /^\d+\.?\d*$/.test(literal) )
 		supportedFormats.push("xs:double");
 	
 	f_addLiteralProcess(literal, defaultFormat, supportedFormats);
@@ -181,9 +211,10 @@ function f_addLiteralProcess(value, defaultFormat, supportedformats){
 	description.title = description.identifier;
 	description.inputs = [];
 	description.outputs = [];
+	description.identifierWithWPSId = '0_' + description.identifier;
 	//set output
 	var output = {};
-	output.identifier = 'LITERAL';
+	output.identifier = 'Literal';
 	output.title = 'Literal output: ' + value;
 	output.defaultFormat = f_createLiteralFormat(defaultFormat);
 	output.supportedFormats = [];
@@ -411,16 +442,16 @@ function f_getConnections() {
 	for(var i=0; i<plumbConnections.length; i++) {
 		var connection = {};
 		//split identifier
-		var reference = plumbConnections[i].sourceId.split(ioSeparator);
+		var source = plumbConnections[i].sourceId.split(ioSeparator);
 		var target = plumbConnections[i].targetId.split(ioSeparator);
 		//get descriptions
-		var referenceDescription = f_getDescriptionForNormIdentifier(reference[0]);
-		var targetDescription = f_getDescriptionForNormIdentifier(target[0]);
+		var sourceProcess = f_getProcessForNormIdentifier(source[0]);
+		var targetProcess = f_getProcessForNormIdentifier(target[0]);
 		//set connection
-		connection['ref_description'] = referenceDescription;
-		connection['tar_description'] = targetDescription;
-		connection['ref_output'] = reference[1];
-		connection['tar_input'] = target[1];
+		connection['s_identifier'] = sourceProcess.identifierWithWPSId;
+		connection['t_identifier'] = targetProcess.identifierWithWPSId;
+		connection['s_output'] = source[1];
+		connection['t_input'] = target[1];
 		connections.push(connection);
 	}
 	return connections;
@@ -429,10 +460,10 @@ function f_getConnections() {
 /**
  * get description from active processes that matches provided normalized identifier
  */
-function f_getDescriptionForNormIdentifier(identifier_norm){
-	for(var identifier in activeProcesses){
-		if(activeProcesses[identifier].identifier_norm === identifier_norm)
-			return activeProcesses[identifier];
+function f_getProcessForNormIdentifier(identifier_norm){
+	for(var process in activeProcesses){
+		if(activeProcesses[process].identifier_norm === identifier_norm)
+			return activeProcesses[process];
 	}
 	return null;
 }
