@@ -23,7 +23,6 @@ public class WPSProcessDescription implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private String identifier;
-	private String wpsId;
 	private String title;
 	private String description;
 	private Map<String,WPSIODescription> inputs = new HashMap<String,WPSIODescription>();
@@ -37,8 +36,7 @@ public class WPSProcessDescription implements Serializable {
 	private final String PROCESS_INPUT = ".*(?i)Input";
 	private final String PROCESS_OUTPUT = ".*(?i)Output";
 	
-	public WPSProcessDescription(String wpsId, Node descriptionNode) {
-		this.wpsId = wpsId;
+	public WPSProcessDescription(Node descriptionNode) {
 		//get child nodes
 		NodeList layerNodes = descriptionNode.getChildNodes();
 		//iterate
@@ -94,7 +92,7 @@ public class WPSProcessDescription implements Serializable {
 	public String getJSONDescription() {
 		StringBuilder builder = new StringBuilder("{");
 		builder.append("\"identifier\" : \"" + this.getIdentifier() + "\",");
-		builder.append("\"identifierWithWPSId\" : \"" + getIdentifierWithId() + "\",");
+		builder.append("\"uuid\" : \"" + getUUID() + "\",");
 		builder.append("\"title\" : \"" + this.getTitle() + "\",");
 		builder.append("\"description\" : \"" + this.getDescription() + "\",");
 		builder.append("\"inputs\" : [");
@@ -119,7 +117,7 @@ public class WPSProcessDescription implements Serializable {
 	public String getIdentifier() { return identifier; }
 	public void setIdentifier(String identifier){ this.identifier = identifier; }
 	
-	public String getIdentifierWithId() { return this.wpsId + "_" + this.getIdentifier(); }
+	public String getUUID() { return String.valueOf(this.hashCode()); }
 	
 	public String getTitle() { return title; }
 	public void setTitle(String title){ this.title = title; }

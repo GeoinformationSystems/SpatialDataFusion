@@ -1,7 +1,9 @@
 package de.tudresden.gis.fusion.client;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.faces.bean.ManagedBean;
@@ -18,13 +20,9 @@ public class FusekiConnector implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-//	private final String IN_RDF = "IN_RDF";
-//	private final String IN_TRIPLE_STORE = "IN_TRIPLE_STORE";
-//	private final String IN_CLEAR_STORE = "IN_CLEAR_STORE";	
-//	private final String IN_URI_BASE = "IN_URI_BASE";
-//	private final String IN_URI_PREFIXES = "IN_URI_PREFIXES";
-//	
-//	private final String OUT_SUCCESS = "OUT_SUCCESS";
+	private final String ID = "0_OutputRelations";
+	private final String TYPE = "SPARQLEndpoint";
+	private final String NAME = "FusekiSPARQLEndpoint";
 	
 	private String fusekiURL;
 	public String getFusekiURL() { return fusekiURL; }
@@ -42,8 +40,11 @@ public class FusekiConnector implements Serializable {
 		IOFormat defaultFormat = new IOFormat("text/turtle", "", "");
 		Set<IOFormat> supportedFormats = new HashSet<IOFormat>();
 		supportedFormats.add(defaultFormat);
-		IONode node = new IONode(null, "Relations", defaultFormat, supportedFormats, NodeType.INPUT);
-		IOProcess process = new IOProcess(this.getFusekiURL(), "SPARQLEndpoint", node);
+		IONode node = new IONode(null, "IN_RDF", defaultFormat, supportedFormats, NodeType.INPUT);
+		Map<String,String> properties = new HashMap<String,String>();
+		properties.put("NAME", NAME);
+		properties.put("IN_TRIPLE_STORE", fusekiURL);
+		IOProcess process = new IOProcess(TYPE, ID, properties, node);
 		node.setProcess(process);
 		return process;
 	}

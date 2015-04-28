@@ -5,9 +5,12 @@ import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
@@ -21,19 +24,23 @@ public class ConnectionHandler implements Serializable {
 	
 	private Map<String,IOProcess> ioProcesses;
 	private Set<IOConnection> connections;
+	private String validationMessages;
 
-	public ConnectionHandler(Map<String,IOProcess> ioProcesses, String sConnections) throws IllegalArgumentException, IOException {
+	public void initConnections(Map<String,IOProcess> ioProcesses, String sConnections) {
 		this.ioProcesses = ioProcesses;
 		this.connections = new HashSet<IOConnection>();
+		//return if no connections are set
+		if(sConnections == null || sConnections.isEmpty())
+			return;
+		//try to parse connections from JSON
 		try {
 			JSONArray jConnections = new JSONArray(sConnections);
 			for(int i=0; i<jConnections.length(); i++){
 				IOConnection connection = getIOConnection(ioProcesses, jConnections.getJSONObject(i));
 				connections.add(connection);
 			}
-			validate();
-		} catch (JSONException e) {
-			throw new IllegalArgumentException("Connection description is no valid JSON");
+		} catch (JSONException | IOException e) {
+			this.validationMessages += "Error while parsing connections from JSON: " + e.getLocalizedMessage() + "<br/>";
 		}
 	}
 	
@@ -55,7 +62,7 @@ public class ConnectionHandler implements Serializable {
 		String s_id = jConnection.getString(SOURCE_ID);
 		String s_output = jConnection.getString(SOURCE_OUT);
 		//add literal output, if required
-		if(isLiteralOutput(s_id))
+		if(isLiteralOutput(s_id) && !ioProcesses.containsKey(s_id))
 			ioProcesses.put(s_id, getLiteral(s_id));
 		IONode s_node = getNode(s_id, s_output, ioProcesses);
 		//get target node
@@ -88,8 +95,15 @@ public class ConnectionHandler implements Serializable {
 		Set<IOFormat> supportedFormats = getLiteralFormats(value);
 		//create node and process
 		IONode node = new IONode(null, "Literal", defaultFormat, supportedFormats, NodeType.OUTPUT);
-		IOProcess process = new IOProcess("Literal", "Literal_" + value, node);
+		Map<String,String> properties = new HashMap<String,String>();
+		properties.put("name", "Literal");
+		properties.put("value", decodeLiteralValue(value));
+		IOProcess process = new IOProcess("Literal", UUID.randomUUID().toString(), properties, node);
 		return process;
+	}
+	
+	private String decodeLiteralValue(String value){
+		return value.trim().replace("_", ".");
 	}
 	
 	/**
@@ -101,7 +115,7 @@ public class ConnectionHandler implements Serializable {
 		Set<IOFormat> formats = new HashSet<IOFormat>();
 		formats.add(new IOFormat("", "", "xs:string"));
 		//identify supported formats
-		if(literal.matches("^(?i)(true|false|0|1)$"))
+		if(literal.matches("^(?i)(true|false)$"))
 			formats.add(new IOFormat("", "", "xs:boolean"));
 		if(literal.matches("^\\d+$"))
 			formats.add(new IOFormat("", "", "xs:integer"));
@@ -126,10 +140,10 @@ public class ConnectionHandler implements Serializable {
 		return process.getNode(ioId);
 	}
 
-	String validationMessages = "";
-	private void validate() {
+	public void validate() {
+		validationMessages = "";
 		//check connections
-		for(IOConnection connection : connections){
+		for(IOConnection connection : getConnections()){
 			if(!connection.isValid())
 				validationMessages += connection.getValidationMessage() + "<br/>";
 		}
@@ -140,7 +154,7 @@ public class ConnectionHandler implements Serializable {
 				continue;
 			//check, if ancestors and successors are disjoint (impossible sequence)
 			if(!Collections.disjoint(process.getAncestors(true), process.getSuccessors(true)))
-				validationMessages += "process " + process.getLocalIdentifier() + " with no disjoint ancestors and successors (impossible sequence)" + "<br/>";
+				validationMessages += "process " + process.getUUID() + " with no disjoint ancestors and successors (loop sequence)" + "<br/>";
 		}
 	}
 	

@@ -4,6 +4,7 @@ import de.tudresden.gis.fusion.data.IComplexData;
 import de.tudresden.gis.fusion.data.ICoverage;
 import de.tudresden.gis.fusion.data.IFeatureCollection;
 import de.tudresden.gis.fusion.data.IFeatureRelationCollection;
+import de.tudresden.gis.fusion.data.complex.BPMNModel;
 import de.tudresden.gis.fusion.data.complex.OSMFeatureCollection;
 import de.tudresden.gis.fusion.data.feature.EGeometryType;
 import de.tudresden.gis.fusion.data.simple.BooleanLiteral;
@@ -34,6 +35,7 @@ public enum ERestrictions {
 	BINDING_OSMFEATUReCOLLECTION(new JavaBindingRestriction(OSMFeatureCollection.class)),
 	BINDING_IFEATUReRELATIOnCOLLECTION(new JavaBindingRestriction(IFeatureRelationCollection.class)),
 	BINDING_ICOVERAGE(new JavaBindingRestriction(ICoverage.class)),
+	BINDING_BPMN(new JavaBindingRestriction(BPMNModel.class)),
 	BINDING_ICOMPLEX(new JavaBindingRestriction(IComplexData.class)),
 	
 	//mandatory restriction

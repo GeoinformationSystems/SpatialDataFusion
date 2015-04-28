@@ -12,6 +12,11 @@ public class DecimalLiteral extends Literal implements IMeasurementValue<Double>
 		super(String.valueOf(value));
 		this.value = value;
 	}
+	
+	public DecimalLiteral(String value){
+		super(value);
+		this.value = Double.parseDouble(value);
+	}
 
 	@Override
 	public IIdentifiableResource getType() {

@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.manage;
 
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +88,22 @@ public class Operations {
 			}
 		}
 		return ops;
+	}
+	
+	/**
+	 * get all available operations, except aggregate operations
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	public static Set<IOperation> getNonAggregateOperations() throws InstantiationException, IllegalAccessException {
+		Set<IOperation> availableOperations = new HashSet<IOperation>();
+		Set<Class<? extends IOperation>> operations = Operations.getOperations();
+		for(Class<? extends IOperation> clazz : operations) {
+			if(clazz.getPackage().getName().contains("aggregate"))
+				continue;
+			availableOperations.add(clazz.newInstance());
+		}
+		return availableOperations;
 	}
 	
 }

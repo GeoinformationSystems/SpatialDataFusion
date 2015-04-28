@@ -40,6 +40,8 @@ function f_initComparison(){
 		return;
 	//bind map views
 	r_olMaps["map_cr"].map.bindTo('view', t_olMaps["map_ct"].map);
+	r_olMaps["map_cr"].synchCursor(t_olMaps["map_ct"], 'tMarker');
+	t_olMaps["map_ct"].synchCursor(r_olMaps["map_cr"], 'rMarker');
 	//change interaction if fusion results are activated
 	f_setCompareInteraction();
 }

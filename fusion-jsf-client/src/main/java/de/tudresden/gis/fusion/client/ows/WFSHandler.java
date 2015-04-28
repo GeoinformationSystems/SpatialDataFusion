@@ -1,17 +1,21 @@
 package de.tudresden.gis.fusion.client.ows;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 
+import de.tudresden.gis.fusion.client.ReferenceWFS;
+import de.tudresden.gis.fusion.client.TargetWFS;
 import de.tudresden.gis.fusion.client.ows.document.WFSCapabilities;
 import de.tudresden.gis.fusion.client.ows.document.desc.IOFormat;
 import de.tudresden.gis.fusion.client.ows.orchestration.IONode;
-import de.tudresden.gis.fusion.client.ows.orchestration.IONode.NodeType;
 import de.tudresden.gis.fusion.client.ows.orchestration.IOProcess;
+import de.tudresden.gis.fusion.client.ows.orchestration.IONode.NodeType;
 
 public class WFSHandler extends OWSHandler {
 
@@ -158,15 +162,30 @@ public class WFSHandler extends OWSHandler {
 	/**
 	 * get WFS layer as IOProcess for chaining purposes
 	 * @return io process
+	 * @throws IOException 
 	 */
-	public IOProcess getIOProcess(){
+	public IOProcess getIOProcess() throws IOException{
 		IOFormat defaultFormat = new IOFormat("text/xml", "http://schemas.opengis.net/gml/3.2.1/base/feature.xsd", "");
 		Set<IOFormat> supportedFormats = new HashSet<IOFormat>();
 		supportedFormats.add(defaultFormat);
 		supportedFormats.add(new IOFormat("application/json", "", ""));
-		IONode node = new IONode(null, "WFS_GML", defaultFormat, supportedFormats, NodeType.OUTPUT);
-		IOProcess process = new IOProcess(this.getBaseURL(), this.getTypename(), node);
+		IONode node = new IONode(null, "OUT_FEATURES", defaultFormat, supportedFormats, NodeType.OUTPUT);
+		Map<String,String> properties = new HashMap<String,String>();
+		properties.put("base", this.getBaseURL());
+		properties.put(PARAM_SRSNAME, this.getSRSName());
+		properties.put(PARAM_TYPENAME, this.getTypename());
+		properties.put(PARAM_BBOX, this.getBBox());
+		IOProcess process = new IOProcess(SERVICE, this.getUUID(), properties, node);
 		return process;
+	}
+	
+	private String getUUID() {
+		if(this instanceof ReferenceWFS)
+			return "0_ReferenceWFS";
+		if(this instanceof TargetWFS)
+			return "0_TargetWFS";
+
+		return null;
 	}
 	
 }

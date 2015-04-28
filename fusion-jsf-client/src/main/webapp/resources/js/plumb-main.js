@@ -124,26 +124,26 @@ jsPlumb.ready(function() {
 function f_init() {
 	
 	//reference input
-	var referenceDescription = {title: 'ReferenceWFS', identifier: 'ReferenceWFS', identifierWithWPSId: '0_ReferenceWFS_WFS_GML',
+	var referenceDescription = {title: 'ReferenceWFS', identifier: 'ReferenceWFS', uuid: '0_ReferenceWFS',
 			inputs: [],
-			outputs: [{identifier: 'WFS_GML', title: 'WFS GML output', 
+			outputs: [{identifier: 'OUT_FEATURES', title: 'WFS GML output', 
 				defaultFormat: {mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
 				supportedFormats: [{mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
 				                   {mimetype: 'application/json'}] }] };
 	f_addProcess(referenceDescription);
 	
 	//target input
-	var targetDescription = {title: 'TargetWFS', identifier: 'TargetWFS', identifierWithWPSId: '0_TargetWFS_WFS_GML',
+	var targetDescription = {title: 'TargetWFS', identifier: 'TargetWFS', uuid: '0_TargetWFS',
 			inputs: [],
-			outputs: [{identifier: 'WFS_GML', title: 'WFS GML output', 
+			outputs: [{identifier: 'OUT_FEATURES', title: 'WFS GML output', 
 				defaultFormat: {mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
 				supportedFormats: [{mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
 				                   {mimetype: 'application/json'}] }] };
 	f_addProcess(targetDescription);
 	
 	//output relations
-	var outputDescription = {title: 'OutputRelations', identifier: 'OutputRelations', identifierWithWPSId: '0_OutputRelations',
-			inputs: [{identifier: 'Relations', title: 'Relations output', 
+	var outputDescription = {title: 'OutputRelations', identifier: 'OutputRelations', uuid: '0_OutputRelations',
+			inputs: [{identifier: 'IN_RDF', title: 'Relations input', 
 				defaultFormat: {mimetype: 'text/turtle'},
 				supportedFormats: [{mimetype: 'text/turtle'}] }],
 			outputs: [] };
@@ -211,7 +211,7 @@ function f_addLiteralProcess(value, defaultFormat, supportedformats){
 	description.title = description.identifier;
 	description.inputs = [];
 	description.outputs = [];
-	description.identifierWithWPSId = '0_' + description.identifier;
+	description.uuid = '0_' + description.identifier;
 	//set output
 	var output = {};
 	output.identifier = 'Literal';
@@ -448,8 +448,8 @@ function f_getConnections() {
 		var sourceProcess = f_getProcessForNormIdentifier(source[0]);
 		var targetProcess = f_getProcessForNormIdentifier(target[0]);
 		//set connection
-		connection['s_identifier'] = sourceProcess.identifierWithWPSId;
-		connection['t_identifier'] = targetProcess.identifierWithWPSId;
+		connection['s_identifier'] = sourceProcess.uuid;
+		connection['t_identifier'] = targetProcess.uuid;
 		connection['s_output'] = source[1];
 		connection['t_input'] = target[1];
 		connections.push(connection);

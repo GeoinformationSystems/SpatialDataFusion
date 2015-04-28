@@ -27,19 +27,19 @@ public class WPSProcessDescriptions extends OWSResponse {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public WPSProcessDescriptions(String wpsId, String sRequest) throws ParserConfigurationException, SAXException, IOException {
+	public WPSProcessDescriptions(String sRequest) throws ParserConfigurationException, SAXException, IOException {
 		super(sRequest);
 		wpsProcesses = new HashMap<String,WPSProcessDescription>();
-		parseDescriptions(wpsId);
+		parseDescriptions();
 	}
 
 	/**
 	 * parse WPS process description
 	 */
-	private void parseDescriptions(String wpsId) {
+	private void parseDescriptions() {
 		List<Node> matches = this.getNodes(PROCESS_DESCRIPTION);
 		for(Node description : matches) {
-			WPSProcessDescription process = new WPSProcessDescription(wpsId, description);
+			WPSProcessDescription process = new WPSProcessDescription(description);
 			if(process != null)
 				wpsProcesses.put(process.getIdentifier(), process);
 		}

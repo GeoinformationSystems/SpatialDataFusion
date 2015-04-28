@@ -276,6 +276,35 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		return this.resource.layer.getSource().getFeatureById(featureId);
 	};
 	
+	//synch cursor with second olMap object
+	this.synchCursor = function(olMap, marker){
+		this.marker = marker;
+		var markerOverlay = f_getMarkerOverlay(marker);
+		this.map.addOverlay(markerOverlay);
+		this.map.on('pointermove', function(evt) {
+			var position = evt.coordinate;
+			olMap.setMarker(position);
+		});
+		document.getElementById(this.div).addEventListener("mouseenter", function(){
+			olMap.markerVisible(true);
+		});
+		document.getElementById(this.div).addEventListener("mouseleave", function(){
+			olMap.markerVisible(false);
+		});
+	};
+	
+	//set marker position
+	this.setMarker = function(position){
+		this.map.getOverlays().item(0).setPosition(position);
+	};
+	
+	//set marker visibility
+	this.markerVisible = function(visible){
+		if(visible)
+			document.getElementById(this.marker).style.display = "block";
+		else
+			document.getElementById(this.marker).style.display = "none";
+	};
 }
 
 function f_updateFeatureInfo(olMapObject){

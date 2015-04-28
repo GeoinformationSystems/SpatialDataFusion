@@ -18,7 +18,8 @@ import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 
-import org.primefaces.context.RequestContext;
+import org.primefaces.model.ByteArrayContent;
+import org.primefaces.model.StreamedContent;
 
 import de.tudresden.gis.fusion.client.ows.WPSHandler;
 import de.tudresden.gis.fusion.client.ows.orchestration.BPMNModel;
@@ -31,10 +32,15 @@ import de.tudresden.gis.fusion.client.ows.orchestration.WPSOrchestration;
 public class WPSConnector implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	private BPMNModel bpmnModel;
+	private ConnectionHandler connectionHandler;
 	
 	@PostConstruct
 	public void init() {
+		this.bpmnModel = new BPMNModel();
+		this.connectionHandler = new ConnectionHandler();
 		this.addWPSHandler();
+		this.reset();
 	}
 	
 	@ManagedProperty(value="#{referenceWFS}")
@@ -58,8 +64,9 @@ public class WPSConnector implements Serializable {
 	/**
 	 * get all io process definitions
 	 * @return available io process definitions
+	 * @throws IOException 
 	 */
-	private Map<String,IOProcess> getIOProcesses(){
+	private Map<String,IOProcess> getIOProcesses() throws IOException{
 		Map<String,IOProcess> ioProcesses = new HashMap<String,IOProcess>();
 		//add wps processes
 		if(wpsHandlers != null && wpsHandlers.size() > 0){
@@ -67,16 +74,16 @@ public class WPSConnector implements Serializable {
 				Set<IOProcess> processes = wpsHandler.getIOProcesses();
 				if(processes != null && processes.size() > 0){
 					for(IOProcess process : wpsHandler.getIOProcesses()){
-						ioProcesses.put(wpsHandler.getId() + "_" + process.getLocalIdentifier(), process);
+						ioProcesses.put(process.getUUID(), process);
 					}
 				}
 			}
 		}
 		//add wfs
-		ioProcesses.put("0_ReferenceWFS_WFS_GML", referenceWFS.getIOProcess());
-		ioProcesses.put("0_TargetWFS_WFS_GML", targetWFS.getIOProcess());
+		ioProcesses.put(referenceWFS.getIOProcess().getUUID(), referenceWFS.getIOProcess());
+		ioProcesses.put(targetWFS.getIOProcess().getUUID(), targetWFS.getIOProcess());
 		//add storage process
-		ioProcesses.put("0_OutputRelations", fusekiConnector.getIOProcess());
+		ioProcesses.put(fusekiConnector.getIOProcess().getUUID(), fusekiConnector.getIOProcess());
 		
 		return ioProcesses;
 	}
@@ -87,7 +94,7 @@ public class WPSConnector implements Serializable {
 		if(connectionHandler == null || connectionInvalid)
 			return;
 		try {
-			WPSOrchestration orchestration = new WPSOrchestration(connectionHandler);
+			WPSOrchestration orchestration = new WPSOrchestration(getBpmnXML());
 			orchestration.execute();
 		} catch (IOException ioe) {
 			this.sendMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not perform process: " + ioe.getLocalizedMessage());
@@ -95,19 +102,14 @@ public class WPSConnector implements Serializable {
 	}
 	
 	/**
-	 * update BPMN
+	 * update BPMN model
 	 */
 	public void updateBPMN(){
-		if(connectionHandler == null || connectionInvalid){
-			this.sendMessage(FacesMessage.SEVERITY_WARN, "Warn", "BPMN cannot be created from current model");
-			setBpmnXML(null);
-			return;
-		}
 		try {
-			setBpmnXML(new BPMNModel(connectionHandler).asXML());
-		} catch (IOException ioe){
-			this.sendMessage(FacesMessage.SEVERITY_ERROR, "Error", "Error while creating BPMN XML from current model");
-			setBpmnXML(null);
+			this.bpmnModel.initModel(this.connectionHandler);
+			setBpmnXML(this.bpmnModel.asXML());
+		} catch (IOException ioe) {
+			setBpmnXML("Could not generate valid BPMN model");
 		}
 	}
 	
@@ -119,47 +121,46 @@ public class WPSConnector implements Serializable {
 	}
 	
 	/**
-	 * display BPMN XML
+	 * get BPMN XML as file download
+	 * @return BPMN XML file
 	 */
-	public void showBPMN() {
-		Map<String,Object> options = new HashMap<String, Object>();
-        options.put("contentWidth", 800);
-        options.put("contentHeight", 600);
-		RequestContext.getCurrentInstance().openDialog("bpmnXML", options, null);
+	public StreamedContent getBpmnXMLFile() {
+		return new ByteArrayContent(bpmnXML.getBytes(), "text/xml", "bpmnXML.xml");
 	}
 	
 	/**
 	 * uncheck selected processes
+	 * @throws IOException 
 	 */
-	public void reset(){
+	public void reset() {
 		for(WPSHandler handler : getHandlers()){
 			handler.emptySelectedProcesses();
 		}
-		setValidationMessage(null);
-		setConnectionInvalid(true);
+		this.setConnections(null);
 	}
 	
 	private String connections;
 	public String getConnections() { return connections; }
 	public void setConnections(String connections) {
-		if(connections == null || connections.length() <= 2){
-			setValidationMessage(null);
-			return;
+		if(connections == null || connections.isEmpty() || connections.matches("\\[\\s*\\]"))
+			this.connections = "";
+		else
+			this.connections = connections;
+		try {
+			this.initConnectionHandler();
+			this.validateConnections();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		this.connections = connections;
-		this.validateConnections();
 	}
 	
-	ConnectionHandler connectionHandler;
+	private void initConnectionHandler() throws IOException {
+		this.connectionHandler.initConnections(this.getIOProcesses(), this.getConnections());
+	}
 	private void validateConnections() {
-		try {
-			connectionHandler = new ConnectionHandler(this.getIOProcesses(), this.getConnections());
-			setConnectionInvalid(!connectionHandler.isValid());
-			setValidationMessage(connectionHandler.validationMessage());
-		} catch (IllegalArgumentException | IOException e) {
-			//do nothing
-			setConnectionInvalid(true);
-		}
+		this.connectionHandler.validate();
+		setConnectionInvalid(!connectionHandler.isValid());
+		setValidationMessage(connectionHandler.validationMessage());
 	}
 	
 	private String validationMessage;

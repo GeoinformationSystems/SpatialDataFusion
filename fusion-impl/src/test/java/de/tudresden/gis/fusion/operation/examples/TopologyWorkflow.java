@@ -32,7 +32,7 @@ public class TopologyWorkflow {
 		GMLParser parser = new GMLParser();		
 		Map<String,IData> input = new HashMap<String,IData>();
 		
-		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sample_points"));
+		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sample_points&maxfeatures=50"));
 		input.put("IN_WITH_INDEX", new BooleanLiteral(true));
 		Map<String,IData> output = parser.execute(input);
 		IFeatureCollection reference = (IFeatureCollection) output.get("OUT_FEATURES");		
@@ -43,7 +43,7 @@ public class TopologyWorkflow {
 				"runtime (ms): " + ((LongLiteral) parser.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
-		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=schutzgebiete"));
+		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=schutzgebiete&maxfeatures=50"));
 		output = parser.execute(input);
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");		
 		runtime.gc();

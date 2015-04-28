@@ -244,7 +244,7 @@ public class DataUtilities {
 	 */
 	public static ISimpleData encodeLiteral(String sLiteral){
 		//check boolean
-		if(sLiteral.matches("^(?i)(true|false)"))
+		if(sLiteral.matches("^(?i)(true|false)$"))
 			return new BooleanLiteral(Boolean.parseBoolean(sLiteral));
 		//check integer
 		//TODO: separate long from int

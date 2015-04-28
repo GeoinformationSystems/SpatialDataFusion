@@ -12,6 +12,11 @@ public class BooleanLiteral extends Literal implements IMeasurementValue<Boolean
 		super(String.valueOf(value));
 		this.value = value;
 	}
+	
+	public BooleanLiteral(String value){
+		super(value);
+		this.value = Boolean.parseBoolean(value);
+	}
 
 	@Override
 	public IIdentifiableResource getType() {

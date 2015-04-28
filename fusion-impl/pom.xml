@@ -104,5 +104,10 @@
 	    <artifactId>reflections</artifactId>
 	    <version>0.9.9</version>
 	</dependency>
+	<dependency>
+		<groupId>org.camunda.bpm.model</groupId>
+		<artifactId>camunda-bpmn-model</artifactId>
+		<version>7.3.0-alpha2</version>
+	</dependency>
 	</dependencies>
 </project>

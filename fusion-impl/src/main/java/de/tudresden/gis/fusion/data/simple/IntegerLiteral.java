@@ -12,6 +12,11 @@ public class IntegerLiteral extends Literal implements IMeasurementValue<Integer
 		super(String.valueOf(value));
 		this.value = value;
 	}
+	
+	public IntegerLiteral(String value){
+		super(value);
+		this.value = Integer.parseInt(value);
+	}
 
 	@Override
 	public IIdentifiableResource getType() {

@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.client.ows.orchestration;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import de.tudresden.gis.fusion.client.ows.orchestration.IONode.NodeType;
@@ -10,28 +11,40 @@ public class IOProcess implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private String serviceIdentifier;
-	private String localIdentifier;
+	private String serviceType;
+	private String uuid;
+	private Map<String,String> properties;
 	private Set<IONode> nodes;
 	
-	public IOProcess(String serviceIdentifier, String localIdentifier, Set<IONode> nodes){
-		this.setServiceIdentifier(serviceIdentifier);
-		this.setLocalIdentifier(localIdentifier);
+	public IOProcess(String serviceType, String uuid, Map<String,String> properties, Set<IONode> nodes){
+		this.setServiceType(serviceType);
+		this.setUUID(uuid);
+		this.setProperties(properties);
 		for(IONode node : nodes){
 			this.addNode(node);
 		};
 	}
 	
-	public IOProcess(String serviceIdentifier, String localIdentifier, IONode node){
-		this(serviceIdentifier, localIdentifier, new HashSet<IONode>());
+	public IOProcess(String serviceType, String uuid, Map<String,String> properties, IONode node){
+		this(serviceType, uuid, properties, new HashSet<IONode>());
 		this.addNode(node);
 	}
 	
-	public String getServiceIdentifier() { return serviceIdentifier; }
-	private void setServiceIdentifier(String serviceIdentifier) { this.serviceIdentifier = serviceIdentifier; }
+	public String getServiceType() { return serviceType; }
+	private void setServiceType(String serviceType) { this.serviceType = serviceType; }
 	
-	public String getLocalIdentifier() { return localIdentifier; }
-	private void setLocalIdentifier(String localIdentifier) { this.localIdentifier = localIdentifier; }
+	public String getUUID() { return uuid; }
+	private void setUUID(String uuid) { this.uuid = uuid; }
+	
+	public String getName() {
+		if(this.getProperties().containsKey("name"))
+			return this.getProperties().get("name");
+		else
+			return this.getUUID();
+	}
+	
+	public Map<String,String> getProperties() { return properties; }
+	private void setProperties(Map<String,String> properties) { this.properties = properties; }
 	
 	public Set<IONode> getNodes() { return nodes; }
 	public void addNode(IONode node){
@@ -186,6 +199,14 @@ public class IOProcess implements Serializable {
 				return true;
 		}
 		return false;
+	}
+	
+	public boolean isStart() {
+		return this.getAncestors(false).isEmpty();
+	}
+	
+	public boolean isEnd() {
+		return this.getSuccessors(false).isEmpty();
 	}
 	
 	/**

@@ -154,17 +154,20 @@
 		<h:panelGroup style="margin-left:50px;">
 	     	<p:inputText id="p_literal" placeholder="value" styleClass="inputText" style="width:80px;" />
      		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
-     		<p:commandButton id="p_showBPMN" title="showBPMN" value="showBPMN" type="button" icon="ui-icon-extlink" disabled="#{wpsConnector.connectionInvalid}" />
+     		<p:commandButton id="p_showBPMN" title="showBPMN" value="showBPMN" type="button" icon="ui-icon-extlink" />
      		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsConnector.execute}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnector.connectionInvalid}" update=":form:message f_useFusionResult" />
-     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" action="#{wpsConnector.reset}" update="p_wpsConnectors p_validation" onclick="f_reset();" style="margin-left:800px;" />
+     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" action="#{wpsConnector.reset}" update="p_wpsConnectors p_validation p_execute" onclick="f_reset();" style="margin-left:800px;" />
      	</h:panelGroup>
-     	<p:overlayPanel id="p_bpmnXML" for="p_showBPMN" style="width:1000px;height:600px;overflow:auto;" hideEffect="fade" showEffect="fade">
-     		<h:outputText value="#{wpsConnector.bpmnXML}" style="white-space:pre-wrap;" />
+     	<p:overlayPanel id="p_bpmnOverlay" for="p_showBPMN" style="width:1000px;height:600px;overflow:auto;" hideEffect="fade" showEffect="fade">
+	     	<p:commandButton value="Download" ajax="false" icon="ui-icon-arrowthick-1-s" style="margin-right:3px;">
+	        	<p:fileDownload value="#{wpsConnector.bpmnXMLFile}" />
+	    	</p:commandButton>
+     		<h:outputText id="p_bpmnXML" value="#{wpsConnector.bpmnXML}" style="white-space:pre-wrap;" />
      	</p:overlayPanel>
-     	<h:panelGroup>
-     		<h:outputText id="p_validation" value="#{wpsConnector.validationMessage}" escape="false" styleClass="content p_validationResult bad"/>
+     	<h:panelGroup layout="block" styleClass="content" >
+     		<h:outputText id="p_validation" value="#{wpsConnector.validationMessage}" escape="false" styleClass="p_validationResult bad"/>
 	     	<h:inputHidden id="p_connections" value="#{wpsConnector.connections}" />
-	     	<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation p_execute p_showBPMN"/>
+	     	<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation p_execute p_showBPMN p_bpmnXML p_bpmnOverlay"/>
      	</h:panelGroup>	
     </h:panelGrid>
         
@@ -172,7 +175,8 @@
 	
 	<h:panelGrid columns="2" styleClass="content" style="margin-bottom:0px;">
 		<h:outputLabel for="f_useFusionResult" value="Enable feature relations " />
-		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" disabled="#{fusekiConnector.isEmpty}" style="width:50px" />	
+		<!-- <p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" disabled="#{fusekiConnector.isEmpty}" style="width:50px" /> -->
+		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
 	</h:panelGrid>
 	
 	<h:panelGrid columns="1" style="padding-top:0px;width:100%;">
@@ -192,6 +196,10 @@
 	</h:form>
 </div>
 
+<div style="display: none;">
+	<div id="tMarker" class="marker" />
+	<div id="rMarker" class="marker" />
+</div>
 <div id="footer" class="content ui-state-active">
 
 </div>

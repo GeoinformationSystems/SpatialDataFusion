@@ -1,5 +1,6 @@
 package de.tudresden.gis.fusion.client.ows;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,12 +48,12 @@ public class WPSHandler extends OWSHandler {
 			return;
 		}
 		
-		//retreive process descriptions
+		//retrieve process descriptions
 		try {
 			this.setParameter(PARAM_REQUEST, REQUEST_DESCRIBEPROCESS);
 			this.setParameter(PARAM_IDENTIFIER, identifier2String(capabilities.getWPSProcesses()));
 			String request = this.getKVPRequest(new String[]{PARAM_SERVICE,PARAM_REQUEST,PARAM_VERSION,PARAM_IDENTIFIER}, new String[]{});
-			descriptions = new WPSProcessDescriptions(getId(), request);
+			descriptions = new WPSProcessDescriptions(request);
 		} catch (Exception e) {
 			//display error message and return
 			e.printStackTrace();
@@ -159,8 +160,13 @@ public class WPSHandler extends OWSHandler {
 			return null;
 		Set<IOProcess> processes = new HashSet<IOProcess>();
 		for(WPSProcessDescription description : descriptions.getProcessDescriptions()){
-			if(this.getSelectedProcesses().contains(description.getIdentifier()))
-				processes.add(new IOProcess(this.getBaseURL(), description.getIdentifier(), description.getIONodes()));
+			if(this.getSelectedProcesses().contains(description.getIdentifier())){
+				Map<String,String> properties = new HashMap<String,String>();
+				properties.put("base", this.getBaseURL());
+				properties.put(PARAM_IDENTIFIER, description.getIdentifier());
+				properties.put(PARAM_VERSION, this.getVersion());
+				processes.add(new IOProcess(SERVICE, description.getUUID(), properties, description.getIONodes()));
+			}
 		}
 		return processes;
 	}

@@ -77,7 +77,7 @@ public class TripleStoreGenerator extends AOperation implements IDataProvision {
 		setOutput(OUT_SUCCESS, new BooleanLiteral(true));
 		
 	}
-	
+
 	private void insertRDF(IRDFRepresentation rdf, String sTripleStoreURL, boolean bRemove, Map<URI,String> prefixes){
 		//empty triple store if requested
 		if(bRemove){

@@ -120,3 +120,12 @@ function f_cloneFeatureWithId(feature){
 	result.setId(feature.getId());
 	return result;
 }
+
+//function: get marker overlay
+function f_getMarkerOverlay(marker){
+	return new ol.Overlay({
+		positioning: 'center-center',
+		element: document.getElementById(marker),
+		stopEvent: false
+	});
+}
