@@ -47,7 +47,7 @@ public class DamerauLevenshteinDistance extends ASimilarityMeasurementOperation 
 	};
 	
 	private final IIRI MEASUREMENT_ID = new IRI(Namespace.uri_measurement() + "/" + this.getProcessTitle());
-	private final String MEASUREMENT_DESC = "Distance between bounding boxes";
+	private final String MEASUREMENT_DESC = "Distance between attribute strings";
 	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
 			EMeasurementType.STRING_DIST.resource()
 	};

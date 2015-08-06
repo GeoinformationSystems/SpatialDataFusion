@@ -129,3 +129,23 @@ function f_getMarkerOverlay(marker){
 		stopEvent: false
 	});
 }
+
+//function: reset marker
+this.f_resetMarker = function(){
+	var mapMarker = document.getElementById('mapMarker');
+	//remove markers
+	while (mapMarker.firstChild) {
+		mapMarker.removeChild(mapMarker.firstChild);
+	}
+	//add marker
+	f_addMarker(mapMarker, 'rMarker');
+	f_addMarker(mapMarker, 'tMarker');
+};
+
+//function: add marker div to parent object
+this.f_addMarker = function(parent, marker){
+	var markerDiv = document.createElement('div');
+	markerDiv.id = marker;
+	markerDiv.className = 'marker';
+	parent.appendChild(markerDiv);
+};

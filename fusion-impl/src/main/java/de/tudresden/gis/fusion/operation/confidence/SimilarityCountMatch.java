@@ -41,24 +41,22 @@ public class SimilarityCountMatch extends AConfidenceMeasurementOperation {
 	private final IIdentifiableResource[] MEASUREMENT_CLASSIFICATION = new IIdentifiableResource[]{
 			EMeasurementType.SUM.resource()
 	};
-	
-	int iThreshold;
 		
 	@Override
 	public void execute() {
 		
 		//get input
 		GTFeatureRelationCollection inRelations = (GTFeatureRelationCollection) getInput(IN_RELATIONS);
-		iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).getValue();
+		int iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).getValue();
 		
-		GTFeatureRelationCollection outRelations = countSimilarityMeasures(inRelations);
+		GTFeatureRelationCollection outRelations = countSimilarityMeasures(inRelations, iThreshold);
 			
 		//return
 		setOutput(OUT_RELATIONS, outRelations);
 		
 	}
 	
-	private GTFeatureRelationCollection countSimilarityMeasures(GTFeatureRelationCollection relations){
+	private GTFeatureRelationCollection countSimilarityMeasures(GTFeatureRelationCollection relations, int iThreshold){
 		
 		GTFeatureRelationCollection outRelations = new GTFeatureRelationCollection();
 		for(IFeatureRelation relation : relations){

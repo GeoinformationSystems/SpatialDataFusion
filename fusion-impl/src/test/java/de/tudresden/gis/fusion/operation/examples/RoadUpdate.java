@@ -17,11 +17,13 @@ import de.tudresden.gis.fusion.data.simple.IntegerLiteral;
 import de.tudresden.gis.fusion.data.simple.LongLiteral;
 import de.tudresden.gis.fusion.data.simple.StringLiteral;
 import de.tudresden.gis.fusion.data.simple.URILiteral;
-import de.tudresden.gis.fusion.operation.confidence.SimilarityCountMatch;
+import de.tudresden.gis.fusion.operation.confidence.SimilarityWeighting;
+import de.tudresden.gis.fusion.operation.provision.RDFTurtleGenerator;
 import de.tudresden.gis.fusion.operation.provision.TripleStoreGenerator;
 import de.tudresden.gis.fusion.operation.relation.TopologyRelation;
 import de.tudresden.gis.fusion.operation.relation.similarity.AngleDifference;
 import de.tudresden.gis.fusion.operation.relation.similarity.BoundingBoxDistance;
+import de.tudresden.gis.fusion.operation.relation.similarity.DamerauLevenshteinDistance;
 import de.tudresden.gis.fusion.operation.relation.similarity.GeometryDistance;
 import de.tudresden.gis.fusion.operation.relation.similarity.HausdorffDistance;
 import de.tudresden.gis.fusion.operation.relation.similarity.LengthDifference;
@@ -51,7 +53,7 @@ public class RoadUpdate {
 				"runtime (ms): " + ((LongLiteral) parser.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
-		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=osm_" + input_size));
+		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=osm_" + input_size + "_prep"));
 		output = parser.execute(input);
 		IFeatureCollection target = (IFeatureCollection) output.get("OUT_FEATURES");		
 		runtime.gc();
@@ -143,19 +145,59 @@ public class RoadUpdate {
 				"runtime (ms): " + ((LongLiteral) process5.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
 		
-		//add confidence count
-		SimilarityCountMatch process6 = new SimilarityCountMatch();
+		//add levenshtein distance
+		DamerauLevenshteinDistance processDLD = new DamerauLevenshteinDistance();
 		input.put("IN_RELATIONS", relations);
-		input.put("IN_THRESHOLD", new IntegerLiteral(4));
+		input.put("IN_REFERENCE_ATT", new StringLiteral("GN"));
+		input.put("IN_TARGET_ATT", new StringLiteral("Steetname"));
+		input.put("IN_THRESHOLD", new IntegerLiteral(3));
+		output = processDLD.execute(input);	
+		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");		
+		runtime.gc();
+		totalMS += ((LongLiteral) processDLD.getOutput("OUT_RUNTIME")).getValue();
+		System.out.print("executing DamerauLevenshteinDistance \n\t" +
+				"number of identified relations: " + relations.size() + "\n\t" +
+				"runtime (ms): " + ((LongLiteral) processDLD.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
+				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
+		
+		//add confidence count
+//		SimilarityCountMatch process6 = new SimilarityCountMatch();
+//		input.put("IN_RELATIONS", relations);
+//		input.put("IN_THRESHOLD", new IntegerLiteral(5));
+//		output = process6.execute(input);	
+//		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
+		
+		SimilarityWeighting process6 = new SimilarityWeighting();
+		input.put("IN_RELATIONS", relations);
+		input.put("IN_MEASUREMENTS", new StringLiteral(""
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/BoundingBoxDistance#distance;50;10;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/BoundingBoxDistance#overlap;NA;10;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/AngleDifference;0.3;20;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/GeometryDistance#distance;50;10;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/GeometryDistance#intersect;NA;10;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/LengthDifference;20;10;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/HausdorffDistance#distance;50;15;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/TopologyRelation;NA;15;"
+				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/DamerauLevenshteinDistance;3;20"));
 		output = process6.execute(input);	
 		relations = (GTFeatureRelationCollection) output.get("OUT_RELATIONS");
 		
 		runtime.gc();
 		totalMS += ((LongLiteral) process6.getOutput("OUT_RUNTIME")).getValue();
-		System.out.print("executing SimilarityCountMatch \n\t" +
+		System.out.print("executing SimilarityWeighting \n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +
 				"runtime (ms): " + ((LongLiteral) process6.getOutput("OUT_RUNTIME")).getValue() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
+		
+//		RDFTurtleGenerator generator = new RDFTurtleGenerator();
+//		input.put("IN_RDF", relations);
+//		input.put("IN_URI_PREFIXES", new StringLiteral(""
+//				+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
+//				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
+//				+ "http://www.w3.org/2001/XMLSchema#;xsd;"
+//				+ "http://tu-dresden.de/uw/geo/gis/fusion/process#;process;"
+//				+ "http://tu-dresden.de/uw/geo/gis/fusion/measurement/;measurement;"));
+//		output = generator.execute(input);
 		
 		TripleStoreGenerator generator = new TripleStoreGenerator();
 		input.put("IN_RDF", relations);

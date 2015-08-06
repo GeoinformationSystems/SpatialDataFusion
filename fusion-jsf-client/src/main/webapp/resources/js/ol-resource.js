@@ -181,6 +181,10 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		this.map.setTarget(null);
 		this.map.setView(null);
 		this.map.setLayerGroup(null);
+		//remove overlays
+		for(var overlay in this.map.getOverlays()){
+			this.map.removeOverlay(overlay);
+		}
 	};
 	
 	//function: update feature info field
@@ -276,8 +280,20 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		return this.resource.layer.getSource().getFeatureById(featureId);
 	};
 	
+	this.removeSynch = function(){
+		document.getElementById(this.div).removeEventListener("mouseenter", function(){
+			olMap.markerVisible(true);
+		});
+		document.getElementById(this.div).removeEventListener("mouseleave", function(){
+			olMap.markerVisible(false);
+		});
+	};
+	
 	//synch cursor with second olMap object
 	this.synchCursor = function(olMap, marker){
+		//reset
+		f_resetMarker();
+		//synch
 		this.marker = marker;
 		var markerOverlay = f_getMarkerOverlay(marker);
 		this.map.addOverlay(markerOverlay);
@@ -305,6 +321,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 		else
 			document.getElementById(this.marker).style.display = "none";
 	};
+	
 }
 
 function f_updateFeatureInfo(olMapObject){

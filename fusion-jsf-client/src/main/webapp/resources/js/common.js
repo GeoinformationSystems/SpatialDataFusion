@@ -48,3 +48,10 @@ function f_getSimpleMeasurementValue(value){
 	else
 		return value;
 }
+
+//remove all listeners of an element by cloning
+function f_removeListeners(id){
+	var elemOld = document.getElementById(id);
+	var elemNew = elemOld.cloneNode(true);
+	elemOld.parentNode.replaceChild(elemNew, elemOld);
+}

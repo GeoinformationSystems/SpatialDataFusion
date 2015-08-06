@@ -1,14 +1,19 @@
 package de.tudresden.gis.fusion.client.ows.orchestration;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
-import org.w3c.dom.Document;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class WPSOrchestration implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final String WPS_HOST = "http://localhost";
+	private final String WPS_HOST = "http://localhost:8080/52n-wps-webapp/WebProcessingService";
+	private final String SUCCESS_MSG = "Process successful";
 	
 	private String bpmnXML;
 	private boolean success = false;
@@ -26,13 +31,11 @@ public class WPSOrchestration implements Serializable {
 	 * execute orchestration
 	 * @throws IOException 
 	 */
-	public void execute() throws IOException{
+	public boolean execute() throws IOException{
 		//generate request
 		String request = getWPSRequest(bpmnXML);
 		//execute WPS and init response
-		Document response = executeRequest(request);
-		//evaluate response
-		evaluateResponse(response);
+		return executeRequest(request);
 	}
 
 	/**
@@ -47,23 +50,38 @@ public class WPSOrchestration implements Serializable {
 	/**
 	 * execute request
 	 * @param request WPS request
-	 * @return WPS response document
+	 * @return true if process has been successfully executed
 	 * @throws IOException
 	 */
-	private Document executeRequest(String request) throws IOException {
-
-		System.out.println(request);
-		
-		return null;
+	private boolean executeRequest(String request) throws IOException {
+		//init connection
+		URL url = new URL(WPS_HOST);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod("POST");
+		connection.setDoOutput(true);
+		connection.setRequestProperty("Content-Length", String.valueOf(request.getBytes().length));
+		//send request
+		DataOutputStream out = new DataOutputStream(connection.getOutputStream());
+		out.writeBytes(request);
+		out.flush();out.close();
+		//get response
+		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		String line;
+		StringBuffer response = new StringBuffer();
+		while ((line = in.readLine()) != null) {
+			response.append(line);
+		}
+		in.close();
+		//evaluate
+		return evaluateResponse(response.toString());
 	}
 
 	/**
 	 * evaluate WPS response message
 	 * @param response response document
 	 */
-	private void evaluateResponse(Document response) {
-		// TODO Auto-generated method stub
-		
+	private boolean evaluateResponse(String response) {
+		return response.toLowerCase().contains(SUCCESS_MSG.toLowerCase());
 	}
 	
 	/**

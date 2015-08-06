@@ -17,7 +17,7 @@
 			  	<target>1.7</target>
 			</configuration>
 		</plugin>
-  		<plugin>
+  		<!-- <plugin>
 			<groupId>com.samaxes.maven</groupId>
 			<artifactId>minify-maven-plugin</artifactId>
 			<version>1.7.4</version>
@@ -26,11 +26,11 @@
 			    <id>default-minify</id>
 			    <configuration>
 			      <charset>UTF-8</charset>
-			      <!-- <cssSourceDir>css</cssSourceDir>
+			      <cssSourceDir>css</cssSourceDir>
 			      <cssSourceFiles>
 			        <cssSourceFile>styles.css</cssSourceFile>
 			      </cssSourceFiles>
-			      <cssFinalFile>styles.css</cssFinalFile> -->
+			      <cssFinalFile>styles.css</cssFinalFile>
 			      <jsSourceDir>js</jsSourceDir>
 			      <jsSourceFiles>
 			        <jsSourceFile>ol-layer.js</jsSourceFile>
@@ -46,8 +46,8 @@
 			    </goals>
 			  </execution>
 			</executions>
-	    </plugin>
-	    <plugin>
+	    </plugin> -->
+	    <!-- <plugin>
 			<groupId>org.eclipse.m2e</groupId>
 			<artifactId>lifecycle-mapping</artifactId>
 			<version>1.0.0</version>
@@ -65,14 +65,14 @@
 			                </pluginExecutionFilter>
 			                <action>
 			                    <execute>
-			         				<!-- <runOnIncremental>true</runOnIncremental> -->
+			         				<runOnIncremental>true</runOnIncremental>
 			 					</execute>
 			                </action>
 			            </pluginExecution>
 			        </pluginExecutions>
 			    </lifecycleMappingMetadata>
 			</configuration>
-    	</plugin>
+    	</plugin> -->
 	</plugins>
 	</build>
   

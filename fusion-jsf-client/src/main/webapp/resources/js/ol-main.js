@@ -18,7 +18,7 @@ var t_resource;
 var t_olMaps = [];
 function f_initMapResource_t(fRequest, crs, center_wgs84, extent){
 	//if fRequest == map.fRequest, do nothing
-	if(r_resource != null && r_resource.fRequest == fRequest) 
+	if(t_resource != null && t_resource.fRequest == fRequest) 
 		return;
 	t_resource = f_initOlResource(t_resource, t_olMaps, fRequest, crs, extent, styleDefault);
 	t_olMaps['map_t'] = new olMap(t_resource, 'map_t', crs, center_wgs84, defaultZoom);
@@ -40,8 +40,8 @@ function f_initComparison(){
 		return;
 	//bind map views
 	r_olMaps["map_cr"].map.bindTo('view', t_olMaps["map_ct"].map);
-	r_olMaps["map_cr"].synchCursor(t_olMaps["map_ct"], 'tMarker');
-	t_olMaps["map_ct"].synchCursor(r_olMaps["map_cr"], 'rMarker');
+	//synch cursors
+	f_synchCursors();	
 	//change interaction if fusion results are activated
 	f_setCompareInteraction();
 }
@@ -71,3 +71,11 @@ function f_setCompareInteraction(){
 	r_olMaps["map_cr"].setCompareInteraction(useFusionResult, r_olMaps["map_cr"], t_olMaps["map_ct"], true);
 	t_olMaps["map_ct"].setCompareInteraction(useFusionResult, t_olMaps["map_ct"], r_olMaps["map_cr"], false);
 }
+
+function f_synchCursors(){
+	//synch
+	r_olMaps["map_cr"].synchCursor(t_olMaps["map_ct"], 'tMarker');
+	t_olMaps["map_ct"].synchCursor(r_olMaps["map_cr"], 'rMarker');
+}
+
+

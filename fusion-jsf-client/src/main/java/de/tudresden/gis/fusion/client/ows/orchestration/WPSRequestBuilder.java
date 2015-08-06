@@ -23,19 +23,21 @@ public class WPSRequestBuilder {
 	private String getRequest(String bpmnXML){
 		return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n" +
 				"<wps:Execute service=\"WPS\" version=\"1.0.0\"\n" +
-				"xmlns:wps=\"http:www.opengis.net/wps/1.0.0\"\n" +
-				"xmlns:ows=\"http:www.opengis.net/ows/1.1\"\n" +
-				"xmlns:ogc=\"http:www.opengis.net/ogc\"\n" +
-				"xmlns:xlink=\"http:www.w3.org/1999/xlink\"\n" +
-				"xmlns:xsi=\"http:www.w3.org/2001/XMLSchema-instance\"\n" +
-				"xsi:schemaLocation=\"http:www.opengis.net/wps/1.0.0 http:schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">\n" +
+				"xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"\n" +
+				"xmlns:ows=\"http://www.opengis.net/ows/1.1\"\n" +
+				"xmlns:ogc=\"http://www.opengis.net/ogc\"\n" +
+				"xmlns:xlink=\"http//:www.w3.org/1999/xlink\"\n" +
+				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+				"xsi:schemaLocation=\"http//:www.opengis.net/wps/1.0.0 http//:schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">\n" +
 				"<ows:Identifier>" + WPS_IDENTIFIER + "</ows:Identifier>\n" +
 					"<wps:DataInputs>\n" +
 				    	"<wps:Input>\n" +
 				    		"<ows:Identifier>" + IN_BPMN + "</ows:Identifier>\n" +
-			    			"<wps:ComplexData schema=\"http://www.omg.org/spec/BPMN/20100524/MODEL\">\n" +
-			    				prepareBPMN(bpmnXML) +
-			    			"</wps:ComplexData>\n" +
+				    		"<wps:Data>\n" +
+				    			"<wps:ComplexData mimetype=\"text/xml\" schema=\"http://www.omg.org/spec/BPMN/20100524/MODEL\">\n" +
+				    				prepareBPMN(bpmnXML) +
+				    			"</wps:ComplexData>\n" +
+			    			"<wps:Data>\n" +
 				    	"</wps:Input>\n" +
 				    "</wps:DataInputs>\n" +
 				    "<wps:ResponseForm>\n" +

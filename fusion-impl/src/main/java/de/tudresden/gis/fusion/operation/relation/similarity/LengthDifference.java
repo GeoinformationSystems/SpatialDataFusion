@@ -84,8 +84,8 @@ public class LengthDifference extends ASimilarityMeasurementOperation {
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get length difference
-		double dDifference = gReference.getLength() - gTarget.getLength();
-		if(Math.abs(dDifference) <= dThreshold){
+		double dDifference = Math.abs(gReference.getLength() - gTarget.getLength());
+		if(dDifference <= dThreshold){
 			return new SimilarityMeasurement( 
 				new DecimalLiteral(dDifference),
 				this.PROCESS_RESOURCE,

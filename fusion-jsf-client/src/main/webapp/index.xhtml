@@ -175,8 +175,7 @@
 	
 	<h:panelGrid columns="2" styleClass="content" style="margin-bottom:0px;">
 		<h:outputLabel for="f_useFusionResult" value="Enable feature relations " />
-		<!-- <p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" disabled="#{fusekiConnector.isEmpty}" style="width:50px" /> -->
-		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />	
+		<p:selectBooleanButton id="f_useFusionResult" onLabel="Yes" offLabel="No" style="width:50px" />
 	</h:panelGrid>
 	
 	<h:panelGrid columns="1" style="padding-top:0px;width:100%;">
@@ -196,10 +195,11 @@
 	</h:form>
 </div>
 
-<div style="display: none;">
+<div id="mapMarker" style="display:none;">
 	<div id="tMarker" class="marker" />
 	<div id="rMarker" class="marker" />
 </div>
+
 <div id="footer" class="content ui-state-active">
 
 </div>

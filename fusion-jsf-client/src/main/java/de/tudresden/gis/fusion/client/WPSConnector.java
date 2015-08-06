@@ -95,11 +95,20 @@ public class WPSConnector implements Serializable {
 			return;
 		try {
 			WPSOrchestration orchestration = new WPSOrchestration(getBpmnXML());
-			orchestration.execute();
+			boolean success = orchestration.execute();
+			setIsNotExecuted(!success);
+			if(success)
+				this.sendMessage(FacesMessage.SEVERITY_INFO, "Success", "Successfully performed defined process");
+			else
+				this.sendMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not perform the defined process");
 		} catch (IOException ioe) {
 			this.sendMessage(FacesMessage.SEVERITY_ERROR, "Error", "Could not perform process: " + ioe.getLocalizedMessage());
 		}
 	}
+	
+	private boolean isNotExecuted = true;
+	public void setIsNotExecuted(boolean isNotExecuted) { this.isNotExecuted = isNotExecuted; }
+	public boolean getIsNotExecuted() { return isNotExecuted; }
 	
 	/**
 	 * update BPMN model
@@ -137,6 +146,7 @@ public class WPSConnector implements Serializable {
 			handler.emptySelectedProcesses();
 		}
 		this.setConnections(null);
+		this.setIsNotExecuted(true);
 	}
 	
 	private String connections;

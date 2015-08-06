@@ -28,10 +28,6 @@ public class FusekiConnector implements Serializable {
 	public String getFusekiURL() { return fusekiURL; }
 	public void setFusekiURL(String fusekiURL) { this.fusekiURL = fusekiURL; }
 	
-	private boolean isEmpty = true;
-	public boolean getIsEmpty() { return isEmpty; }
-	public void setIsEmpty(boolean isEmpty) { this.isEmpty = isEmpty; }
-	
 	/**
 	 * get Relation storage as IOProcess for chaining purposes
 	 * @return io process
@@ -42,8 +38,8 @@ public class FusekiConnector implements Serializable {
 		supportedFormats.add(defaultFormat);
 		IONode node = new IONode(null, "IN_RDF", defaultFormat, supportedFormats, NodeType.INPUT);
 		Map<String,String> properties = new HashMap<String,String>();
-		properties.put("NAME", NAME);
-		properties.put("IN_TRIPLE_STORE", fusekiURL);
+		properties.put("name", NAME);
+		properties.put("url", fusekiURL);
 		IOProcess process = new IOProcess(TYPE, ID, properties, node);
 		node.setProcess(process);
 		return process;
