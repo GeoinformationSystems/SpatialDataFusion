@@ -1,15 +1,9 @@
 package de.tudresden.gis.fusion.data.description;
 
-public interface IDataDescription {
-
-	/**
-	 * get Java binding for this type
-	 * @return Java binding
-	 */
-	public Class<?> getJavaBinding();
+public interface IDataDescription extends IResourceDescription {
 	
 	/**
-	 * get provenance for this data object
+	 * get provenance for this data object (http://purl.org/dc/terms/provenance)
 	 * @return data provenance
 	 */
 	public IDataProvenance getProvenance();

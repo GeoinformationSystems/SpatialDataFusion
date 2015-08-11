@@ -1,15 +1,19 @@
 package de.tudresden.gis.fusion.data.feature.relation;
 
-import java.util.Collection;
+import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
 
-import de.tudresden.gis.fusion.data.IIdentifiableObject;
-
-public interface IRelationType extends IIdentifiableObject {
+public interface IRelationType extends IRDFIdentifiableResource {
 
 	/**
-	 * get roles specified by this relation type
-	 * @return relation roles
+	 * get role of the source feature view as specified by this relation type
+	 * @return source role
 	 */
-	public Collection<IRole> getRoles();
+	public IRole getSourceRole();
+	
+	/**
+	 * get role of the target feature view as specified by this relation type
+	 * @return source role
+	 */
+	public IRole getTargetRole();
 	
 }

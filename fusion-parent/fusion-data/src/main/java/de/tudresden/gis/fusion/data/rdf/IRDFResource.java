@@ -1,6 +1,6 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-public interface IRDFResource {
+public interface IRDFResource extends IRDFIdentifiableResource {
 
 	/**
 	 * check whether node is blank

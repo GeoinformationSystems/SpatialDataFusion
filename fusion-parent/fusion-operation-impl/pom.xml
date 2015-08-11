@@ -6,4 +6,15 @@
     <version>0.1-SNAPSHOT</version>
   </parent>
   <artifactId>fusion-operation-impl</artifactId>
+  
+  <dependencies>
+	<dependency>
+		<groupId>de.tudresden.gis</groupId>
+		<artifactId>fusion-operation</artifactId>
+	</dependency>
+	<dependency>
+		<groupId>de.tudresden.gis</groupId>
+		<artifactId>fusion-data-impl</artifactId>
+  	</dependency>
+	</dependencies>
 </project>

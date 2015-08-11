@@ -2,7 +2,7 @@ package de.tudresden.gis.fusion.data;
 
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 
-public interface IData extends IIdentifiableObject {
+public interface IData {
 	
 	/**
 	 * get data value

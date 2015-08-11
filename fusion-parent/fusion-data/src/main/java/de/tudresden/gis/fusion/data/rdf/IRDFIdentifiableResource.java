@@ -1,5 +1,13 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-public interface IRDFIdentifiableResource extends IRDFNode {
+import de.tudresden.gis.fusion.data.IRI;
 
+public interface IRDFIdentifiableResource extends IRDFNode {
+	
+	/**
+	 * get identifier of this object
+	 * @return object identifier
+	 */
+	public IRI getIdentifier();
+	
 }

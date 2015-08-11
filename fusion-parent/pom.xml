@@ -40,6 +40,21 @@
 			<artifactId>fusion-data-impl</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>fusion-operation</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>fusion-operation-impl</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>fusion-webapp</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 	</dependencyManagement>	
 	

@@ -1,6 +1,6 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-public interface IRDFTriple {
+public interface IRDFTriple extends IRDFRepresentation {
 
 	/**
 	 * get predicate for this triple
