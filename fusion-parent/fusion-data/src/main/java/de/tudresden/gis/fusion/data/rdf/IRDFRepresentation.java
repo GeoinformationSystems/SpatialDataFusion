@@ -6,6 +6,6 @@ public interface IRDFRepresentation {
 	 * get subject of this RDF representation
 	 * @return RDF subject
 	 */
-	public IRDFResource getSubject();
+	public IRDFResource subject();
 	
 }

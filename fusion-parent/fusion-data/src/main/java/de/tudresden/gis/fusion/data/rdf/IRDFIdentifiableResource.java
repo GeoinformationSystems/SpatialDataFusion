@@ -8,6 +8,6 @@ public interface IRDFIdentifiableResource extends IRDFNode {
 	 * get identifier of this object
 	 * @return object identifier
 	 */
-	public IRI getIdentifier();
+	public IRI identifier();
 	
 }

@@ -14,28 +14,28 @@ public class Range<T extends Comparable<T>> implements IRange<T> {
 	}
 	
 	@Override
-	public T[] getRange() {
+	public T[] valueRange() {
 		return elements;
 	}
 
 	@Override
-	public boolean isContinuous() {
+	public boolean continuous() {
 		return continuous;
 	}
 
 	@Override
-	public T getMin() {
+	public T min() {
 		return elements[0];
 	}
 
 	@Override
-	public T getMax() {
+	public T max() {
 		return elements[elements.length-1];
 	}
 
 	@Override
 	public boolean contains(T target) {
-		if(!isContinuous())
+		if(!continuous())
 			return partOfRange(target);
 		else
 			return inBetweenRange(target);
@@ -60,7 +60,7 @@ public class Range<T extends Comparable<T>> implements IRange<T> {
 	 * @return true, if min < value < max
 	 */
 	private boolean inBetweenRange(T target){
-		return(getMin().compareTo(target) >= 0 && getMax().compareTo(target) <= 0);
+		return(min().compareTo(target) >= 0 && max().compareTo(target) <= 0);
 	}
 
 }

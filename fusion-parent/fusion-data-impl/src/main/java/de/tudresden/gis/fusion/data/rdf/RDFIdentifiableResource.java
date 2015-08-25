@@ -9,9 +9,13 @@ public class RDFIdentifiableResource implements IRDFIdentifiableResource {
 	public RDFIdentifiableResource(IRI identifier){
 		this.identifier = identifier;
 	}
+	
+	public RDFIdentifiableResource(String identifier){
+		this(new IRI(identifier));
+	}
 
 	@Override
-	public IRI getIdentifier() {
+	public IRI identifier() {
 		return identifier;
 	}
 

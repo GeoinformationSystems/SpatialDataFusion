@@ -9,21 +9,27 @@ import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
 public interface IFeatureView extends IData,IRDFIdentifiableResource {
 
 	/**
-	 * relate feature views to same feature
+	 * relate feature views internally
 	 * @param view related view
 	 */
 	public void link(IFeatureView view);
 	
 	/**
-	 * add relation to other feature views
-	 * @param relation relation between the views
+	 * get internal links for this view
+	 * @return internal view relations
 	 */
-	public void relate(IRelation relation);
+	public Collection<IFeatureView> featureLinks();
+	
+	/**
+	 * add relation to external feature views
+	 * @param relation relation between feature views
+	 */
+	public void relate(IRelation<IFeatureView> relation);
 	
 	/**
 	 * get external relations for this view
-	 * @return view relations
+	 * @return external view relations
 	 */
-	public Collection<IRelation> getRelations();
+	public Collection<IRelation<IFeatureView>> featureRelations();
 	
 }

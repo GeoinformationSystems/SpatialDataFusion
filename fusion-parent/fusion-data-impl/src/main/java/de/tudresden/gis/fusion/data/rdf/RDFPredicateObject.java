@@ -11,12 +11,12 @@ public class RDFPredicateObject implements IRDFPredicateObject {
 	}
 
 	@Override
-	public IRDFIdentifiableResource getPredicate() {
+	public IRDFIdentifiableResource predicate() {
 		return predicate;
 	}
 
 	@Override
-	public IRDFNode getObject() {
+	public IRDFNode object() {
 		return object;
 	}
 

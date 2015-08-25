@@ -1,42 +1,76 @@
 package de.tudresden.gis.fusion.data.relation;
 
+import java.util.Collection;
+import java.util.LinkedList;
+
 import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.IRange;
+import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
+import de.tudresden.gis.fusion.data.literal.LiteralUtility;
 import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IRDFPredicateObject;
+import de.tudresden.gis.fusion.data.rdf.IRDFResource;
+import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
+import de.tudresden.gis.fusion.data.rdf.RDFPredicateObject;
 import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class RelationMeasurement<T extends Comparable<T>> extends RDFResource implements IRelationMeasurement<T> {
+public class RelationMeasurement<T extends Comparable<T>> extends RDFResource implements IRelationMeasurement<T>,IRDFTripleSet {
 
+	private IRDFIdentifiableResource source, target;
+	private IMeasurementDescription description;
 	private T value;
-	IRDFIdentifiableResource uom;
-	private IRange<T> range;
+	private transient Collection<IRDFPredicateObject> objectSet;
 	
-	public RelationMeasurement(IRI identifier, T value, IRDFIdentifiableResource uom, IRange<T> range) {
+	public RelationMeasurement(IRI identifier, IRDFIdentifiableResource source, IRDFIdentifiableResource target, T value, IMeasurementDescription description) {
 		super(identifier);
+		this.source = source;
+		this.target = target;
 		this.value = value;
-		this.uom = uom;
-		this.range = range;
+		this.description = description;
+	}
+	
+	@Override
+	public IRDFIdentifiableResource source() {
+		return source;
 	}
 
 	@Override
-	public IRange<T> getRange() {
-		return range;
+	public IRDFIdentifiableResource target() {
+		return target;
 	}
 
 	@Override
-	public IRDFIdentifiableResource getUnitOfMeasurement() {
-		return uom;
-	}
-
-	@Override
-	public T getValue() {
+	public T value() {
 		return value;
 	}
 
 	@Override
 	public int compareTo(T o) {
-		return getValue().compareTo(o);
+		return value().compareTo(o);
+	}
+
+	@Override
+	public IMeasurementDescription description() {
+		return description;
+	}
+
+	@Override
+	public IRDFResource subject() {
+		return this;
+	}
+
+	@Override
+	public Collection<IRDFPredicateObject> objectSet() {
+		if(objectSet != null)
+			return objectSet;
+		
+		Collection<IRDFPredicateObject> objectSet = new LinkedList<IRDFPredicateObject>();
+		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_SOURCE.resource(), source()));
+		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_TARGET.resource(), target()));
+		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_VALUE.resource(), LiteralUtility.literal(value)));
+		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_DESCRIPTION.resource(), description()));
+		return objectSet;
 	}
 
 }

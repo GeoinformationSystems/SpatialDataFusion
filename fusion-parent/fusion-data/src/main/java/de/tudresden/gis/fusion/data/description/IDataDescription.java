@@ -3,9 +3,9 @@ package de.tudresden.gis.fusion.data.description;
 public interface IDataDescription extends IResourceDescription {
 	
 	/**
-	 * get provenance for this data object (http://purl.org/dc/terms/provenance)
+	 * get data provenance
 	 * @return data provenance
 	 */
-	public IDataProvenance getProvenance();
+	public IDataProvenance provenance();
 	
 }

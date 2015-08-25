@@ -1,17 +1,19 @@
 package de.tudresden.gis.fusion.data.description;
 
-public interface IResourceDescription {
+import de.tudresden.gis.fusion.data.rdf.IRDFResource;
+
+public interface IResourceDescription extends IRDFResource {
 
 	/**
 	 * get title (http://purl.org/dc/terms/title)
 	 * @return title
 	 */
-	public String getTitle();
+	public String title();
 	
 	/**
 	 * get abstract (http://purl.org/dc/terms/abstract)
 	 * @return abstract
 	 */
-	public String getAbstract();
+	public String abstrakt();
 	
 }

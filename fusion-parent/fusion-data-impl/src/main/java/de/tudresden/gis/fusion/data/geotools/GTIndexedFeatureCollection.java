@@ -12,18 +12,19 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.strtree.STRtree;
 
 import de.tudresden.gis.fusion.data.IRI;
+import de.tudresden.gis.fusion.data.description.IDataDescription;
 
 public class GTIndexedFeatureCollection extends GTFeatureCollection {
 
 	private STRtree index;
 	
-	public GTIndexedFeatureCollection(IRI identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		super(identifier, featureCollection);
+	public GTIndexedFeatureCollection(IRI identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+		super(identifier, featureCollection, description);
 		buildIndex();
 	}
 	
 	public GTIndexedFeatureCollection(FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		super(featureCollection);
+		this(null, featureCollection, null);
 		buildIndex();
 	}
 	
@@ -32,7 +33,7 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 	 */
 	private void buildIndex(){
 		this.index = new STRtree();
-		try (FeatureIterator<? extends Feature> iterator = this.getValue().features() ){
+		try (FeatureIterator<? extends Feature> iterator = this.value().features() ){
 		     while(iterator.hasNext()){
 		          addFeatureToIndex(iterator.next());
 		     }

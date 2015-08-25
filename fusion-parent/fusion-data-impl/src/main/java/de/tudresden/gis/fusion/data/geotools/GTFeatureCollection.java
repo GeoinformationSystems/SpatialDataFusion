@@ -1,84 +1,78 @@
 package de.tudresden.gis.fusion.data.geotools;
 
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
 
+import de.tudresden.gis.fusion.data.IDataCollection;
 import de.tudresden.gis.fusion.data.IRI;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureInstance;
-import de.tudresden.gis.fusion.data.feature.IFeatureRepresentation;
-import de.tudresden.gis.fusion.data.feature.IFeatureType;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
-import de.tudresden.gis.fusion.data.feature.relation.IRepresentationRelation;
-import de.tudresden.gis.fusion.data.rdf.RDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.feature.AFeatureRepresentation;
 
-public class GTFeatureCollection extends RDFIdentifiableResource implements IFeatureRepresentation {
+public class GTFeatureCollection extends AFeatureRepresentation implements IDataCollection<GTFeature> {
 
-	private FeatureCollection<? extends FeatureType,? extends Feature> featureCollection;
-	private IFeatureType type;
-	private IFeatureInstance instance;
+	private transient Map<IRI,GTFeature> featureMap;
 	
-	private Collection<IRelation> relations;
-	
-	public GTFeatureCollection(IRI identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		super(identifier);
-		this.featureCollection = featureCollection;
+	public GTFeatureCollection(IRI identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+		super(identifier, featureCollection, description);
 	}
 	
 	public GTFeatureCollection(FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		this(new IRI(featureCollection.getID()), featureCollection);
+		this(new IRI(featureCollection.getID()), featureCollection, null);
 	}
 	
+	@SuppressWarnings("unchecked")
+	@Override
+	public FeatureCollection<? extends FeatureType,? extends Feature> value(){
+		return (FeatureCollection<? extends FeatureType,? extends Feature>) super.value();
+	}
+	
+	@Override
+	public Iterator<GTFeature> iterator() {
+		return collection().iterator();
+	}
+
+	@Override
+	public int size() {
+		return this.value().size();
+	}
+
+	@Override
+	public Collection<GTFeature> collection() {
+		if(featureMap == null)
+			initMap();
+		return featureMap.values();
+	}
+
+	@Override
+	public GTFeature elementById(IRI identifier) {
+		if(featureMap == null)
+			initMap();
+		return featureMap.get(identifier);
+	}
+
 	/**
-	 * get GeoTools feature collection representation
-	 * @return feature collection representation
+	 * initialize feature map
 	 */
-	public FeatureCollection<? extends FeatureType,? extends Feature> getValue(){
-		return featureCollection;
+	private void initMap() {
+		featureMap = new HashMap<IRI,GTFeature>();
+		try (FeatureIterator<? extends Feature> iterator = this.value().features()){
+		     while(iterator.hasNext()){
+		           GTFeature feature = new GTFeature(iterator.next());
+		           featureMap.put(feature.identifier(), feature);
+		     }
+		}
 	}
 
 	@Override
-	public IFeatureType getType() {
-		return type;
-	}
-
-	@Override
-	public IFeatureInstance getInstance() {
-		return instance;
-	}
-
-	@Override
-	public void link(IFeatureView view) {
-		if(view instanceof IFeatureType)
-			this.type = (IFeatureType) view;
-		else if(view instanceof IFeatureInstance)
-			this.instance = (IFeatureInstance) view;
-		//else: do nothing
-	}
-
-	@Override
-	public void relate(IRelation relation) {
-		if(relations == null)
-			relations = new ArrayList<IRelation>();
-		if(relation instanceof IRepresentationRelation)
-			relations.add(relation);
-		//else: do nothing
-	}
-
-	@Override
-	public Collection<IRelation> getRelations() {
-		return relations;
-	}
-
-	@Override
-	public IDataDescription getDescription() {
-		// TODO Auto-generated method stub
-		return null;
+	public void add(GTFeature object) {
+		throw new UnsupportedOperationException();
 	}
 
 }

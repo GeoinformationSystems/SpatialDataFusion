@@ -8,12 +8,12 @@ public interface IData {
 	 * get data value
 	 * @return Java object representing the data value
 	 */
-	public Object getValue();
+	public Object value();
 	
 	/**
 	 * get description for data object
 	 * @return data description
 	 */
-	public IDataDescription getDescription();
+	public IDataDescription description();
 
 }

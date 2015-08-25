@@ -9,8 +9,8 @@ public class RDFResource extends RDFIdentifiableResource implements IRDFResource
 	}
 
 	@Override
-	public boolean isBlank() {
-		return this.getIdentifier() == null;
+	public boolean blank() {
+		return this.identifier() == null;
 	}
 
 }

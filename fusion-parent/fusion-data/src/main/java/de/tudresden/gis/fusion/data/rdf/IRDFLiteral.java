@@ -8,6 +8,6 @@ public interface IRDFLiteral extends IRDFNode {
 	 * get value of this literal node
 	 * @return node value
 	 */
-	public ILiteral getLiteralValue();
+	public ILiteral literalValue();
 	
 }

@@ -6,6 +6,6 @@ public interface IRDFPlainLiteral extends IRDFLiteral {
 	 * get language identifier according to IANA Language Subtag Registry
 	 * @return language identifier
 	 */
-	public String getLanguage();
+	public String language();
 	
 }

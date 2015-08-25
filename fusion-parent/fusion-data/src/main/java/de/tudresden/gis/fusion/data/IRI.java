@@ -1,26 +1,23 @@
 package de.tudresden.gis.fusion.data;
 
 import java.net.URI;
+import java.net.URL;
 
 public class IRI {
 	
 	private String sIRI;
 	private URI uri;
 	
-	/**
-	 * constructor
-	 * @param sIri input identifier as String
-	 */
 	public IRI(String sIRI) {
 		this.sIRI = sIRI;
 	}
 	
-	/**
-	 * constructor
-	 * @param uri input identifier as URI
-	 */
 	public IRI(URI uri) {
 		this.uri = uri;
+	}
+
+	public IRI(URL url) {
+		this(url.toString());
 	}
 
 	/**

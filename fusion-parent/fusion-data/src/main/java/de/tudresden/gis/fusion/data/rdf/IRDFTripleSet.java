@@ -8,6 +8,6 @@ public interface IRDFTripleSet extends IRDFRepresentation {
 	 * get object set for this triple
 	 * @return set of objects
 	 */
-	public Collection<IRDFPredicateObject> getObjectSet();
+	public Collection<IRDFPredicateObject> objectSet();
 	
 }
