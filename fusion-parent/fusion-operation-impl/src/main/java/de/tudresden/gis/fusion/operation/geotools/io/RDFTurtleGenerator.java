@@ -12,11 +12,10 @@ import java.util.Map;
 import java.util.UUID;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.IRI;
 import de.tudresden.gis.fusion.data.literal.StringLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
-import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
-import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
+import de.tudresden.gis.fusion.data.rdf.ISubjectCollection;
+import de.tudresden.gis.fusion.data.rdf.ISubject;
 import de.tudresden.gis.fusion.data.rdf.RDFTurtleEncoder;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IGenerator;
@@ -38,10 +37,10 @@ public class RDFTurtleGenerator extends AOperationInstance implements IGenerator
 	public void execute() throws ProcessException {
 
 		//get base and prefixes
-		URI base = inputContainsKey(IN_URI_BASE) ? URI.create(((StringLiteral) input(IN_URI_BASE)).value()) : null;
+		URI base = inputContainsKey(IN_URI_BASE) ? URI.create(((StringLiteral) input(IN_URI_BASE)).resolve()) : null;
 		Map<URI,String> prefixes = new LinkedHashMap<URI,String>();
 		if(inputContainsKey(IN_URI_PREFIXES)){
-			String[] prefixesArray = ((StringLiteral) input(IN_URI_PREFIXES)).value().split(";");
+			String[] prefixesArray = ((StringLiteral) input(IN_URI_PREFIXES)).resolve().split(";");
 			for(int i=0; i<prefixesArray.length; i+=2){
 				prefixes.put(URI.create(prefixesArray[i]), prefixesArray[i+1]);
 			}
@@ -51,7 +50,7 @@ public class RDFTurtleGenerator extends AOperationInstance implements IGenerator
 		IData data = input(IN_RDF);
 		File file = getFile();
 		
-		if(data instanceof IRDFCollection || data instanceof IRDFRepresentation)
+		if(data instanceof ISubjectCollection || data instanceof ISubject)
 			writeTriples(data, base, prefixes, file);
 		else
 			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "cannot convert input to RDF");
@@ -94,14 +93,14 @@ public class RDFTurtleGenerator extends AOperationInstance implements IGenerator
 					writer.write("@prefix " + prefix.getValue() + ": <" + prefix.getKey() + "> .\n");
 				}
 			}
-			if(rdf instanceof IRDFCollection){
-				List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((IRDFCollection) rdf, base, prefixes, 1000);
+			if(rdf instanceof ISubjectCollection){
+				List<String> rdfInserts = RDFTurtleEncoder.encodeTripleResource((ISubjectCollection) rdf, base, prefixes, 1000);
 				for(String insert : rdfInserts){
 					writer.append(insert);
 				}
 			}
 			else
-				writer.append(RDFTurtleEncoder.encodeTripleResource((IRDFRepresentation) rdf, base, prefixes));
+				writer.append(RDFTurtleEncoder.encodeTripleResource((ISubject) rdf, base, prefixes));
 			
 		} catch (IOException e){
 			throw new ProcessException(ExceptionKey.INPUT_NOT_ACCESSIBLE, "Could not establish file writer", e);
@@ -115,34 +114,34 @@ public class RDFTurtleGenerator extends AOperationInstance implements IGenerator
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "RDF Turtle generator";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Generator for W3C RDF Turtle format";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

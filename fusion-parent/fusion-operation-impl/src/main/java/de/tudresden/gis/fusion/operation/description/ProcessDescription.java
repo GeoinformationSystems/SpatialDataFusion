@@ -2,30 +2,29 @@ package de.tudresden.gis.fusion.operation.description;
 
 import java.util.Collection;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 
-public class ProcessDescription extends RDFResource  implements IProcessDescription {
+public class ProcessDescription extends Resource implements IProcessDescription {
 	
-	private String title, abstrakt;
+	private String title, description;
 	private Collection<IProcessConstraint> constraints;
 	
-	public ProcessDescription(IRI identifier, String title, String abstrakt, Collection<IProcessConstraint> constraints){
+	public ProcessDescription(String identifier, String title, String description, Collection<IProcessConstraint> constraints){
 		super(identifier);
 		this.title = title;
-		this.abstrakt = abstrakt;
+		this.description = description;
 		this.constraints = constraints;
 	}
 
 	@Override
-	public String title() {
+	public String getTitle() {
 		return title;
 	}
 
 	@Override
-	public String abstrakt() {
-		return abstrakt;
+	public String getDescription() {
+		return description;
 	}
 
 	@Override

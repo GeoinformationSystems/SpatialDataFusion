@@ -5,15 +5,15 @@ import de.tudresden.gis.fusion.data.description.IDataDescription;
 public interface IData {
 	
 	/**
-	 * get data value
-	 * @return Java object representing the data value
+	 * get resource value
+	 * @return Java object represented by this resource
 	 */
-	public Object value();
+	public Object resolve();
 	
 	/**
-	 * get description for data object
-	 * @return data description
+	 * get description of this resource
+	 * @return resource description
 	 */
-	public IDataDescription description();
+	public IDataDescription getDescription();
 
 }

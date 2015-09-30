@@ -1,14 +1,17 @@
 package de.tudresden.gis.fusion.data.literal;
 
-import de.tudresden.gis.fusion.data.ILiteral;
-import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.Range;
+import java.util.Arrays;
+import java.util.TreeSet;
+
+import de.tudresden.gis.fusion.data.ILiteralData;
+import de.tudresden.gis.fusion.data.IMeasurement;
+import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class IntegerLiteral implements ILiteral,IMeasurementValue<Integer>,IRDFTypedLiteral {
+public class IntegerLiteral implements ILiteralData,IMeasurement,ITypedLiteral {
 
 	private int value;
 	private IMeasurementDescription description;
@@ -23,43 +26,46 @@ public class IntegerLiteral implements ILiteral,IMeasurementValue<Integer>,IRDFT
 	}
 
 	@Override
-	public Integer value() {
+	public Integer resolve() {
 		return value;
 	}
 
 	@Override
-	public IMeasurementDescription description() {
+	public IMeasurementDescription getDescription() {
 		return description;
 	}
 
 	@Override
-	public int compareTo(Integer o) {
-		return this.value().compareTo(o);
+	public int compareTo(IMeasurement measurement) {
+		if(measurement instanceof IntegerLiteral)
+			return this.resolve().compareTo(((IntegerLiteral) measurement).resolve());
+		else
+			throw new ClassCastException("Cannot cast to IntegerLiteral");
 	}
 
 	@Override
-	public ILiteral literalValue() {
-		return this;
+	public String getValue() {
+		return String.valueOf(value);
 	}
 	
 	@Override
-	public IRDFIdentifiableResource type() {
-		return RDFVocabulary.TYPE_INTEGER.resource();
+	public IIdentifiableResource getType() {
+		return RDFVocabulary.INTEGER.asResource();
 	}
 	
 	/**
 	 * get maximum range for this literal type
 	 * @return maximum range
 	 */
-	public static Range<Integer> maxRange(){
-		return new Range<Integer>(new Integer[]{Integer.MIN_VALUE, Integer.MAX_VALUE}, true);
+	public static MeasurementRange maxRange(){
+		return new MeasurementRange(new TreeSet<IntegerLiteral>(Arrays.asList(new IntegerLiteral(Integer.MIN_VALUE), new IntegerLiteral(Integer.MAX_VALUE))), true);
 	}
 	
 	/**
 	 * get positive range for this literal type
 	 * @return positive range
 	 */
-	public static Range<Integer> positiveRange(){
-		return new Range<Integer>(new Integer[]{0, Integer.MAX_VALUE}, true);
+	public static MeasurementRange positiveRange(){
+		return new MeasurementRange(new TreeSet<IntegerLiteral>(Arrays.asList(new IntegerLiteral(0), new IntegerLiteral(Integer.MAX_VALUE))), true);
 	}
 }

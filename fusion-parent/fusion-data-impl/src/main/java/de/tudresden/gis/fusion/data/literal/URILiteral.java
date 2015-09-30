@@ -2,13 +2,13 @@ package de.tudresden.gis.fusion.data.literal;
 
 import java.net.URI;
 
-import de.tudresden.gis.fusion.data.ILiteral;
+import de.tudresden.gis.fusion.data.ILiteralData;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class URILiteral implements ILiteral,IRDFTypedLiteral {
+public class URILiteral implements ILiteralData,ITypedLiteral {
 
 	private URI value;
 	private IDataDescription description;
@@ -23,23 +23,23 @@ public class URILiteral implements ILiteral,IRDFTypedLiteral {
 	}
 
 	@Override
-	public URI value() {
+	public URI resolve() {
 		return value;
 	}
 
 	@Override
-	public IDataDescription description() {
+	public IDataDescription getDescription() {
 		return description;
 	}
 
 	@Override
-	public ILiteral literalValue() {
-		return this;
+	public String getValue() {
+		return String.valueOf(value);
 	}
 	
 	@Override
-	public IRDFIdentifiableResource type() {
-		return RDFVocabulary.TYPE_ANYURI.resource();
+	public IIdentifiableResource getType() {
+		return RDFVocabulary.ANYURI.asResource();
 	}
 
 }

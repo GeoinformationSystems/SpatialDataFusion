@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.data.rdf;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,12 +17,12 @@ public class RDFTurtleEncoder {
 	 * @param chunkSize number of RDF representations in one String
 	 * @return list of encoded RDF representation Strings
 	 */
-	public static List<String> encodeTripleResource(IRDFCollection collection, URI base, Map<URI,String> prefixes, int chunkSize) {
+	public static List<String> encodeTripleResource(ISubjectCollection collection, URI base, Map<URI,String> prefixes, int chunkSize) {
 		List<String> sList = new ArrayList<String>();
 		StringBuilder sTriple = new StringBuilder();
 		//iterate collection
 		int i = 0;
-		for(IRDFRepresentation rdf : collection.rdfCollection()){
+		for(ISubject rdf : collection.collection()){
 			i++;
 			sTriple.append(encodeTripleResource(rdf, base, prefixes, "", true, true));
 			//cut relation string by chunk size
@@ -44,7 +45,7 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded RDF triple representation String
 	 */
-	public static String encodeTripleResource(IRDFRepresentation rdf, URI base, Map<URI,String> prefixes) {
+	public static String encodeTripleResource(ISubject rdf, URI base, Map<URI,String> prefixes) {
 		return encodeTripleResource(rdf, base, prefixes, "", true, true);
 	}
 	
@@ -58,22 +59,22 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple representation String
 	 */
-	public static String encodeTripleResource(IRDFRepresentation rdf, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
+	public static String encodeTripleResource(ISubject rdf, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
 		StringBuilder sTriple = new StringBuilder();
 		//if subject is not defined, do nothing
-		if(rdf.subject() == null)
+		if(rdf == null)
 			return null;
 		//write triple
-		if(rdf instanceof IRDFTriple){
-			sTriple.append(encodeTriple((IRDFTriple) rdf, base, prefixes, indent, close));
+		if(rdf instanceof ITriple){
+			sTriple.append(encodeTriple((ITriple) rdf, base, prefixes, indent, close));
 		}
 		//write triple set
-		else if(rdf instanceof IRDFTripleSet && ((IRDFTripleSet) rdf).objectSet().size() > 0){
-			sTriple.append(encodeTripleSet((IRDFTripleSet) rdf, base, prefixes, indent, writeSubject, close));
+		else if(rdf instanceof ITripleSet){
+			sTriple.append(encodeTripleSet((ITripleSet) rdf, base, prefixes, indent, writeSubject, close));
 		}
 		//write resource, if objects are not defined
 		else
-			sTriple.append(encodeResource(rdf.subject(), base, prefixes));
+			sTriple.append(encodeResource(rdf, base, prefixes));
 		//return
 		return sTriple.toString();
 	}
@@ -88,50 +89,30 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple set String
 	 */
-	public static String encodeTripleSet(IRDFTripleSet tripleSet, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
+	public static String encodeTripleSet(ITripleSet tripleSet, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject, if requested
 		if(writeSubject)
-			sTriple.append(indent + encodeResource(tripleSet.subject(), base, prefixes) + "\n");
+			sTriple.append(indent + encodeResource(tripleSet, base, prefixes) + "\n");
 		//increase indent
 		indent += "\t";
-		int i = tripleSet.objectSet().size();
-		for(IRDFPredicateObject predobj : tripleSet.objectSet()){
-			i--;
-			boolean lastSet = (i == 0);
-			boolean setClose = (close && lastSet);
-			//continue, if either predicate or object are not set
-			if(predobj.predicate() == null || predobj.object() == null)
+		//iterate predicates in triple set
+		int i = tripleSet.size();
+		for(IIdentifiableResource predicate : (tripleSet).getPredicates()){
+			Collection<INode> objects = tripleSet.getObject(predicate);
+			//continue if no objects are related to predicate
+			if(objects == null || objects.isEmpty())
 				continue;
-			//write predicate
-			sTriple.append(indent + encodeResource(predobj.predicate(), base, prefixes));
-			//write object
-			if(predobj.object() instanceof IRDFTripleSet){
-				if(((IRDFTripleSet) predobj.object()).objectSet() != null){
-					sTriple.append(" [\n");
-					sTriple.append(encodeTripleResource((IRDFTripleSet) predobj.object(), base, prefixes, indent, false, false));
-					sTriple.append(indent + "]" + (setClose ? " ." : " ;") + "\n");
-				}
-				else
-					sTriple.append(" " + encodeResource((IRDFIdentifiableResource) predobj.object(), base, prefixes) + " ;\n");		
+			//iterate objects for predicate
+			for(INode object : objects){
+				//write predicate
+				sTriple.append(indent + encodeResource(predicate, base, prefixes));
+				//add object (close if last object in object set)
+				i--;
+				boolean lastObject = (i == 0);
+				boolean setClose = (close && lastObject);
+				sTriple.append(encodeObject(object, base, prefixes, indent, setClose));
 			}
-			else if(predobj.object() instanceof IRDFTriple){
-				if(((IRDFTriple) predobj.object()).object() != null){
-					sTriple.append(" [\n");
-					sTriple.append(encodeTripleResource((IRDFTriple) predobj.object(), base, prefixes, indent, false, false));
-					sTriple.append(indent + "]" + (setClose ? " ." : " ;") + "\n");
-				}
-				else
-					sTriple.append(" " + encodeResource((IRDFIdentifiableResource) predobj.object(), base, prefixes) + " ;\n");		
-			}
-			else if(predobj.object() instanceof IRDFLiteral)
-				sTriple.append(" " + encodeLiteral((IRDFLiteral) predobj.object(), base, prefixes) + (setClose ? " ." : " ;") + "\n");
-			else if(predobj.object() instanceof IRDFIdentifiableResource){
-				sTriple.append(" " + encodeResource((IRDFIdentifiableResource) predobj.object(), base, prefixes) + (setClose ? " ." : " ;") + "\n");
-			}
-			else
-				//this should not be reached
-				sTriple.append(" NotAResource ;\n");
 		}
 		//return
 		return sTriple.toString();
@@ -146,39 +127,51 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple String
 	 */
-	public static String encodeTriple(IRDFTriple triple, URI base, Map<URI,String> prefixes, String indent, boolean close) {
+	public static String encodeTriple(ITriple triple, URI base, Map<URI,String> prefixes, String indent, boolean close) {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject
-		sTriple.append(indent + encodeResource(triple.subject(), base, prefixes) + " ");
+		sTriple.append(indent + encodeResource(triple, base, prefixes) + " ");
 		//write predicate
-		sTriple.append(encodeResource(triple.predicate(), base, prefixes));
+		sTriple.append(encodeResource(triple.getPredicate(), base, prefixes));
 		//write object
-		if(triple.object() instanceof IRDFTripleSet){
-			if(((IRDFTripleSet) triple.object()).objectSet() != null){
+		sTriple.append(encodeObject(triple.getObject(), base, prefixes, indent, close));
+		
+		return sTriple.toString();
+	}
+	
+	public static String encodeObject(INode object, URI base, Map<URI,String> prefixes, String indent, boolean close){
+		StringBuilder sTriple = new StringBuilder();
+		//encode triple set
+		if(object instanceof ITripleSet){
+			if(((ITripleSet) object).size() > 0){
 				sTriple.append(" [\n");
-				sTriple.append(encodeTripleResource((IRDFTripleSet) triple.object(), base, prefixes, indent, false, false));
+				sTriple.append(encodeTripleResource((ITripleSet) object, base, prefixes, indent, false, false));
 				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
 			}
 			else
-				sTriple.append(" " + encodeResource((IRDFIdentifiableResource) triple.object(), base, prefixes) + " ;\n");		
+				sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + " ;\n");		
 		}
-		else if(triple.object() instanceof IRDFTriple){
-			if(((IRDFTriple) triple.object()).object() != null){
+		//encode triple
+		else if(object instanceof ITriple){
+			if(((ITriple) object).getObject() != null){
 				sTriple.append(" [\n");
-				sTriple.append(encodeTripleResource((IRDFTriple) triple.object(), base, prefixes, indent, false, false));
+				sTriple.append(encodeTripleResource((ITriple) object, base, prefixes, indent, false, false));
 				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
 			}
 			else
-				sTriple.append(" " + encodeResource((IRDFIdentifiableResource) triple.object(), base, prefixes) + " ;\n");		
+				sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + " ;\n");		
 		}
-		else if(triple.object() instanceof IRDFLiteral)
-			sTriple.append(" " + encodeLiteral((IRDFLiteral) triple.object(), base, prefixes) + (close ? " ." : " ;") + "\n");
-		else if(triple.object()instanceof IRDFIdentifiableResource){
-			sTriple.append(" " + encodeResource((IRDFIdentifiableResource) triple.object(), base, prefixes) + (close ? " ." : " ;") + "\n");
+		//encode literal
+		else if(object instanceof ILiteral)
+			sTriple.append(" " + encodeLiteral((ILiteral) object, base, prefixes) + (close ? " ." : " ;") + "\n");
+		//encode identifiable resource
+		else if(object instanceof IIdentifiableResource){
+			sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + (close ? " ." : " ;") + "\n");
 		}
 		else
-			//this should not be reached
+			//this should not happen
 			sTriple.append(" NotAResource ;\n");
+		
 		return sTriple.toString();
 	}
 
@@ -189,15 +182,15 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded resource String
 	 */
-	public static String encodeResource(IRDFIdentifiableResource resource, URI base, Map<URI,String> prefixes){
-		if(resource instanceof IRDFResource && ((IRDFResource) resource).blank())
+	public static String encodeResource(IIdentifiableResource resource, URI base, Map<URI,String> prefixes){
+		if(resource instanceof IResource && ((IResource) resource).isBlank())
 			//TODO: implement blank id
 			return "_:" + resource.getClass().getSimpleName() + "_" + UUID.randomUUID();
 		else {
-			URI uriPrefix = relativizeIdentifier(resource.identifier().toURI(), base, prefixes);
+			URI uriPrefix = relativizeIdentifier(resource, base, prefixes);
 			//write full resource, if it has not been relativized
-			if(resource.identifier().toURI().equals(uriPrefix))
-				return "<" + resource.identifier().toString() + ">";
+			if(resource.asURI().equals(uriPrefix))
+				return "<" + resource.asString().toString() + ">";
 			else
 				return uriPrefix.toString();
 		}
@@ -209,7 +202,7 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded resource String
 	 */
-	public static String encodeResource(IRDFIdentifiableResource resource, Map<URI,String> prefixes){
+	public static String encodeResource(IIdentifiableResource resource, Map<URI,String> prefixes){
 		return encodeResource(resource, null, prefixes);
 	}
 	
@@ -220,10 +213,10 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded literal String
 	 */
-	public static String encodeTypedLiteral(IRDFTypedLiteral literal, URI base, Map<URI,String> prefixes){
-		IRDFIdentifiableResource resource = literal.type();
-		URI relative = relativizeIdentifier(resource.identifier().toURI(), base, prefixes);
-		return "\"" + literal.literalValue().value() + "\"^^" + (resource.identifier().equals(relative) ? "<" + resource.identifier() + ">" : relative);
+	public static String encodeTypedLiteral(ITypedLiteral literal, URI base, Map<URI,String> prefixes){
+		IIdentifiableResource resource = literal.getType();
+		URI relative = relativizeIdentifier(resource, base, prefixes);
+		return "\"" + literal.getValue() + "\"^^" + (resource.asString().equals(relative) ? "<" + resource.asString() + ">" : relative);
 	}
 	
 	/**
@@ -231,7 +224,7 @@ public class RDFTurtleEncoder {
 	 * @param literal RDF typed literal
 	 * @return encoded literal String
 	 */
-	public static String encodeTypedLiteral(IRDFTypedLiteral literal, Map<URI,String> prefixes){
+	public static String encodeTypedLiteral(ITypedLiteral literal, Map<URI,String> prefixes){
 		return encodeTypedLiteral(literal, null, prefixes);
 	}
 	
@@ -240,8 +233,8 @@ public class RDFTurtleEncoder {
 	 * @param literal RDF plain literal
 	 * @return encoded literal String
 	 */
-	public static String encodePlainLiteral(IRDFPlainLiteral literal){
-		return "\"" + literal.literalValue().value() + "\"@" + literal.language();
+	public static String encodePlainLiteral(IPlainLiteral literal){
+		return "\"" + literal.getValue() + "\"@" + literal.getLanguage();
 	}
 	
 	/**
@@ -251,11 +244,11 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded literal String
 	 */
-	public static String encodeLiteral(IRDFLiteral literal, URI base, Map<URI,String> prefixes){
-		if(literal instanceof IRDFTypedLiteral)
-			return encodeTypedLiteral((IRDFTypedLiteral) literal, base, prefixes);
-		else if(literal instanceof IRDFPlainLiteral)
-			return encodePlainLiteral((IRDFPlainLiteral) literal);
+	public static String encodeLiteral(ILiteral literal, URI base, Map<URI,String> prefixes){
+		if(literal instanceof ITypedLiteral)
+			return encodeTypedLiteral((ITypedLiteral) literal, base, prefixes);
+		else if(literal instanceof IPlainLiteral)
+			return encodePlainLiteral((IPlainLiteral) literal);
 		else return null;
 	}
 	
@@ -265,23 +258,23 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded literal String
 	 */
-	public static String encodeLiteral(IRDFLiteral literal, Map<URI,String> prefixes){
+	public static String encodeLiteral(ILiteral literal, Map<URI,String> prefixes){
 		return encodeLiteral(literal, null, prefixes);
 	}
 	
 	/**
-	 * relativize an URI identifier
-	 * @param identifier input identifier
+	 * relativize a resource identifier
+	 * @param resource input resource
 	 * @param base URI base
 	 * @param prefixes URI prefixes
-	 * @return relativized identifier
+	 * @return relativized resource identifier
 	 */
-	public static URI relativizeIdentifier(URI identifier, URI base, Map<URI,String> prefixes) {
-		URI relative = relativizeIdentifier(identifier, base);
-		if(identifier.equals(relative) && prefixes != null){
+	public static URI relativizeIdentifier(IIdentifiableResource resource, URI base, Map<URI,String> prefixes) {
+		URI relative = relativizeIdentifier(resource, base);
+		if(resource.asURI().equals(relative) && prefixes != null){
 			for(Map.Entry<URI,String> prefix : prefixes.entrySet()){
-				relative = relativizeIdentifier(identifier, prefix.getKey(), prefix.getValue());
-				if(!identifier.equals(relative))
+				relative = relativizeIdentifier(resource, prefix.getKey(), prefix.getValue());
+				if(!resource.asURI().equals(relative))
 					return relative;
 			}
 		}
@@ -289,32 +282,33 @@ public class RDFTurtleEncoder {
 	}
 	
 	/**
-	 * relativize an URI identifier
-	 * @param identifier input identifier
+	 * relativize an resource identifier
+	 * @param resource input resource
 	 * @param base URI base
 	 * @param prefixes URI prefix
-	 * @return relativized identifier
+	 * @return relativized resource identifier
 	 */
-	public static URI relativizeIdentifier(URI identifier, URI uri, String prefix) {
-		if(identifier == null)
-			return null;
-		if(uri == null)
-			return identifier;
-		URI relative = uri.relativize(identifier);
-		if(identifier.equals(relative) || relative.toString().contains("/"))
-			return identifier;
+	public static URI relativizeIdentifier(IIdentifiableResource resource, URI uri, String prefix) {
+		//special case: http://www.w3.org/1999/02/22-rdf-syntax-ns#type --> a
+		if(resource.asString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
+			return URI.create("a");
+		//default
+		URI relative = resource.relativizeURI(uri);
+		if(resource.asURI().equals(relative) || relative.toString().matches(".*((\\/)|(.+#)).*"))
+			return resource.asURI();
 		else
-			return URI.create((prefix == null || prefix.length() == 0 ? "" : prefix + ":") + (relative.toString().startsWith("#") ? relative.toString().substring(1) : relative.toString()));
+			return URI.create((prefix == null || prefix.length() == 0 ? "" : prefix + ":") + 
+					(relative.toString().startsWith("#") ? relative.toString().substring(1) : relative.toString()));
 	}
 
 	/**
-	 * relativize an URI identifier
-	 * @param identifier input identifier
+	 * relativize a resource identifier
+	 * @param resource input resource
 	 * @param base URI base
-	 * @return relativized identifier
+	 * @return relativized resource identifier
 	 */
-	public static URI relativizeIdentifier(URI identifier, URI base) {
-		return relativizeIdentifier(identifier, base, "");
+	public static URI relativizeIdentifier(IIdentifiableResource resource, URI base) {
+		return relativizeIdentifier(resource, base, "");
 	}
 	
 }

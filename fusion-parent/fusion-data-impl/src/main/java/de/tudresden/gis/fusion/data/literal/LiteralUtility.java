@@ -1,15 +1,17 @@
 package de.tudresden.gis.fusion.data.literal;
 
-import de.tudresden.gis.fusion.data.rdf.IRDFLiteral;
+import java.net.URI;
+
+import de.tudresden.gis.fusion.data.ILiteralData;
 
 public class LiteralUtility {
 
 	/**
-	 * get RDF literal from object
+	 * get literal from object
 	 * @param value input value
 	 * @return RDF literal object
 	 */
-	public static IRDFLiteral literal(Object value) {
+	public static ILiteralData literal(Object value) {
 		if(value instanceof Boolean)
 			return new BooleanLiteral((Boolean) value);
 		else if(value instanceof Integer)
@@ -18,6 +20,8 @@ public class LiteralUtility {
 			return new LongLiteral((Long) value);
 		else if(value instanceof Double)
 			return new DecimalLiteral((Double) value);
+		else if(value instanceof URI)
+			return new URILiteral((URI) value);
 		else
 			return new StringLiteral(value.toString());
 	}

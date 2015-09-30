@@ -1,7 +1,9 @@
 package de.tudresden.gis.fusion.operation.geotools;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TreeSet;
 
 import javax.vecmath.Vector3d;
 
@@ -11,15 +13,13 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.Range;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
+import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
@@ -46,12 +46,11 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	private boolean bDropRelations;
 
 	private MeasurementDescription measurementDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_GEOM_DIFFERENCE_ANGLE.identifier(),
+			RDFVocabulary.TYPE_MEAS_GEOM_DIFFERENCE_ANGLE.asString(),
 			"angle difference",
 			"angle difference between linear geometries",
-			new Range<Double>(new Double[]{0d, Math.PI/2}, true),
-			RDFVocabulary.TYPE_UOM_RADIAN_ANGLE.resource(), 
-			new DataProvenance(this.processDescription()));
+			new MeasurementRange(new TreeSet<DecimalLiteral>(Arrays.asList(new DecimalLiteral(0d), new DecimalLiteral(Math.PI/2))), true),
+			RDFVocabulary.UOM_RADIAN_ANGLE.asResource());
 
 	@Override
 	public void execute() throws ProcessException {
@@ -59,11 +58,11 @@ public class AngleDifference extends ARelationMeasurementOperation {
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).value();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).value() : false;
+		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).resolve();
+		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//execute
-		IDataCollection<IRelation<IFeatureView>> relations = 
+		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
@@ -74,19 +73,18 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement<? extends Comparable<?>> measurement(IFeatureView reference, IFeatureView target){
+	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
 		//get geometries
-		LineString gReference = getLinestring(((GTFeature) reference).geometry());
-		LineString gTarget = getLinestring(((GTFeature) target).geometry());
+		LineString gReference = getLinestring(((GTFeature) reference).getDefaultGeometry());
+		LineString gTarget = getLinestring(((GTFeature) target).getDefaultGeometry());
 		//get angle
 		double dAngle = getAngle((LineString) gReference, (LineString) gTarget);
 		//check for overlap		
 		if(dAngle <= dThreshold) {
-			return new RelationMeasurement<Double>(
-					null, 
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					dAngle, 
+			return new RelationMeasurement(
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					new DecimalLiteral(dAngle), 
 					measurementDescription);
 		}
 		else return null;
@@ -149,34 +147,34 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Angle difference calculation";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Calculates feature relation based on geometry angle difference";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,21 +1,20 @@
 package de.tudresden.gis.fusion.data.feature.relation;
 
-import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFResource;
+import de.tudresden.gis.fusion.data.IMeasurement;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
-public interface IRelationMeasurement<T extends Comparable<T>> extends IMeasurementValue<T>,IRDFResource {
+public interface IRelationMeasurement extends IMeasurement,IIdentifiableResource {
 
 	/**
 	 * get reference for this relation measurement
-	 * @return measurements reference
+	 * @return measurement reference
 	 */
-	public IRDFIdentifiableResource source();
+	public Object getSource();
 	
 	/**
 	 * get target for this relation measurement
-	 * @return measurements target
+	 * @return measurement target
 	 */
-	public IRDFIdentifiableResource target();
+	public Object getTarget();
 	
 }

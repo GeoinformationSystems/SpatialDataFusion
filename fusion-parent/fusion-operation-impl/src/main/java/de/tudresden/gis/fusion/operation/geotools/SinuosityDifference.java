@@ -6,14 +6,12 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
@@ -39,12 +37,11 @@ public class SinuosityDifference extends ARelationMeasurementOperation {
 	private boolean bDropRelations;
 	
 	private MeasurementDescription differenceDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_GEOM_DIFFERENCE_SINUOSITY.identifier(),
+			RDFVocabulary.TYPE_MEAS_GEOM_DIFFERENCE_SINUOSITY.asString(),
 			"sinuosity difference",
 			"sinuosity difference between feature geometries",
 			DecimalLiteral.maxRange(),
-			RDFVocabulary.TYPE_UOM_UNDEFINED.resource(),
-			new DataProvenance(this.processDescription()));
+			RDFVocabulary.UOM_UNDEFINED.asResource());
 
 	@Override
 	public void execute() throws ProcessException {
@@ -52,11 +49,11 @@ public class SinuosityDifference extends ARelationMeasurementOperation {
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).value();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).value() : false;
+		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).resolve();
+		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//execute
-		IDataCollection<IRelation<IFeatureView>> relations = 
+		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
@@ -67,21 +64,21 @@ public class SinuosityDifference extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement<? extends Comparable<?>> measurement(IFeatureView reference, IFeatureView target){
+	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
 		//get geometries
-		Geometry gReference = ((GTFeature) reference).geometry();
-		Geometry gTarget = ((GTFeature) target).geometry();
+		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
+		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get angle
 		double dDiff = getSinuosityDiff(gReference, gTarget);
 		//check for overlap		
 		if(Math.abs(dDiff) <= dThreshold) {
-			return new RelationMeasurement<Double>(
+			return new RelationMeasurement(
 					null, 
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					dDiff, 
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					new DecimalLiteral(dDiff), 
 					differenceDescription);
 		}
 		else return null;
@@ -116,34 +113,34 @@ public class SinuosityDifference extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Geometry sinuosity difference calculation";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Calculates feature relation based on sinuosity difference of geometries";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -7,19 +7,18 @@ import java.util.Map;
 import org.opengis.feature.Property;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.IntegerLiteral;
 import de.tudresden.gis.fusion.data.literal.StringLiteral;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
@@ -45,33 +44,32 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	private int iThreshold;
 	private boolean bDropRelations;
 	
-	private IRDFIdentifiableResource referenceProperty, targetProperty;
+	private IIdentifiableResource referenceProperty, targetProperty;
 	
 	private MeasurementDescription distanceDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_STRING_DAMLEV.identifier(),
+			RDFVocabulary.TYPE_MEAS_STRING_DAMLEV.asString(),
 			"Damerau Levenshtein distance",
 			"Damerau Levenshtein distance between two Strings",
 			IntegerLiteral.positiveRange(),
-			RDFVocabulary.TYPE_UOM_UNDEFINED.resource(),
-			new DataProvenance(this.processDescription()));
+			RDFVocabulary.UOM_UNDEFINED.asResource());
 
 	@Override
 	public void execute() throws ProcessException {
 
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		referenceAtt = ((StringLiteral) input(IN_SOURCE_ATT)).value();
+		referenceAtt = ((StringLiteral) input(IN_SOURCE_ATT)).resolve();
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		targetAtt = ((StringLiteral) input(IN_TARGET_ATT)).value();
-		iThreshold = ((IntegerLiteral) input(IN_THRESHOLD)).value();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).value() : false;
+		targetAtt = ((StringLiteral) input(IN_TARGET_ATT)).resolve();
+		iThreshold = ((IntegerLiteral) input(IN_THRESHOLD)).resolve();
+		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//set properties
-		referenceProperty = RDFVocabulary.TYPE_PROPERTY_THEM.resource("#", referenceAtt);
-		targetProperty = RDFVocabulary.TYPE_PROPERTY_THEM.resource("#", targetAtt);
+		referenceProperty = new Resource(RDFVocabulary.PROPERTY_THEM.asString() + "#" + referenceAtt);
+		targetProperty = new Resource(RDFVocabulary.PROPERTY_THEM.asString() + "#" + targetAtt);
 		
 		//execute
-		IDataCollection<IRelation<IFeatureView>> relations = 
+		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
@@ -82,7 +80,7 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement<? extends Comparable<?>> measurement(IFeatureView reference, IFeatureView target){
+	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
 		//get attributes
 		String sReference = getAttributeValue((GTFeature) reference, referenceAtt);
 		String sTarget = getAttributeValue((GTFeature) target, targetAtt);
@@ -92,11 +90,10 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 		int iDistance = getDistance(sReference, sTarget);
 		//check for overlap		
 		if(iDistance <= iThreshold) {
-			return new RelationMeasurement<Integer>(
-					null, 
+			return new RelationMeasurement(
 					referenceProperty,
 					targetProperty,
-					iDistance, 
+					new IntegerLiteral(iDistance), 
 					distanceDescription);
 		}
 		else return null;
@@ -109,7 +106,7 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	 * @return feature property as String
 	 */
 	private String getAttributeValue(GTFeature feature, String name) throws ProcessException {
-		Property property = feature.value().getProperty(name);
+		Property property = feature.resolve().getProperty(name);
 		if(property == null)
 			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "Feature has no attribute " + name);
 		return property.getValue().toString();
@@ -162,34 +159,34 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Damerau Levenshtein String distance calculation";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Calculates feature attribute relation based on Damerau Levenshtein String distance for specified attribute";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

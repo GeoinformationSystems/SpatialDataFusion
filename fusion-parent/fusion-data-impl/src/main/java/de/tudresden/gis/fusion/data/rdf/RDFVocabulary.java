@@ -1,81 +1,119 @@
 package de.tudresden.gis.fusion.data.rdf;
 
-import de.tudresden.gis.fusion.data.IRI;
-
 public enum RDFVocabulary {
-
+	
+	/**
+	 * namespaces
+	 */
+	
+	RDF("http://www.w3.org/1999/02/22-rdf-syntax-ns"),
+	
+	/**
+	 * Subjects & Objects
+	 */
+	
 	//RDF literal types
-	TYPE_BOOLEAN("http://www.w3.org/2001/XMLSchema/#boolean"),
-	TYPE_INTEGER("http://www.w3.org/2001/XMLSchema/#integer"),
-	TYPE_LONG("http://www.w3.org/2001/XMLSchema/#long"),
-	TYPE_DECIMAL("http://www.w3.org/2001/XMLSchema/#decimal"),
-	TYPE_STRING("http://www.w3.org/2001/XMLSchema/#string"),
-	TYPE_ANYURI("http://www.w3.org/2001/XMLSchema/#anyURI"),
+	BOOLEAN("http://www.w3.org/2001/XMLSchema/#boolean"),
+	INTEGER("http://www.w3.org/2001/XMLSchema/#integer"),
+	LONG("http://www.w3.org/2001/XMLSchema/#long"),
+	DECIMAL("http://www.w3.org/2001/XMLSchema/#decimal"),
+	STRING("http://www.w3.org/2001/XMLSchema/#string"),
+	ANYURI("http://www.w3.org/2001/XMLSchema/#anyURI"),
 	
 	//collection type
-	TYPE_BAG("http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"),
+	BAG("http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"),
+	MEMBER("http://www.w3.org/1999/02/22-rdf-syntax-ns#li"),
 	
-	//relation measurement types
-	TYPE_RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion/relation#relationMeasurement"),
-	TYPE_MEASUREMENT_DESCRIPTION("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurementDescription"),
+	//measurement
+	RANGE("http://tu-dresden.de/uw/geo/gis/fusion#range"),
+	RANGE_MEMBER("http://tu-dresden.de/uw/geo/gis/fusion#rangeMember"),
+	RANGE_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#rangeContinuous"),
 	
-	//RDF basics
-	PREDICATE_TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-	PREDICATE_VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
+	//feature
+	FEATURE("http://tu-dresden.de/uw/geo/gis/fusion#feature"),
+	FEATURE_CONCEPT("http://tu-dresden.de/uw/geo/gis/fusion#featureConcept"),
+	FEATURE_TYPE("http://tu-dresden.de/uw/geo/gis/fusion#featureType"),
+	FEATURE_ENTITY("http://tu-dresden.de/uw/geo/gis/fusion#featureInstance"),
+	FEATURE_REPRESENTATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRepresentation"),
 	
-	//dc predicates
-	PREDICATE_DESCRIPTION("http://purl.org/dc/terms/description"),
-	PREDICATE_TITLE("http://purl.org/dc/elements/1.1/title"),
-	PREDICATE_ABSTRACT("http://purl.org/dc/terms/abstract"),
+	//feature property
+	PROPERTY_GEOM("http://tu-dresden.de/uw/geo/gis/fusion#geometryProperty"),
+	PROPERTY_THEM("http://tu-dresden.de/uw/geo/gis/fusion#thematicProperty"),
 	
-	//relation level types
-	TYPE_RELATION_FEATURE("http://tu-dresden.de/uw/geo/gis/fusion/relation#featureRelation"),
-	TYPE_RELATION_LVL_CONCEPT("http://tu-dresden.de/uw/geo/gis/fusion/relation#conceptRelation"),
-	TYPE_RELATION_LVL_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#typeRelation"),
-	TYPE_RELATION_LVL_INSTANCE("http://tu-dresden.de/uw/geo/gis/fusion/relation#instanceRelation"),
-	TYPE_RELATION_LVL_REPRESENTATION("http://tu-dresden.de/uw/geo/gis/fusion/relation#representationRelation"),
+	//relation
+	FEATURE_RELATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRelation"),
+	RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion#relationMeasurement"),
 	
-	//relation basics
-	PREDICATE_RELATION_SOURCE("http://tu-dresden.de/uw/geo/gis/fusion/relation#source"),
-	PREDICATE_RELATION_TARGET("http://tu-dresden.de/uw/geo/gis/fusion/relation#target"),
-	PREDICATE_RELATION_PROCESS("http://tu-dresden.de/uw/geo/gis/fusion/relation#process"),
-	PREDICATE_RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurement"),
-	PREDICATE_RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),
-	PREDICATE_RELATION_MEASUREMENT_UOM("http://tu-dresden.de/uw/geo/gis/fusion/relation#uom"),
+	//metadata
+	METADATA("http://tu-dresden.de/uw/geo/gis/fusion#metadata"),
 	
 	//GML geometry types
-	TYPE_GML3_0D_POINT("http://www.opengis.net/ont/gml#Point"),
-	TYPE_GML3_0D_MULTIPOINT("http://www.opengis.net/ont/gml#MultiPoint"),	
-	TYPE_GML3_1D_CURVE("http://www.opengis.net/ont/gml#Curve"),
-	TYPE_GML3_1D_MULTICURVE("http://www.opengis.net/ont/gml#MultiCurve"),
-	TYPE_GML3_1D_LINESTRING("http://www.opengis.net/ont/gml#LineString"),	
-	TYPE_GML3_2D_SURFACE("http://www.opengis.net/ont/gml#Surface"),
-	TYPE_GML3_2D_MULTISURFACE("http://www.opengis.net/ont/gml#MultiSurface"),
-	TYPE_GML3_2D_POLYGON("http://www.opengis.net/ont/gml#Polygon"),
-	TYPE_GML3_COVERAGE_RECTIFIED_GRID("http://schemas.opengis.net/gml/3.2.1/coverage.xsd#RectifiedGridCoverage"),
-	TYPE_GML3_GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
-	TYPE_GML3_MULTIGEOMETRY("http://www.opengis.net/ont/gml#MultiGeometry"),
+	GML3_0D_POINT("http://www.opengis.net/ont/gml#Point"),
+	GML3_0D_MULTIPOINT("http://www.opengis.net/ont/gml#MultiPoint"),	
+	GML3_1D_CURVE("http://www.opengis.net/ont/gml#Curve"),
+	GML3_1D_MULTICURVE("http://www.opengis.net/ont/gml#MultiCurve"),
+	GML3_1D_LINESTRING("http://www.opengis.net/ont/gml#LineString"),	
+	GML3_2D_SURFACE("http://www.opengis.net/ont/gml#Surface"),
+	GML3_2D_MULTISURFACE("http://www.opengis.net/ont/gml#MultiSurface"),
+	GML3_2D_POLYGON("http://www.opengis.net/ont/gml#Polygon"),
+	GML3_COVERAGE_RECTIFIED_GRID("http://schemas.opengis.net/gml/3.2.1/coverage.xsd#RectifiedGridCoverage"),
+	GML3_GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
+	GML3_MULTIGEOMETRY("http://www.opengis.net/ont/gml#MultiGeometry"),
+	
+	//uom
+	UOM_DEGREE_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#DegreeAngle"),
+	UOM_RADIAN_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Radian"),
+	UOM_KILOMETER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Kilometer"),
+	UOM_MILLISECOND("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#MilliSecond"),
+	UOM_PERCENT("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Percent"),
+	UOM_UNDEFINED("http://tu-dresden.de/uw/geo/gis/fusion/uom#undefined"),
+	UOM_UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
+	
+	/**
+	 * Predicates
+	 */
+	
+	//RDF basics
+	TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+	VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
+	
+	//Dublin Core
+	DESCRIPTION("http://purl.org/dc/terms/description"),
+	TITLE("http://purl.org/dc/elements/1.1/title"),
+	ABSTRACT("http://purl.org/dc/terms/abstract"),
+	
+	/**
+	 * Processes
+	 */
+	
+	//Measurements
+	MEASUREMENT_TIME_INTERVAL("http://www.w3.org/2006/time#interval"),
+	MEASURMENT_TIME_INSTANT("http://www.w3.org/2006/time#instant"),
+	
+	
+
+	MEASUREMENT_DESCRIPTION("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurementDescription"),
+	
+	
+
+	//relation basics
+	RELATION_SOURCE("http://tu-dresden.de/uw/geo/gis/fusion/relation#source"),
+	RELATION_TARGET("http://tu-dresden.de/uw/geo/gis/fusion/relation#target"),
+	RELATION_VIEW("http://tu-dresden.de/uw/geo/gis/fusion/relation#featureView"),
+	PREDICATE_RELATION_PROCESS("http://tu-dresden.de/uw/geo/gis/fusion/relation#process"),
+	
+	RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),
+	PREDICATE_RELATION_MEASUREMENT_UOM("http://tu-dresden.de/uw/geo/gis/fusion/relation#uom"),
+	
+	
 	
 	//feature properties
-	TYPE_PROPERTY_GEOM("http://tu-dresden.de/uw/geo/gis/fusion/relation/property/geometry"),
-	TYPE_PROPERTY_THEM("http://tu-dresden.de/uw/geo/gis/fusion/relation/property/thematic"),
 	
-	//uom - space
-	TYPE_UOM_DEGREE_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#DegreeAngle"),
-	TYPE_UOM_RADIAN_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Radian"),
-	TYPE_UOM_KILOMETER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Kilometer"),
 	
-	//uom - time
-	TYPE_UOM_MILLISECOND("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#MilliSecond"),
 	
-	//uom - other
-	TYPE_UOM_PERCENT("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Percent"),
-	TYPE_UOM_UNDEFINED("http://tu-dresden.de/uw/geo/gis/fusion/uom#undefined"),
-	TYPE_UOM_UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
 	
 	//measurement - time
-	TYPE_MEAS_TIME_INTERVAL("http://www.w3.org/2006/time#interval"),
-	TYPE_MEAS_TIME_INSTANT("http://www.w3.org/2006/time#instant"),
+	
 	
 	//measurement - topology
 	TYPE_MEAS_TOP_INTERSECTS("http://www.opengis.net/ont/geosparql#sfIntersects"),
@@ -95,25 +133,17 @@ public enum RDFVocabulary {
 	
 	;
 	
-	private IRI identifier;
-	private IRDFIdentifiableResource resource;
+	private IIdentifiableResource resource;
 	
 	private RDFVocabulary(String identifier){
-		this.identifier = new IRI(identifier);
+		this.resource = new Resource(identifier);
 	}
 	
-	public IRDFIdentifiableResource resource(){
-		if(resource == null)
-			resource = new RDFIdentifiableResource(identifier);
+	public IIdentifiableResource asResource(){
 		return resource;
 	}
 	
-	public IRDFIdentifiableResource resource(String seperator, String suffix){
-		return new RDFIdentifiableResource(identifier + seperator + suffix);
+	public String asString(){
+		return resource.asString();
 	}
-	
-	public IRI identifier(){
-		return identifier;
-	}
-	
 }

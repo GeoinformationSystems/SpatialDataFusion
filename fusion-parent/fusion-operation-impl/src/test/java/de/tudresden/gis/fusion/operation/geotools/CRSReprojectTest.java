@@ -11,7 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.geotools.io.ShapefileParser;
@@ -42,11 +42,11 @@ public class CRSReprojectTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("TEST: " + process.profile().processDescription().title() + "\n\t" +
+		System.out.print("TEST: " + process.profile().processDescription().getTitle() + "\n\t" +
 				"number of source features: " + reference.size() + "\n\t" +
-				"old CRS: " + reference.value().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
-				"new CRS: " + outSource.value().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
-				"process runtime (ms): " + ((LongLiteral) process.output("OUT_RUNTIME")).value() + "\n\t" +
+				"old CRS: " + reference.collection().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
+				"new CRS: " + outSource.collection().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
+				"process runtime (ms): " + ((LongLiteral) process.output("OUT_RUNTIME")).resolve() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");	
 	}
 

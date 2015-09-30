@@ -1,13 +1,24 @@
 package de.tudresden.gis.fusion.data.relation;
 
-import de.tudresden.gis.fusion.data.IRI;
 import de.tudresden.gis.fusion.data.feature.relation.IRole;
-import de.tudresden.gis.fusion.data.rdf.RDFIdentifiableResource;
 
-public class Role extends RDFIdentifiableResource implements IRole {
+public class Role implements IRole {
 
-	public Role(IRI identifier){
-		super(identifier);
+	private String name, description;
+	
+	public Role(String name, String description){
+		this.name = name;
+		this.description = description;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
 	}
 
 }

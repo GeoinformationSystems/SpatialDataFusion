@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.geotools.GTGridCoverage;
+import de.tudresden.gis.fusion.data.feature.geotools.GTGridCoverage;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.ProcessException;
@@ -32,9 +32,9 @@ public class CoverageParserTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("TEST: " + parser.profile().processDescription().title() + "\n\t" +
-				"bounds: " + coverage.value().getEnvelope() + "\n\t" +
-				"process runtime (ms): " + ((LongLiteral) parser.output("OUT_RUNTIME")).value() + "\n\t" +
+		System.out.print("TEST: " + parser.profile().processDescription().getTitle() + "\n\t" +
+				"bounds: " + coverage.resolve().getEnvelope() + "\n\t" +
+				"process runtime (ms): " + ((LongLiteral) parser.output("OUT_RUNTIME")).resolve() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");	
 	}
 	

@@ -9,9 +9,8 @@ import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureSource;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
-import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
@@ -33,18 +32,18 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 	public void execute() throws ProcessException {
 		
 		URILiteral shapeResource = (URILiteral) input(IN_RESOURCE);
-		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).value() : false;
+		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).resolve() : false;
 		
 		GTFeatureCollection shapeFC;
 		try {
-			URL resourceURL = shapeResource.value().toURL();
+			URL resourceURL = shapeResource.resolve().toURL();
 			ShapefileDataStore store = new ShapefileDataStore(resourceURL);
 	        String name = store.getTypeNames()[0];
 	        SimpleFeatureSource source = store.getFeatureSource(name);
 	        if(bWithIndex)
-	        	shapeFC = new GTIndexedFeatureCollection(new IRI(resourceURL), DataUtilities.collection(source.getFeatures().features()), null);
+	        	shapeFC = new GTIndexedFeatureCollection(DataUtilities.collection(source.getFeatures().features()));
 	        else
-	        	shapeFC = new GTFeatureCollection(new IRI(resourceURL), DataUtilities.collection(source.getFeatures().features()), null);
+	        	shapeFC = new GTFeatureCollection(DataUtilities.collection(source.getFeatures().features()));
 	        store.dispose();
 		} catch (IOException e) {
 			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Error while parsing Shapefile", e);
@@ -54,34 +53,34 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Shapefile parser";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Parser for ESRI Shapefile format";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

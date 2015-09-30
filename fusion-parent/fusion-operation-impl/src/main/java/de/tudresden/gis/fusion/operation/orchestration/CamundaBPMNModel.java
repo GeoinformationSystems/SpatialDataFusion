@@ -11,9 +11,9 @@ import org.camunda.bpm.model.xml.ModelValidationException;
 
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 import de.tudresden.gis.fusion.operation.IOperationInstance;
-import de.tudresden.gis.fusion.operation.orchestration.IOrchestrationModel;
+import de.tudresden.gis.fusion.operation.aggregate.IProcessModel;
 
-public class CamundaBPMNModel implements IOrchestrationModel {
+public class CamundaBPMNModel implements IProcessModel {
 
 	private BpmnModelInstance model;
 	
@@ -22,12 +22,12 @@ public class CamundaBPMNModel implements IOrchestrationModel {
 	}
 	
 	@Override
-	public Object value() {
+	public Object resolve() {
 		return model;
 	}
 
 	@Override
-	public IDataDescription description() {
+	public IDataDescription getDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}

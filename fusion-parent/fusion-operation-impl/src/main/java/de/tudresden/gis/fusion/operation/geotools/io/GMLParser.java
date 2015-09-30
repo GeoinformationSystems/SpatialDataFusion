@@ -26,9 +26,8 @@ import org.geotools.xml.PullParser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.SAXException;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
-import de.tudresden.gis.fusion.data.geotools.GTIndexedFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
@@ -52,14 +51,14 @@ public class GMLParser extends AOperationInstance implements IParser {
 	public void execute() {
 		
 		URILiteral gmlResource = (URILiteral) input(IN_RESOURCE);
-		resource = gmlResource.value().toString();
-		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).value() : false;
+		resource = gmlResource.resolve().toString();
+		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).resolve() : false;
 		
 		GTFeatureCollection gmlFC = null;
 
 		URL url;
 		try {
-			url = gmlResource.value().toURL();
+			url = gmlResource.resolve().toURL();
 		} catch (MalformedURLException e) {
 			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "GML source is no valid URL");
 		}
@@ -192,9 +191,9 @@ public class GMLParser extends AOperationInstance implements IParser {
 	
 	private GTFeatureCollection parseGML(InputStream stream, Configuration configuration, boolean bWithIndex) throws XMLStreamException, IOException, SAXException {
 		if(bWithIndex)
-        	return new GTIndexedFeatureCollection(new IRI(resource), parse(stream, configuration), null);
+        	return new GTIndexedFeatureCollection(resource, parse(stream, configuration), null);
         else
-        	return new GTFeatureCollection(new IRI(resource), parse(stream, configuration), null);
+        	return new GTFeatureCollection(resource, parse(stream, configuration), null);
 	}
 	
 	public SimpleFeatureCollection parse(InputStream xmlIS, Configuration configuration) throws XMLStreamException, IOException, SAXException {		
@@ -208,34 +207,34 @@ public class GMLParser extends AOperationInstance implements IParser {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "GML parser";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Parser for OGC GML format";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

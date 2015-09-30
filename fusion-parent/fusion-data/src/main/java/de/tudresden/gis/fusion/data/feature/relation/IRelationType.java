@@ -2,56 +2,50 @@ package de.tudresden.gis.fusion.data.feature.relation;
 
 import java.util.Collection;
 
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
-public interface IRelationType extends IRDFIdentifiableResource {
+public interface IRelationType extends IIdentifiableResource {
 
 	/**
 	 * get role of the source feature view as specified by this relation type
 	 * @return source role
 	 */
-	public IRole sourceRole();
+	public IRole getSource();
 	
 	/**
 	 * get role of the target feature view as specified by this relation type
 	 * @return source role
 	 */
-	public IRole targetRole();
+	public IRole getTarget();
 	
 	/**
 	 * check if a relation type is symmetric
 	 * @return true if relation type is symmetric
 	 */
-	public boolean symmetric();
+	public boolean isSymmetric();
 	
 	/**
 	 * check if a relation type is transitive
 	 * @return true if relation type is transitive
 	 */
-	public boolean transitive();
+	public boolean isTransitive();
 	
 	/**
 	 * check if a relation type is reflexive
 	 * @return true if relation type is reflexive
 	 */
-	public boolean reflexive();
+	public boolean isReflexive();
 	
 	/**
-	 * get inverse relation types
-	 * @return inverse relation types
+	 * get inverse relation type
+	 * @return inverse relation type, null if no inverse type exists
 	 */
-	public Collection<IRelationType> inverseTypes();
+	public IRelationType getInverse();
 	
 	/**
 	 * get disjoint relation types
-	 * @return disjoint relation types
+	 * @return disjoint relation types, empty set if no disjoint types exist
 	 */
-	public Collection<IRelationType> disjointTypes();
-	
-	/**
-	 * get underlying measurements for this relation type
-	 * @return underlying relation measurements
-	 */
-	public Collection<IRelationMeasurement<?>> measurements();
+	public Collection<IRelationType> getDisjoint();
 	
 }

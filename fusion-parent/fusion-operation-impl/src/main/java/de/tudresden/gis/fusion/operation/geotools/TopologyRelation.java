@@ -7,16 +7,15 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.IntersectionMatrix;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
 import de.tudresden.gis.fusion.data.RangePattern;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
+import de.tudresden.gis.fusion.data.literal.StringLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
@@ -38,12 +37,11 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 	private boolean bDropRelations;
 	
 	private MeasurementDescription de9imDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_TOP_DE9IM.identifier(),
+			RDFVocabulary.TYPE_MEAS_TOP_DE9IM.asString(),
 			"DE-9IM code",
 			"DE9-IM code for intersection between feature geometries",
 			new RangePattern("^[012TF\\*]{9}$"),
-			RDFVocabulary.TYPE_UOM_UNDEFINED.resource(),
-			new DataProvenance(this.processDescription()));
+			RDFVocabulary.UOM_UNDEFINED.asResource());
 
 	@Override
 	public void execute() throws ProcessException {
@@ -52,10 +50,10 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
 		
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).value() : false;
+		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//execute
-		IDataCollection<IRelation<IFeatureView>> relations = 
+		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
@@ -66,21 +64,21 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement<? extends Comparable<?>> measurement(IFeatureView reference, IFeatureView target){
+	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
 		//get geometries
-		Geometry gReference = ((GTFeature) reference).geometry();
-		Geometry gTarget = ((GTFeature) target).geometry();
+		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
+		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get overlap
 		IntersectionMatrix matrix = gReference.relate(gTarget);
 		//check for overlap		
 		if(!matrix.isDisjoint()){
-			return new RelationMeasurement<String>(
+			return new RelationMeasurement(
 					null, 
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					matrix.toString(), 
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					new StringLiteral(matrix.toString()), 
 					de9imDescription);
 		}
 		else
@@ -88,34 +86,34 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Topology relation calculation";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Calculates feature relation based on topology relation of geometries (DE9-IM model)";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

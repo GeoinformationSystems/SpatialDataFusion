@@ -8,8 +8,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.geotools.GTGridCoverage;
+import de.tudresden.gis.fusion.data.feature.geotools.GTGridCoverage;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
@@ -35,8 +34,8 @@ public class GridCoverageParser extends AOperationInstance implements IParser {
 		GTGridCoverage coverage = null;
 		
 		try {
-			tmpCoverage = File.createTempFile("tmpCoverage" + UUID.randomUUID(), ".tmp");
-			stream = coverageResource.value().toURL().openStream();
+			tmpCoverage = File.createTempFile("coverage" + UUID.randomUUID(), ".tmp");
+			stream = coverageResource.resolve().toURL().openStream();
 			FileOutputStream outputStream = new FileOutputStream(tmpCoverage);
 			byte buf[] = new byte[4096];
 			int len;
@@ -48,47 +47,47 @@ public class GridCoverageParser extends AOperationInstance implements IParser {
 			stream.close();
 			
 		} catch (IOException e){
-			throw new ProcessException(ExceptionKey.INPUT_NOT_ACCESSIBLE, "Cannot read coverage file");
+			throw new ProcessException(ExceptionKey.INPUT_NOT_ACCESSIBLE, "Cannot read coverage file: " + e.getLocalizedMessage());
 		}
 		
 		try {
-			coverage = new GTGridCoverage(new IRI(coverageResource.value().toString()), tmpCoverage);
-		} catch (Exception e1) {
-			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "Input coverage is not supported");
+			coverage = new GTGridCoverage(coverageResource.resolve().toString(), tmpCoverage);
+		} catch (Exception e) {
+			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "Input coverage is not supported: " + e.getLocalizedMessage());
 		}
         
 		setOutput(OUT_COVERAGE, coverage);
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Coverage parser";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Parser for grid coverage format";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

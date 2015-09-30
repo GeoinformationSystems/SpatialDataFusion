@@ -1,14 +1,17 @@
 package de.tudresden.gis.fusion.data.literal;
 
-import de.tudresden.gis.fusion.data.ILiteral;
-import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.Range;
+import java.util.Arrays;
+import java.util.TreeSet;
+
+import de.tudresden.gis.fusion.data.ILiteralData;
+import de.tudresden.gis.fusion.data.IMeasurement;
+import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class BooleanLiteral implements ILiteral,IMeasurementValue<Boolean>,IRDFTypedLiteral {
+public class BooleanLiteral implements ILiteralData,IMeasurement,ITypedLiteral {
 
 	private boolean value;
 	private IMeasurementDescription description;
@@ -23,36 +26,39 @@ public class BooleanLiteral implements ILiteral,IMeasurementValue<Boolean>,IRDFT
 	}
 
 	@Override
-	public Boolean value() {
+	public Boolean resolve() {
 		return value;
 	}
 
 	@Override
-	public IMeasurementDescription description() {
+	public IMeasurementDescription getDescription() {
 		return description;
 	}
 
 	@Override
-	public int compareTo(Boolean o) {
-		return this.value().compareTo(o);
+	public int compareTo(IMeasurement measurement) {
+		if(measurement instanceof BooleanLiteral)
+			return this.resolve().compareTo(((BooleanLiteral) measurement).resolve());
+		else
+			throw new ClassCastException("Cannot cast to BooleanLiteral");
 	}
 
 	@Override
-	public ILiteral literalValue() {
-		return this;
+	public String getValue() {
+		return String.valueOf(value);
 	}
 	
 	@Override
-	public IRDFIdentifiableResource type() {
-		return RDFVocabulary.TYPE_BOOLEAN.resource();
+	public IIdentifiableResource getType() {
+		return RDFVocabulary.BOOLEAN.asResource();
 	}
 	
 	/**
 	 * get maximum range for this literal type
 	 * @return maximum range
 	 */
-	public static Range<Boolean> maxRange(){
-		return new Range<Boolean>(new Boolean[]{true, false}, false);
+	public static MeasurementRange maxRange(){
+		return new MeasurementRange(new TreeSet<BooleanLiteral>(Arrays.asList(new BooleanLiteral(true), new BooleanLiteral(false))), false);
 	}
 
 }

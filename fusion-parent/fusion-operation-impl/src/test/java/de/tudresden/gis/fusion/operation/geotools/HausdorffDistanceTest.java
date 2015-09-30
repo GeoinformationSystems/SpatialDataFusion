@@ -10,7 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
@@ -48,11 +48,11 @@ public class HausdorffDistanceTest {
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();
-		System.out.print("TEST: " + process.profile().processDescription().title() + "\n\t" +
+		System.out.print("TEST: " + process.profile().processDescription().getTitle() + "\n\t" +
 				"number of reference features: " + reference.size() + "\n\t" + 
 				"number of target features: " + target.size() + "\n\t" +
 				"number of identified relations: " + relations.size() + "\n\t" +
-				"process runtime (ms): " + ((LongLiteral) process.output("OUT_RUNTIME")).value() + "\n\t" +
+				"process runtime (ms): " + ((LongLiteral) process.output("OUT_RUNTIME")).resolve() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");		
 	}
 

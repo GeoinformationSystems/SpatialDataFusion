@@ -22,9 +22,8 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import com.vividsolutions.jts.geom.Geometry;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.ProcessException;
@@ -50,13 +49,13 @@ public class CRSReproject extends AOperationInstance {
 		GTFeatureCollection inTarget = inputContainsKey(IN_TARGET) ? (GTFeatureCollection) input(IN_TARGET) : null;
 		
 		//get source and target crs
-		CoordinateReferenceSystem crsSource = inSource.value().getSchema().getCoordinateReferenceSystem();
-		CoordinateReferenceSystem crsTarget = inTarget != null ? inTarget.value().getSchema().getCoordinateReferenceSystem() : null;
+		CoordinateReferenceSystem crsSource = inSource.collection().getSchema().getCoordinateReferenceSystem();
+		CoordinateReferenceSystem crsTarget = inTarget != null ? inTarget.collection().getSchema().getCoordinateReferenceSystem() : null;
 		
 		//get final crs
 		CoordinateReferenceSystem crsFinal;
 		if(inputContainsKey(IN_CRS))
-			crsFinal = decodeCRS(((URILiteral) input(IN_CRS)).value().toString());
+			crsFinal = decodeCRS(((URILiteral) input(IN_CRS)).resolve().toString());
 		else if(crsTarget != null)
 			crsFinal = crsTarget;
 		else
@@ -85,7 +84,7 @@ public class CRSReproject extends AOperationInstance {
 		}
 	}
 	
-private GTFeatureCollection reproject(GTFeatureCollection features, CoordinateReferenceSystem featureCRS, CoordinateReferenceSystem finalCRS) throws ProcessException {
+	private GTFeatureCollection reproject(GTFeatureCollection features, CoordinateReferenceSystem featureCRS, CoordinateReferenceSystem finalCRS) throws ProcessException {
 		
 		//check if feature colletion is set
 		if(features == null || features.size() == 0)
@@ -103,11 +102,11 @@ private GTFeatureCollection reproject(GTFeatureCollection features, CoordinateRe
 		
 		//iterate collection and transform
 	    for(GTFeature feature : features) {
-	    	features_proj.add(reproject((SimpleFeature) feature.value(), finalCRS, transformation));
+	    	features_proj.add(reproject((SimpleFeature) feature.resolve(), finalCRS, transformation));
 		}
 	    
 		//return
-		return new GTFeatureCollection(new IRI(features.value().getID()), DataUtilities.collection(features_proj), features.description());
+		return new GTFeatureCollection(features.asString(), DataUtilities.collection(features_proj), features.getDescription());
 	}
 
 	/**
@@ -209,36 +208,35 @@ private GTFeatureCollection reproject(GTFeatureCollection features, CoordinateRe
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "CRS reproject";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Reprojects coordinate reference system for input feature";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

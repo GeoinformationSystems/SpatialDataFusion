@@ -1,14 +1,17 @@
 package de.tudresden.gis.fusion.data.literal;
 
-import de.tudresden.gis.fusion.data.ILiteral;
-import de.tudresden.gis.fusion.data.IMeasurementValue;
-import de.tudresden.gis.fusion.data.Range;
+import java.util.Arrays;
+import java.util.TreeSet;
+
+import de.tudresden.gis.fusion.data.ILiteralData;
+import de.tudresden.gis.fusion.data.IMeasurement;
+import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class LongLiteral implements ILiteral,IMeasurementValue<Long>,IRDFTypedLiteral {
+public class LongLiteral implements ILiteralData,IMeasurement,ITypedLiteral {
 
 	private long value;
 	private IMeasurementDescription description;
@@ -23,51 +26,46 @@ public class LongLiteral implements ILiteral,IMeasurementValue<Long>,IRDFTypedLi
 	}
 
 	@Override
-	public Long value() {
+	public Long resolve() {
 		return value;
 	}
 
 	@Override
-	public IMeasurementDescription description() {
+	public IMeasurementDescription getDescription() {
 		return description;
 	}
 
 	@Override
-	public int compareTo(Long o) {
-		return this.value().compareTo(o);
+	public int compareTo(IMeasurement measurement) {
+		if(measurement instanceof LongLiteral)
+			return this.resolve().compareTo(((LongLiteral) measurement).resolve());
+		else
+			throw new ClassCastException("Cannot cast to LongLiteral");
 	}
 
 	@Override
-	public ILiteral literalValue() {
-		return this;
+	public String getValue() {
+		return String.valueOf(value);
 	}
 	
 	@Override
-	public IRDFIdentifiableResource type() {
-		return resource();
-	}
-	
-	/**
-	 * get resource for this literal type
-	 * @return literal type resource
-	 */
-	public static IRDFIdentifiableResource resource(){
-		return RDFVocabulary.TYPE_LONG.resource();
+	public IIdentifiableResource getType() {
+		return RDFVocabulary.LONG.asResource();
 	}
 	
 	/**
 	 * get maximum range for this literal type
 	 * @return maximum range
 	 */
-	public static Range<Long> maxRange(){
-		return new Range<Long>(new Long[]{Long.MIN_VALUE, Long.MAX_VALUE}, true);
+	public static MeasurementRange maxRange(){
+		return new MeasurementRange(new TreeSet<LongLiteral>(Arrays.asList(new LongLiteral(Long.MIN_VALUE), new LongLiteral(Long.MAX_VALUE))), true);
 	}
 	
 	/**
 	 * get positive range for this literal type
 	 * @return positive range
 	 */
-	public static Range<Long> positiveRange(){
-		return new Range<Long>(new Long[]{0l, Long.MAX_VALUE}, true);
+	public static MeasurementRange positiveRange(){
+		return new MeasurementRange(new TreeSet<LongLiteral>(Arrays.asList(new LongLiteral(0l), new LongLiteral(Long.MAX_VALUE))), true);
 	}
 }

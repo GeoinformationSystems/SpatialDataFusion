@@ -1,110 +1,96 @@
 package de.tudresden.gis.fusion.data.relation;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.Set;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.AbstractDataResource;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationType;
-import de.tudresden.gis.fusion.data.rdf.IRDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.IRDFResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
-import de.tudresden.gis.fusion.data.rdf.RDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.ITripleSet;
+import de.tudresden.gis.fusion.data.rdf.ObjectSet;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class FeatureRelation<T extends IFeatureView> extends RDFResource implements IRelation<T>,IRDFTripleSet {
+public class FeatureRelation extends AbstractDataResource implements IFeatureRelation,ITripleSet {
 	
-	private T source;
-	private T target;
-	private Collection<IRelationType> types;
-	private Collection<IRelationMeasurement<?>> measurements;
+	private ObjectSet objectSet;
+	
+	//predicates
+	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
+	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
+	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
+	private IIdentifiableResource RELATION_TYPE = RDFVocabulary.RELATION_TYPE.asResource();
+	private IIdentifiableResource VIEW = RDFVocabulary.RELATION_VIEW.asResource();
+	private IIdentifiableResource MEASUREMENTS = RDFVocabulary.RELATION_MEASUREMENT.asResource();
 
-	public FeatureRelation(IRI identifier, T source, T target, Collection<IRelationType> types, Collection<IRelationMeasurement<?>> measurements){
+	public FeatureRelation(String identifier, IFeature source, IFeature target, IIdentifiableResource view, IRelationType type, Collection<IRelationMeasurement> measurements){
 		super(identifier);
-		this.source = source;
-		this.target = target;
-		this.types = types;
-		this.measurements = measurements;
+		objectSet = new ObjectSet();
+		//set resource type
+		objectSet.put(RESOURCE_TYPE, RDFVocabulary.FEATURE_RELATION.asResource());
+		//set objects
+		objectSet.put(SOURCE, source, true);
+		objectSet.put(TARGET, target, true);
+		objectSet.put(RELATION_TYPE, type);
+		objectSet.put(VIEW, view);
+		objectSet.put(MEASUREMENTS, measurements);
 	}
 	
-	public FeatureRelation(IRI identifier, T source, T target){
-		this(identifier, source, target, new HashSet<IRelationType>(), new HashSet<IRelationMeasurement<?>>());
+	public FeatureRelation(String identifier, IFeature source, IFeature target){
+		this(identifier, source, target, null, null, null);
 	}
 	
-	public FeatureRelation(T source, T target){
+	public FeatureRelation(IFeature source, IFeature target){
 		this(null, source, target);
 	}
 	
 	@Override
-	public Object value() {
-		return this;
+	public IFeature getSource() {
+		return (IFeature) objectSet.getFirst(SOURCE);
 	}
 
 	@Override
-	public IDataDescription description() {
-		// TODO Auto-generated method stub
-		return null;
+	public IFeature getTarget() {
+		return (IFeature) objectSet.getFirst(TARGET);
 	}
 	
 	@Override
-	public T source() {
-		return source;
+	public IRelationType getRelationType() {
+		return (IRelationType) objectSet.getFirst(RELATION_TYPE);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public T target() {
-		return target;
+	public Collection<IRelationMeasurement> getRelationMeasurements() {
+		return (Collection<IRelationMeasurement>) objectSet.getFirst(MEASUREMENTS);
 	}
 	
 	@Override
-	public Collection<IRelationType> relationTypes() {
-		return types;
+	public IIdentifiableResource getFeatureView() {
+		return (IIdentifiableResource) objectSet.getFirst(VIEW);
 	}
 
 	@Override
-	public Collection<IRelationMeasurement<?>> relationMeasurements() {
-		return measurements;
+	public Collection<IIdentifiableResource> getPredicates() {
+		return objectSet.keySet();
+	}
+
+	@Override
+	public Set<INode> getObject(IIdentifiableResource predicate) {
+		return objectSet.get(predicate);
+	}
+
+	@Override
+	public int size() {
+		return objectSet.numberOfObjects();
 	}
 	
 	@Override
-	public IRDFResource subject() {
-		return this;
-	}
-
-	@Override
-	public Collection<IRDFPredicateObject> objectSet() {
-		//init set
-		Collection<IRDFPredicateObject> objectSet = new LinkedList<IRDFPredicateObject>();
-		//add relation instance
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_TYPE.resource(), RDFVocabulary.TYPE_RELATION_FEATURE.resource()));
-		//add feature view members
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_SOURCE.resource(), source));
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_TARGET.resource(), target));
-		//add relation types
-		for(IRelationType type : relationTypes()){
-			objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_TYPE.resource(), type));
-		}
-		//add measurements
-		for(IRelationMeasurement<?> measurement : relationMeasurements()){
-			objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_MEASUREMENT.resource(), measurement));
-		}
-
-		return objectSet;
+	public void addMeasurement(IRelationMeasurement measurement){
+		objectSet.put(MEASUREMENTS, measurement);
 	}
 	
-	@Override
-	public void add(IRelationType type){
-		types.add(type);
-	}
-	
-	@Override
-	public void add(IRelationMeasurement<?> measurement){
-		measurements.add(measurement);
-	}
-
 }

@@ -1,39 +1,55 @@
 package de.tudresden.gis.fusion.data;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class RangePattern implements IRange<String> {
+import de.tudresden.gis.fusion.data.description.IMeasurementRange;
+import de.tudresden.gis.fusion.data.literal.StringLiteral;
+import de.tudresden.gis.fusion.data.rdf.Resource;
+
+public class RangePattern extends Resource implements IMeasurementRange {
 
 	private Pattern pattern;
+	private transient Collection<IMeasurement> range;
 	
-	public RangePattern(String pattern) throws PatternSyntaxException {
+	public RangePattern(String identifier, String pattern) throws PatternSyntaxException {
+		super(identifier);
 		this.pattern = Pattern.compile(pattern);
 	}
 	
+	public RangePattern(String pattern) throws PatternSyntaxException {
+		this(null, pattern);
+	}
+	
 	@Override
-	public String[] valueRange() {
-		return new String[]{pattern.pattern()};
+	public Collection<IMeasurement> getRange() {
+		if(range == null){
+			range = new HashSet<IMeasurement>();
+			range.add(new StringLiteral(pattern.pattern()));
+		}
+		return range;
 	}
 
 	@Override
-	public boolean continuous() {
+	public boolean isContinuous() {
 		return false;
 	}
 
 	@Override
-	public String min() {
+	public StringLiteral getMin() {
 		return null;
 	}
 
 	@Override
-	public String max() {
+	public StringLiteral getMax() {
 		return null;
 	}
 
 	@Override
-	public boolean contains(String target) {
-		return pattern.matcher(target).matches();
+	public boolean contains(IMeasurement target) {
+		return pattern.matcher(target.resolve().toString()).matches();
 	}
 
 }

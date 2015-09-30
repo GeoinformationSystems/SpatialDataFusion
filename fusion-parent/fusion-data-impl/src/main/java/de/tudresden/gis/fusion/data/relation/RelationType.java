@@ -3,20 +3,18 @@ package de.tudresden.gis.fusion.data.relation;
 import java.util.Collection;
 import java.util.HashSet;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationType;
 import de.tudresden.gis.fusion.data.feature.relation.IRole;
-import de.tudresden.gis.fusion.data.rdf.RDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 
-public class RelationType extends RDFIdentifiableResource implements IRelationType {
+public class RelationType extends Resource implements IRelationType {
 	
 	private IRole sourceRole, targetRole;
 	private boolean symmetric, transitive, reflexive;
-	private Collection<IRelationType> inverse, disjoint;
-	private Collection<IRelationMeasurement<?>> measurements;
+	private IRelationType inverse;
+	private Collection<IRelationType> disjoint;
 
-	public RelationType(IRI identifier, IRole sourceRole, IRole targetRole, boolean symmetric, boolean transitive, boolean reflexive) {
+	public RelationType(String identifier, IRole sourceRole, IRole targetRole, boolean symmetric, boolean transitive, boolean reflexive) {
 		super(identifier);
 		this.sourceRole = sourceRole;
 		this.targetRole = targetRole;
@@ -26,42 +24,40 @@ public class RelationType extends RDFIdentifiableResource implements IRelationTy
 	}
 
 	@Override
-	public IRole sourceRole() {
+	public IRole getSource() {
 		return sourceRole;
 	}
 
 	@Override
-	public IRole targetRole() {
+	public IRole getTarget() {
 		return targetRole;
 	}
 
 	@Override
-	public boolean symmetric() {
+	public boolean isSymmetric() {
 		return symmetric;
 	}
 
 	@Override
-	public boolean transitive() {
+	public boolean isTransitive() {
 		return transitive;
 	}
 
 	@Override
-	public boolean reflexive() {
+	public boolean isReflexive() {
 		return reflexive;
 	}
 	
 	/**
-	 * add an inverse relation type
-	 * @param type inverse relation type
+	 * set inverse relation type
+	 * @param inverse inverse relation type
 	 */
-	public void addInverse(IRelationType type){
-		if(inverse == null)
-			inverse = new HashSet<IRelationType>();
-		this.inverse.add(type);
+	public void addInverse(IRelationType inverse){
+		this.inverse = inverse;
 	}
 
 	@Override
-	public Collection<IRelationType> inverseTypes() {
+	public IRelationType getInverse() {
 		return inverse;
 	}
 	
@@ -76,23 +72,8 @@ public class RelationType extends RDFIdentifiableResource implements IRelationTy
 	}
 
 	@Override
-	public Collection<IRelationType> disjointTypes() {
+	public Collection<IRelationType> getDisjoint() {
 		return disjoint;
-	}
-	
-	/**
-	 * add underlying relation measurement to this relation type
-	 * @param measurement relation measurement
-	 */
-	public void addMeasurements(IRelationMeasurement<?> measurement){
-		if(measurements == null)
-			measurements = new HashSet<IRelationMeasurement<?>>();
-		this.measurements.add(measurement);
-	}
-
-	@Override
-	public Collection<IRelationMeasurement<?>> measurements() {
-		return measurements;
 	}
 
 }

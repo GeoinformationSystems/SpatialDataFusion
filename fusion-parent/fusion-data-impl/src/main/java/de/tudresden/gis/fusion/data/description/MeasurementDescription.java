@@ -1,41 +1,30 @@
 package de.tudresden.gis.fusion.data.description;
 
-import java.util.Collection;
-
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.IRange;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.RDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
 public class MeasurementDescription extends DataDescription implements IMeasurementDescription {
 	
-	private IRange<?> range;
-	private IRDFIdentifiableResource uom;
+	private IMeasurementRange range;
+	private IIdentifiableResource uom;
 
-	public MeasurementDescription(IRI identifier, String title, String abstrakt, IRange<?> range, IRDFIdentifiableResource uom, IDataProvenance provenance) {
-		super(identifier, title, abstrakt, provenance);
+	public MeasurementDescription(String identifier, String title, String description, IMeasurementRange range, IIdentifiableResource uom) {
+		super(identifier, title, description);
 		this.range = range;
 		this.uom = uom;
 	}
 	
+	public MeasurementDescription(String title, String description, IMeasurementRange range, IIdentifiableResource uom) {
+		this(null, title, description, range, uom);
+	}
+	
 	@Override
-	public IRange<?> range() {
+	public IMeasurementRange getRange() {
 		return range;
 	}
 
 	@Override
-	public IRDFIdentifiableResource unitOfMeasurement() {
+	public IIdentifiableResource getUnitOfMeasurement() {
 		return uom;
-	}
-	
-	@Override
-	public Collection<IRDFPredicateObject> objectSet() {
-		Collection<IRDFPredicateObject> objectSet = super.objectSet();
-		
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_MEASUREMENT_UOM.resource(), this.unitOfMeasurement()));
-		return objectSet;
 	}
 
 }

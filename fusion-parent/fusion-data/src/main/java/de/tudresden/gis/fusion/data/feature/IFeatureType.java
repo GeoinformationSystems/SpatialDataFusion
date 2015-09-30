@@ -8,12 +8,12 @@ public interface IFeatureType extends IFeatureView {
 	 * get feature concept implemented by this type
 	 * @return related feature concept
 	 */
-	public IFeatureConcept concept();
+	public IFeatureConcept getRelatedConcept();
 	
 	/**
 	 * get representations implementing this type
 	 * @return related feature representations
 	 */
-	public Collection<IFeatureRepresentation> representations();
+	public Collection<IFeatureRepresentation> getRelatedRepresentations();
 	
 }

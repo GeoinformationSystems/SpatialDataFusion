@@ -1,11 +1,19 @@
 package de.tudresden.gis.fusion.data.description;
 
-public interface IDataDescription extends IResourceDescription {
+import de.tudresden.gis.fusion.data.rdf.IResource;
+
+public interface IDataDescription extends IResource {
 	
 	/**
-	 * get data provenance
-	 * @return data provenance
+	 * get title (http://purl.org/dc/terms/title)
+	 * @return title
 	 */
-	public IDataProvenance provenance();
+	public String getTitle();
+	
+	/**
+	 * get abstract description (http://purl.org/dc/terms/description)
+	 * @return abstract description
+	 */
+	public String getDescription();
 	
 }

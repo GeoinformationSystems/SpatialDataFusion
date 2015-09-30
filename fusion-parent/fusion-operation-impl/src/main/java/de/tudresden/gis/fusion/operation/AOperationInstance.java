@@ -5,15 +5,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
+import de.tudresden.gis.fusion.operation.description.IOperationProfile;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
 import de.tudresden.gis.fusion.operation.description.IProcessDescription;
+import de.tudresden.gis.fusion.operation.description.OperationProfile;
 import de.tudresden.gis.fusion.operation.description.ProcessDescription;
 
 public abstract class AOperationInstance implements IOperationInstance {
@@ -29,7 +29,7 @@ public abstract class AOperationInstance implements IOperationInstance {
 	}
 
 	@Override
-	public Map<String, IData> execute(Map<String,IData> input) {
+	public Map<String,IData> execute(Map<String,IData> input) {
 		//clear outputs
 		clearOutput();
 		//set inputs
@@ -52,22 +52,29 @@ public abstract class AOperationInstance implements IOperationInstance {
 	@Override
 	public IOperationProfile profile() {
 		return new OperationProfile(
-				inputDescription(), 
-				outputDescriptions(), 
-				processDescription());
+				getProcessIdentifier(),
+				getInputDescription(), 
+				getOutputDescriptions(), 
+				getProcessDescription());
 	}
+	
+	/**
+	 * get unique process identifier
+	 * @return process identifier
+	 */
+	public abstract String getProcessIdentifier();
 	
 	/**
 	 * abstract method: get input descriptions
 	 * @return input description
 	 */
-	public abstract Map<String, IInputDescription> inputDescription();
+	public abstract Map<String, IInputDescription> getInputDescription();
 
 	/**
 	 * abstract method: get output descriptions
 	 * @return output descriptions
 	 */
-	public abstract Map<String, IOutputDescription> outputDescriptions();
+	public abstract Map<String, IOutputDescription> getOutputDescriptions();
 
 	/**
 	 * execution of the process (called by execute(Map<String, IData> input))
@@ -186,12 +193,11 @@ public abstract class AOperationInstance implements IOperationInstance {
 	protected void setStart(){
 		setOutput(OUT_START, new LongLiteral(System.currentTimeMillis(), 
 				new MeasurementDescription(
-						RDFVocabulary.TYPE_MEAS_TIME_INSTANT.identifier(),
+						RDFVocabulary.MEASURMENT_TIME_INSTANT.asString(),
 						"Start", 
 						"Start time of the operation in Unix time", 
 						LongLiteral.maxRange(), 
-						RDFVocabulary.TYPE_UOM_MILLISECOND.resource(),
-						new DataProvenance(this.processDescription()))));
+						RDFVocabulary.UOM_MILLISECOND.asResource())));
 	}
 	
 	/**
@@ -206,14 +212,13 @@ public abstract class AOperationInstance implements IOperationInstance {
 	 * set runtime of the process
 	 */
 	protected void setRuntime(){
-		setOutput(OUT_RUNTIME, new LongLiteral(System.currentTimeMillis() - start().value(),
+		setOutput(OUT_RUNTIME, new LongLiteral(System.currentTimeMillis() - start().resolve(),
 				new MeasurementDescription(
-						RDFVocabulary.TYPE_MEAS_TIME_INTERVAL.identifier(),
+						RDFVocabulary.MEASUREMENT_TIME_INTERVAL.asString(),
 						"Runtime", 
 						"Runtime of the operation",  
 						LongLiteral.positiveRange(), 
-						RDFVocabulary.TYPE_UOM_MILLISECOND.resource(),
-						new DataProvenance(this.processDescription()))));
+						RDFVocabulary.UOM_MILLISECOND.asResource())));
 	}
 	
 	/**
@@ -228,36 +233,30 @@ public abstract class AOperationInstance implements IOperationInstance {
 	 * get process description
 	 * @return process description
 	 */
-	public IProcessDescription processDescription() {
+	public IProcessDescription getProcessDescription() {
 		return new ProcessDescription(
-				processIdentifier(),
-				processTitle(), 
-				processAbstract(), 
-				processConstraints());
+				getProcessIdentifier(),
+				getProcessTitle(), 
+				getTextualProcessDescription(), 
+				getProcessConstraints());
 	}
-	
-	/**
-	 * get unique process identifier
-	 * @return process identifier
-	 */
-	public abstract IRI processIdentifier();
 	
 	/**
 	 * get process title
 	 * @return process title
 	 */
-	public abstract String processTitle();
+	public abstract String getProcessTitle();
 	
 	/**
-	 * get process abstract
-	 * @return process abstract
+	 * get process description
+	 * @return process description
 	 */
-	public abstract String processAbstract();
+	public abstract String getTextualProcessDescription();
 	
 	/**
 	 * get process constraints
 	 * @return process constraints
 	 */
-	public abstract Collection<IProcessConstraint> processConstraints();
+	public abstract Collection<IProcessConstraint> getProcessConstraints();
 
 }

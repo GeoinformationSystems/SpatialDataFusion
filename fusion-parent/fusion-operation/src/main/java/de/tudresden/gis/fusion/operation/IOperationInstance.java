@@ -3,6 +3,7 @@ package de.tudresden.gis.fusion.operation;
 import java.util.Map;
 
 import de.tudresden.gis.fusion.data.IData;
+import de.tudresden.gis.fusion.operation.description.IOperationProfile;
 
 public interface IOperationInstance {
 

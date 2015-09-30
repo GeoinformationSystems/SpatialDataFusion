@@ -1,7 +1,6 @@
 package de.tudresden.gis.fusion.data.description;
 
-import de.tudresden.gis.fusion.data.IRange;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
 public interface IMeasurementDescription extends IDataDescription {
 
@@ -9,12 +8,12 @@ public interface IMeasurementDescription extends IDataDescription {
 	 * get range for the measurement
 	 * @return measurement range
 	 */
-	public IRange<?> range();
+	public IMeasurementRange getRange();
 	
 	/**
 	 * get unit of measurement
-	 * @return measurement unit
+	 * @return measurement unit identifier
 	 */
-	public IRDFIdentifiableResource unitOfMeasurement();
+	public IIdentifiableResource getUnitOfMeasurement();
 	
 }

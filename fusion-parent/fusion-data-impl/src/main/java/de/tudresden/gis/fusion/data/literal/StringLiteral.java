@@ -1,13 +1,13 @@
 package de.tudresden.gis.fusion.data.literal;
 
-import de.tudresden.gis.fusion.data.ILiteral;
-import de.tudresden.gis.fusion.data.IMeasurementValue;
+import de.tudresden.gis.fusion.data.ILiteralData;
+import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTypedLiteral;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class StringLiteral implements ILiteral,IMeasurementValue<String>,IRDFTypedLiteral {
+public class StringLiteral implements ILiteralData,IMeasurement,ITypedLiteral {
 
 	private String value;
 	private IMeasurementDescription description;
@@ -22,27 +22,27 @@ public class StringLiteral implements ILiteral,IMeasurementValue<String>,IRDFTyp
 	}
 
 	@Override
-	public String value() {
+	public String resolve() {
 		return value;
 	}
 
 	@Override
-	public IMeasurementDescription description() {
+	public IMeasurementDescription getDescription() {
 		return description;
 	}
 
 	@Override
-	public int compareTo(String o) {
-		return this.value().compareTo(o);
+	public int compareTo(IMeasurement measurement) {
+		return this.resolve().compareTo(measurement.resolve().toString());
 	}
 
 	@Override
-	public ILiteral literalValue() {
-		return this;
+	public String getValue() {
+		return value;
 	}
 	
 	@Override
-	public IRDFIdentifiableResource type() {
-		return RDFVocabulary.TYPE_STRING.resource();
+	public IIdentifiableResource getType() {
+		return RDFVocabulary.STRING.asResource();
 	}
 }

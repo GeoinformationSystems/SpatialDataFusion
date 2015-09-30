@@ -3,19 +3,18 @@ package de.tudresden.gis.fusion.operation.description;
 import java.util.Collection;
 import java.util.HashSet;
 
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 
-public class IODescription extends RDFResource implements IIODataDescription {
+public class IODescription extends Resource implements IIODataDescription {
 	
-	private String title, abstrakt;
+	private String title, description;
 	private Collection<IDataConstraint> constraints;
 	
-	public IODescription(IRI identifier, String title, String abstrakt, Collection<IDataConstraint> constraints){
+	public IODescription(String identifier, String title, String description, Collection<IDataConstraint> constraints){
 		super(identifier);
 		this.title = title;
-		this.abstrakt = abstrakt;
+		this.description = description;
 		this.constraints = constraints;
 	}
 	
@@ -24,13 +23,13 @@ public class IODescription extends RDFResource implements IIODataDescription {
 	}
 
 	@Override
-	public String title() {
+	public String getTitle() {
 		return title;
 	}
 
 	@Override
-	public String abstrakt() {
-		return abstrakt;
+	public String getDescription() {
+		return description;
 	}
 	
 	/**

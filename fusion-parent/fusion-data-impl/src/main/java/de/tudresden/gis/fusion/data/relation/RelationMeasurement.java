@@ -1,76 +1,88 @@
 package de.tudresden.gis.fusion.data.relation;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.Set;
 
-import de.tudresden.gis.fusion.data.IRI;
+import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.literal.LiteralUtility;
-import de.tudresden.gis.fusion.data.rdf.IRDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.IRDFResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
-import de.tudresden.gis.fusion.data.rdf.RDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.ITripleSet;
+import de.tudresden.gis.fusion.data.rdf.ObjectSet;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class RelationMeasurement<T extends Comparable<T>> extends RDFResource implements IRelationMeasurement<T>,IRDFTripleSet {
+public class RelationMeasurement extends Resource implements IRelationMeasurement,ITripleSet {
 
-	private IRDFIdentifiableResource source, target;
-	private IMeasurementDescription description;
-	private T value;
-	private transient Collection<IRDFPredicateObject> objectSet;
+	private ObjectSet objectSet;
 	
-	public RelationMeasurement(IRI identifier, IRDFIdentifiableResource source, IRDFIdentifiableResource target, T value, IMeasurementDescription description) {
+	//predicates
+	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
+	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
+	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
+	private IIdentifiableResource VALUE = RDFVocabulary.VALUE.asResource();
+	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DESCRIPTION.asResource();
+	
+	public RelationMeasurement(String identifier, IIdentifiableResource source, IIdentifiableResource target, IMeasurement value, IMeasurementDescription description) {
 		super(identifier);
-		this.source = source;
-		this.target = target;
-		this.value = value;
-		this.description = description;
+		objectSet = new ObjectSet();
+		//set resource type
+		objectSet.put(RESOURCE_TYPE, RDFVocabulary.RELATION_MEASUREMENT.asResource());
+		//set objects
+		objectSet.put(SOURCE, source, true);
+		objectSet.put(TARGET, target, true);
+		objectSet.put(VALUE, value);
+		objectSet.put(DESCRIPTION, description);
+	}
+	
+	public RelationMeasurement(IIdentifiableResource source, IIdentifiableResource target, IMeasurement value, IMeasurementDescription description) {
+		this(null, source, target, value, description);
 	}
 	
 	@Override
-	public IRDFIdentifiableResource source() {
-		return source;
+	public IIdentifiableResource getSource() {
+		return (IIdentifiableResource) objectSet.getFirst(SOURCE);
 	}
 
 	@Override
-	public IRDFIdentifiableResource target() {
-		return target;
+	public IIdentifiableResource getTarget() {
+		return (IIdentifiableResource) objectSet.getFirst(TARGET);
 	}
 
 	@Override
-	public T value() {
-		return value;
+	public IMeasurement resolve() {
+		return (IMeasurement) objectSet.get(VALUE);
 	}
 
 	@Override
-	public int compareTo(T o) {
-		return value().compareTo(o);
+	public int compareTo(IMeasurement measurement) {
+		return resolve().compareTo(measurement);
 	}
 
 	@Override
-	public IMeasurementDescription description() {
-		return description;
+	public IMeasurementDescription getDescription() {
+		return (IMeasurementDescription) objectSet.getFirst(DESCRIPTION);
 	}
 
 	@Override
-	public IRDFResource subject() {
-		return this;
+	public Collection<IIdentifiableResource> getPredicates() {
+		return objectSet.keySet();
 	}
 
 	@Override
-	public Collection<IRDFPredicateObject> objectSet() {
-		if(objectSet != null)
-			return objectSet;
-		
-		Collection<IRDFPredicateObject> objectSet = new LinkedList<IRDFPredicateObject>();
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_SOURCE.resource(), source()));
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_RELATION_TARGET.resource(), target()));
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_VALUE.resource(), LiteralUtility.literal(value)));
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_DESCRIPTION.resource(), description()));
-		return objectSet;
+	public Set<INode> getObject(IIdentifiableResource predicate) {
+		return objectSet.get(predicate);
+	}
+
+	@Override
+	public String getValue() {
+		return resolve().getValue();
+	}
+
+	@Override
+	public int size() {
+		return objectSet.numberOfObjects();
 	}
 
 }

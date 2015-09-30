@@ -3,113 +3,109 @@ package de.tudresden.gis.fusion.data.relation;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
-import de.tudresden.gis.fusion.data.rdf.IRDFCollection;
-import de.tudresden.gis.fusion.data.rdf.IRDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.IRDFRepresentation;
-import de.tudresden.gis.fusion.data.rdf.IRDFResource;
-import de.tudresden.gis.fusion.data.rdf.IRDFTripleSet;
-import de.tudresden.gis.fusion.data.rdf.RDFIdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.RDFPredicateObject;
-import de.tudresden.gis.fusion.data.rdf.RDFResource;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
+import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.ISubject;
+import de.tudresden.gis.fusion.data.rdf.ISubjectCollection;
+import de.tudresden.gis.fusion.data.rdf.ITripleSet;
+import de.tudresden.gis.fusion.data.rdf.ObjectSet;
+import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class FeatureRelationCollection extends RDFResource implements IRDFCollection,IRDFTripleSet,IDataCollection<IRelation<IFeatureView>> {
+public class FeatureRelationCollection extends Resource implements ITripleSet,ISubjectCollection,IDataCollection<IFeatureRelation> {
 
-	private final String RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns";
-	private Collection<IRelation<IFeatureView>> relations;
+	int currentIndex = 1;
+	private ObjectSet objectSet;
+	private Collection<IFeatureRelation> relations;
 	
-	public FeatureRelationCollection(IRI identifier, Collection<IRelation<IFeatureView>> relations) {
+	//predicates
+	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
+	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DESCRIPTION.asResource();
+	
+	public FeatureRelationCollection(String identifier, Collection<IFeatureRelation> relations, IDataDescription description) {
 		super(identifier);
+		objectSet = new ObjectSet();
+		//set objects
+		objectSet.put(RESOURCE_TYPE, RDFVocabulary.BAG.asResource());
+		objectSet.put(DESCRIPTION, description);
+		//insert member objects
 		this.relations = relations;
+		for(IFeatureRelation relation : relations){
+			objectSet.put(getIndexForInsert(), relation);
+		}
 	}
 	
-	public FeatureRelationCollection(IRI identifier) {
-		this(identifier, new HashSet<IRelation<IFeatureView>>());
+	public FeatureRelationCollection(String identifier) {
+		this(identifier, new HashSet<IFeatureRelation>(), null);
+	}
+	
+	/**
+	 * get current index for relation insert; index is increased by one
+	 * @return current index (number of relations in collection)
+	 */
+	private IIdentifiableResource getIndexForInsert(){
+		return new Resource(RDFVocabulary.RDF.asString() + "#_" + currentIndex++);
 	}
 	
 	public FeatureRelationCollection() {
 		this(null);
 	}
 	
-	@Override
-	public void add(IRelation<IFeatureView> relation){
+	/**
+	 * add relation to collection
+	 * @param relation input feature relation
+	 */
+	public void add(IFeatureRelation relation){
+		objectSet.put(getIndexForInsert(), relation);
 		relations.add(relation);
 	}
 
 	@Override
-	public IRDFResource subject() {
-		return this;
-	}
-
-	@Override
-	public Object value() {
+	public Collection<IFeatureRelation> resolve() {
 		return relations;
 	}
 
 	@Override
-	public IDataDescription description() {
-		// TODO Auto-generated method stub
-		return null;
+	public IDataDescription getDescription() {
+		return (IDataDescription) objectSet.get(DESCRIPTION);
 	}
 
-	@Override
+	/**
+	 * get collection size
+	 * @return collection size
+	 */
 	public int size() {
-		return relations.size();
+		return objectSet.size();
 	}
 
 	@Override
-	public Collection<IRelation<IFeatureView>> collection() {
-		return relations;
-	}
-
-	@Override
-	public Iterator<IRelation<IFeatureView>> iterator() {
-		return relations.iterator();
-	}
-
-	@Override
-	public IRelation<IFeatureView> elementById(IRI identifier) {
-		Iterator<IRelation<IFeatureView>> iterator = this.iterator();
-	      while(iterator.hasNext()) {
-	    	  IRelation<IFeatureView> relation = iterator.next();
-	    	  if(relation.identifier().equals(identifier))
-	    		  return relation;
-	      }
-	      //else
-	      return null;
-	}
-
-	@Override
-	public Collection<IRDFPredicateObject> objectSet() {
-		//init set
-		Collection<IRDFPredicateObject> objectSet = new LinkedList<IRDFPredicateObject>();
-		//add relation instance
-		objectSet.add(new RDFPredicateObject(RDFVocabulary.PREDICATE_TYPE.resource(), RDFVocabulary.TYPE_BAG.resource()));
-		//add relations as collection member
-		int i = 1;
-		for(IRelation<IFeatureView> relation : this.collection()){
-			objectSet.add(new RDFPredicateObject(new RDFIdentifiableResource(RDF_NS + "#_" + i++), relation));
-		}
-		return objectSet;
-	}
-
-	@Override
-	public Collection<? extends IRDFRepresentation> rdfCollection() {
-		Collection<IRDFRepresentation> rdfCollection = new LinkedList<IRDFRepresentation>();
-		for(IRelation<IFeatureView> relation : this.collection()){
-			if(relation instanceof IRDFRepresentation)
-				rdfCollection.add((IRDFRepresentation) relation);
-		}
-		return rdfCollection;
+	public Iterator<IFeatureRelation> iterator() {
+		return resolve().iterator();
 	}
 	
-	
+	@Override
+	public Collection<IIdentifiableResource> getPredicates() {
+		return objectSet.keySet();
+	}
+
+	@Override
+	public Set<INode> getObject(IIdentifiableResource predicate) {
+		return objectSet.get(predicate);
+	}
+
+	@Override
+	public Collection<? extends ISubject> collection() {
+		Collection<ISubject> subjects = new HashSet<ISubject>();
+		for(IFeatureRelation relation : resolve()){
+			if(relation instanceof ISubject)
+				subjects.add((ISubject) relation);
+		}
+		return subjects;
+	}
 	
 }

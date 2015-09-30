@@ -3,12 +3,13 @@ package de.tudresden.gis.fusion.operation.orchestration;
 import java.util.Map;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.operation.IOperationProfile;
+import de.tudresden.gis.fusion.operation.aggregate.IProcessEngine;
+import de.tudresden.gis.fusion.operation.description.IOperationProfile;
 
-public class CamundaBPMNEngine implements IOrchestrationEngine<CamundaBPMNModel> {
+public class CamundaBPMNEngine implements IProcessEngine<CamundaBPMNModel> {
 
 	@Override
-	public Map<String, IData> execute(Map<String, IData> input) {
+	public Map<String,IData> execute(Map<String,IData> input) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -20,7 +21,7 @@ public class CamundaBPMNEngine implements IOrchestrationEngine<CamundaBPMNModel>
 	}
 
 	@Override
-	public Map<String, IData> execute(CamundaBPMNModel input) {
+	public Map<String,IData> execute(CamundaBPMNModel input) {
 		// TODO Auto-generated method stub
 		return null;
 	}

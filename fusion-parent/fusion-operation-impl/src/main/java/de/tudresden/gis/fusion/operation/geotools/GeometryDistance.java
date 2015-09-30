@@ -6,14 +6,12 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.IRI;
-import de.tudresden.gis.fusion.data.description.DataProvenance;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
-import de.tudresden.gis.fusion.data.feature.IFeatureView;
-import de.tudresden.gis.fusion.data.feature.relation.IRelation;
+import de.tudresden.gis.fusion.data.feature.IFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.geotools.GTFeature;
-import de.tudresden.gis.fusion.data.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
@@ -39,20 +37,18 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 	private boolean bDropRelations;
 	
 	private MeasurementDescription intersectDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_TOP_INTERSECTS.identifier(),
+			RDFVocabulary.TYPE_MEAS_TOP_INTERSECTS.asString(),
 			"intersection",
 			"intersection between feature geometries",
 			BooleanLiteral.maxRange(),
-			RDFVocabulary.TYPE_UOM_UNDEFINED.resource(),
-			new DataProvenance(this.processDescription()));
+			RDFVocabulary.UOM_UNDEFINED.asResource());
 	
 	private MeasurementDescription distanceDescription = new MeasurementDescription(
-			RDFVocabulary.TYPE_MEAS_GEOM_DISTANCE.identifier(),
+			RDFVocabulary.TYPE_MEAS_GEOM_DISTANCE.asString(),
 			"distance",
 			"minimum distance between feature geometries",
 			DecimalLiteral.positiveRange(),
-			RDFVocabulary.TYPE_UOM_UNKNOWN.resource(),
-			new DataProvenance(this.processDescription()));
+			RDFVocabulary.UOM_UNKNOWN.asResource());
 
 	@Override
 	public void execute() throws ProcessException {
@@ -60,11 +56,11 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).value();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).value() : false;
+		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).resolve();
+		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//execute
-		IDataCollection<IRelation<IFeatureView>> relations = 
+		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
@@ -75,21 +71,21 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement<? extends Comparable<?>> measurement(IFeatureView reference, IFeatureView target){
+	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
 		//get geometries
-		Geometry gReference = ((GTFeature) reference).geometry();
-		Geometry gTarget = ((GTFeature) target).geometry();
+		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
+		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
 		if(gReference.isEmpty() || gTarget.isEmpty())
 			return null;
 		//get overlap
 		boolean bIntersect = getIntersect(gReference, gTarget);
 		//check for overlap		
 		if(bIntersect) {
-			return new RelationMeasurement<Boolean>(
+			return new RelationMeasurement(
 					null, 
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-					bIntersect, 
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					RDFVocabulary.PROPERTY_GEOM.asResource(),
+					new BooleanLiteral(bIntersect), 
 					intersectDescription);
 		}
 		else {
@@ -97,11 +93,11 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 			double dDistance = getDistance(gReference, gTarget);
 			//check for overlap
 			if(dDistance <= dThreshold)
-				return new RelationMeasurement<Double>(
+				return new RelationMeasurement(
 						null, 
-						RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-						RDFVocabulary.TYPE_PROPERTY_GEOM.resource(),
-						dDistance, 
+						RDFVocabulary.PROPERTY_GEOM.asResource(),
+						RDFVocabulary.PROPERTY_GEOM.asResource(),
+						new DecimalLiteral(dDistance), 
 						distanceDescription);
 			//return null if distance > threshold
 			else
@@ -130,36 +126,35 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	public IRI processIdentifier() {
-		return new IRI(this.getClass().getSimpleName());
+	public String getProcessIdentifier() {
+		return this.getClass().getSimpleName();
 	}
 
 	@Override
-	public String processTitle() {
+	public String getProcessTitle() {
 		return "Geometry distance calculation";
 	}
 
 	@Override
-	public String processAbstract() {
+	public String getTextualProcessDescription() {
 		return "Calculates feature relation based on minimum geometry distance";
 	}
 
 	@Override
-	public Collection<IProcessConstraint> processConstraints() {
+	public Collection<IProcessConstraint> getProcessConstraints() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IInputDescription> inputDescription() {
+	public Map<String, IInputDescription> getInputDescription() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> outputDescriptions() {
+	public Map<String, IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

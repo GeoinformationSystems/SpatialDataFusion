@@ -2,44 +2,36 @@ package de.tudresden.gis.fusion.data.feature.relation;
 
 import java.util.Collection;
 
-import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.rdf.IRDFResource;
-
-public interface IRelation<T> extends IData,IRDFResource {
-	
-	/**
-	 * get reference view of the relation
-	 * @return reference feature view
-	 */
-	public T source();
-	
-	/**
-	 * get target view of the relation
-	 * @return target feature view
-	 */
-	public T target();
+public interface IRelation<T> {
 
 	/**
-	 * get relation types for this relation
-	 * @return relation types
+	 * get reference feature of the relation
+	 * @return source feature
 	 */
-	public Collection<IRelationType> relationTypes();
+	public T getSource();
 	
 	/**
-	 * add a relation type
-	 * @param type relation type
+	 * get target feature of the relation
+	 * @return target feature
 	 */
-	public void add(IRelationType type);
+	public T getTarget();
+	
+	/**
+	 * get relation type for this relation
+	 * @return relation type
+	 */
+	public IRelationType getRelationType();
 	
 	/**
 	 * get relation measurements for this relation
 	 * @return relation measurements
 	 */
-	public Collection<IRelationMeasurement<?>> relationMeasurements();
+	public Collection<IRelationMeasurement> getRelationMeasurements();
 	
 	/**
-	 * add a relation measurement
-	 * @param measurement relation measurement
+	 * add a measurement to this relation
+	 * @param measurement input measurement
 	 */
-	public void add(IRelationMeasurement<?> measurement);
+	public void addMeasurement(IRelationMeasurement measurement);
+	
 }
