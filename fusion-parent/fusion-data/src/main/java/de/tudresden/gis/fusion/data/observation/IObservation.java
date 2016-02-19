@@ -1,11 +1,12 @@
 package de.tudresden.gis.fusion.data.observation;
 
+import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.IMeasurement;
-import de.tudresden.gis.fusion.data.feature.IFeature;
 import de.tudresden.gis.fusion.data.feature.IFeatureEntity;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 
-public interface IObservation extends IFeature {
+public interface IObservation extends IData,IResource {
 
 	/**
 	 * get measurement of this observation

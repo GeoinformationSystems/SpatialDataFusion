@@ -25,7 +25,7 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	
 	//predicates
 	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DESCRIPTION.asResource();
+	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DC_DESCRIPTION.asResource();
 	
 	public FeatureRelationCollection(String identifier, Collection<IFeatureRelation> relations, IDataDescription description) {
 		super(identifier);

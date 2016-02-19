@@ -177,7 +177,7 @@ function olMap(resource, div, crs, center_wgs84, zoom){
 	//function: clear map
 	this.clear = function(){
 		f_clearText(this.div_info, true);
-		this.map.unbindAll();
+//		this.map.unbindAll();
 		this.map.setTarget(null);
 		this.map.setView(null);
 		this.map.setLayerGroup(null);

@@ -66,8 +66,12 @@ public enum RDFVocabulary {
 	UOM_KILOMETER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Kilometer"),
 	UOM_MILLISECOND("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#MilliSecond"),
 	UOM_PERCENT("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Percent"),
+	UOM_NUMBER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Number"),
 	UOM_UNDEFINED("http://tu-dresden.de/uw/geo/gis/fusion/uom#undefined"),
 	UOM_UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
+	
+	//Darwin Core
+	DWC_OCCURRENCE("http://rs.tdwg.org/dwc/terms/Occurrence"),
 	
 	/**
 	 * Predicates
@@ -78,9 +82,9 @@ public enum RDFVocabulary {
 	VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
 	
 	//Dublin Core
-	DESCRIPTION("http://purl.org/dc/terms/description"),
-	TITLE("http://purl.org/dc/elements/1.1/title"),
-	ABSTRACT("http://purl.org/dc/terms/abstract"),
+	DC_DESCRIPTION("http://purl.org/dc/terms/description"),
+	DC_TITLE("http://purl.org/dc/elements/1.1/title"),
+	DC_ABSTRACT("http://purl.org/dc/terms/abstract"),
 	
 	/**
 	 * Processes

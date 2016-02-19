@@ -17,10 +17,10 @@ import de.tudresden.gis.fusion.data.literal.StringLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
-import de.tudresden.gis.fusion.operation.geotools.AngleDifference;
-import de.tudresden.gis.fusion.operation.geotools.BoundingBoxDistance;
-import de.tudresden.gis.fusion.operation.geotools.io.RDFTurtleGenerator;
-import de.tudresden.gis.fusion.operation.geotools.io.ShapefileParser;
+import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
+import de.tudresden.gis.fusion.operation.io.ShapefileParser;
+import de.tudresden.gis.fusion.operation.measurement.AngleDifference;
+import de.tudresden.gis.fusion.operation.measurement.BoundingBoxDistance;
 
 public class ManualChain {
 

@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+	
+<h:head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<title>Fusion Client</title>
+	<link rel="stylesheet" href="http://openlayers.org/en/v3.1.1/css/ol.css" type="text/css" />
+	<h:outputStylesheet name="css/styles.css" />
+</h:head>
+
+<h:body>
+	<h:panelGrid columns="1" id="header" class="ui-state-active">
+		<h2>Fusion Client</h2>
+	</h:panelGrid>
+						
+	<h:form id="form">
+	<p:growl id="message" showDetail="true" styleClass="small" />
+	<p:ajaxStatus id="status" style="margin-top:8px;margin-right:20px;position:absolute;right:0;z-index:1;">  
+	    <f:facet name="start">  
+	        <p:graphicImage value="resources/images/ajax-loader.gif" />  
+	    </f:facet>						      
+	    <f:facet name="complete">  
+	        <h:outputText value="" />  
+	    </f:facet>
+	</p:ajaxStatus>
+
+	<p:tabView id="menu_top" styleClass="small" orientation="left">
+	
+		<p:tab title="Documentation">
+	    	<h:panelGrid columns="1">
+	        	Documentation...<br />to be done
+	        </h:panelGrid>
+	    </p:tab>
+	    	    
+	    <p:tab title="Reference Data">
+	    	<h:panelGrid columns="2">
+	   			<p:inputText id="r_base" placeholder="Reference WFS endpoint" value="#{referenceWFS.baseURL}" style="width:600px;" />
+	    		<p:commandButton id="r_getCapabilities" title="retrieve capabilities from server" value="GetCapabilities" action="#{referenceWFS.initCapabilities}" update="r_typename r_srsname :form:message r_getFeatures" icon="ui-icon-check" onclick="PF('block_ribbon').show()" oncomplete="PF('block_ribbon').hide()" />	
+        	</h:panelGrid>
+        	<h:panelGrid columns="3">
+	        	<p:selectOneMenu id="r_typename" value="#{referenceWFS.typename}" style="width:210px;">
+					<f:selectItem itemLabel="Select typeName" itemValue="#{referenceWFS.typename}" />
+				    <f:selectItems value="#{referenceWFS.supportedTypenames}" />
+					<p:ajax update="r_getFeatures r_srsname" />
+				</p:selectOneMenu>
+				<p:selectOneMenu id="r_srsname" value="#{referenceWFS.SRSName}" style="width:210px;" disabled="#{referenceWFS.forceWGS84}">
+					<f:selectItem itemLabel="Select srsName" itemValue="#{referenceWFS.SRSName}" />
+				    <f:selectItems value="#{referenceWFS.supportedSRS}" />
+					<p:ajax update="r_getFeatures" />
+				</p:selectOneMenu>
+				<p:selectBooleanButton id="r_forceWGS84" value="#{referenceWFS.forceWGS84}" onLabel="WGS84" offLabel="WGS84" title="Force WGS84">
+					<p:ajax update="r_getFeatures r_srsname" />
+				</p:selectBooleanButton>
+			</h:panelGrid>
+			<h:panelGrid columns="1">
+				<p:colorPicker id="r_color" widgetVar="r_colorPicker" value="000000" />
+			</h:panelGrid>
+			<h:panelGrid columns="1">
+				<p:commandButton id="r_getFeatures" value="GetFeatures" disabled="#{referenceWFS.WFSBaseIsInvalid}" title="#{referenceWFS.getFeatureRequest}" onclick="f_initMapResource_r('#{referenceWFS.getFeatureRequest}','#{referenceWFS.SRSName}',#{referenceWFS.centerAsString},#{referenceWFS.extentAsString})" icon="ui-icon-check" />
+			</h:panelGrid>
+		</p:tab>
+		
+	    <p:tab title="Target Data">
+    		<h:panelGrid columns="2">
+    			<p:inputText id="t_base" placeholder="Target WFS endpoint" value="#{targetWFS.baseURL}" style="width:600px;" />
+	    		<p:commandButton id="t_getCapabilities" title="retrieve capabilities from server" value="GetCapabilities" action="#{targetWFS.initCapabilities}" update="t_typename t_srsname :form:message t_getFeatures" icon="ui-icon-check" onclick="PF('block_ribbon').show()" oncomplete="PF('block_ribbon').hide()" />	
+    		</h:panelGrid>
+        	<h:panelGrid columns="3">
+	        	<p:selectOneMenu id="t_typename" value="#{targetWFS.typename}" style="width:210px;">
+					<f:selectItem itemLabel="Select typeName" itemValue="#{targetWFS.typename}" />
+				    <f:selectItems value="#{targetWFS.supportedTypenames}" />
+					<p:ajax update="t_getFeatures t_srsname" />
+				</p:selectOneMenu>
+				<p:selectOneMenu id="t_srsname" value="#{targetWFS.SRSName}" style="width:210px;" disabled="#{targetWFS.forceWGS84}">
+					<f:selectItem itemLabel="Select srsName" itemValue="#{targetWFS.SRSName}" />
+				    <f:selectItems value="#{targetWFS.supportedSRS}" />
+					<p:ajax update="t_getFeatures" />
+				</p:selectOneMenu>
+				<p:selectBooleanButton id="t_forceWGS84" value="#{targetWFS.forceWGS84}" onLabel="WGS84" offLabel="WGS84" title="Force WGS84">
+					<p:ajax update="t_getFeatures t_srsname" />
+				</p:selectBooleanButton>
+			</h:panelGrid>
+			<h:panelGrid columns="1">
+	        	<p:colorPicker id="t_color" widgetVar="t_colorPicker" value="FF0000" />
+	        </h:panelGrid>
+	        <h:panelGrid columns="1">
+				<p:commandButton id="t_getFeatures" value="GetFeatures" disabled="#{targetWFS.WFSBaseIsInvalid}" title="#{targetWFS.getFeatureRequest}" onclick="f_initMapResource_t('#{targetWFS.getFeatureRequest}','#{targetWFS.SRSName}',#{targetWFS.centerAsString},#{targetWFS.extentAsString})" icon="ui-icon-check" />
+			</h:panelGrid>
+	    </p:tab>
+	    
+	    <p:tab title="Map Options">
+	    	<h:panelGrid columns="3">
+				<p:commandButton id="c_synchTarget" value="SynchTarget" onclick="f_synchTarget()" icon="ui-icon-transferthick-e-w" />
+				<p:commandButton id="c_synchReference" value="SynchReference" onclick="f_synchReference()" icon="ui-icon-transferthick-e-w" />
+				<p:selectBooleanButton id="c_bindViews" offLabel="BindView" onLabel="BindView" onchange="f_toggleViewBind(this.checked);" />
+		    </h:panelGrid>
+		    <h:panelGrid columns="2">
+	    		<p:inputText id="f_tripleStore" placeholder="SPARQL endpoint" value="#{fusekiConnector.fusekiURL}" style="width:600px;" />
+	    		<p:selectBooleanButton id="f_useFusionResult" offLabel="Relations" onLabel="Relations" onchange="f_useRelations(this.checked);"/>
+			</h:panelGrid>
+			<h:panelGrid columns="1">
+				<div id="stats_rt" />
+			</h:panelGrid>
+	    </p:tab>
+	    
+	    <p:tab title="Fusion Objective" style="padding-bottom:0px;">
+	    	<p:outputPanel id="objectives">
+		        <p:selectManyCheckbox id="custom" value="#{fusionObjective.objectives}" layout="custom">
+		        	<f:selectItem itemLabel="Concatenation" itemValue="concatenation" />
+		            <f:selectItem itemLabel="Integration" itemValue="integration" />
+		            <f:selectItem itemLabel="Accumulation" itemValue="accumulation" />
+		            <f:selectItem itemLabel="Spatial Densification" itemValue="spatialDensification" />
+		            <f:selectItem itemLabel="Thematic Densification" itemValue="thematicDensification" />
+		            <f:selectItem itemLabel="Temporal Densification" itemValue="temporalDensification" />
+		            <f:selectItem itemLabel="Spatial Value Correction" itemValue="spatialValueCorrection" />
+		            <f:selectItem itemLabel="Thematic Value Correction" itemValue="thematicValueCorrection" />
+		            <f:selectItem itemLabel="Temporal Value Correction" itemValue="temporalValueCorrection" />
+		            <f:selectItem itemLabel="Temporal Correction" itemValue="temporalCorrection" />
+		            <f:selectItem itemLabel="Spatial Property Enrichment" itemValue="spatialPropertyEnrichment" />
+		            <f:selectItem itemLabel="Thematic Property Enrichment" itemValue="thematicPropertyEnrichment" />
+		            <f:selectItem itemLabel="Temporal Property Enrichment" itemValue="temporalPropertyEnrichment" />
+		            <f:selectItem itemLabel="Spatial Value Enrichment" itemValue="spatialValueEnrichment" />
+		            <f:selectItem itemLabel="Thematic Value Enrichment" itemValue="thematicValueEnrichment" />
+		            <f:selectItem itemLabel="Temporal Value Enrichment" itemValue="temporalValueEnrichment" />
+		            <f:selectItem itemLabel="Temporal Enrichment" itemValue="temporalEnrichment" />
+		            <f:selectItem itemLabel="Feature Update" itemValue="featureUpdate" />
+		            <f:selectItem itemLabel="Spatial Value Update" itemValue="spatialValueUpdate" />
+		            <f:selectItem itemLabel="Thematic Value Update" itemValue="thematicValueUpdate" />
+		            <f:selectItem itemLabel="Temporal Value Update" itemValue="temporalValueUpdate" />  
+		            <f:selectItem itemLabel="Spatial Value Difference" itemValue="spatialValueDifference" />
+		            <f:selectItem itemLabel="Thematic Value Difference" itemValue="thematicValueDifference" />
+		            <f:selectItem itemLabel="Temporal Value Difference" itemValue="temporalValueDifference" />
+		            <f:selectItem itemLabel="Spatial Validation" itemValue="spatialValidation" />
+		            <f:selectItem itemLabel="Thematic Validation" itemValue="thematicValidation" />
+		            <f:selectItem itemLabel="Temporal Validation" itemValue="temporalValidation" />
+		        </p:selectManyCheckbox>
+		 
+		        <div class="ui-grid">
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_concat')" />
+		            	<span class="objectiveGroup">Concatenation</span>
+		                <p:checkbox class="o_concat" style="display:none;" id="appending" for="custom" itemIndex="0" />
+		                <span class="o_concat objectiveOption" style="display:none;">Simple Concatenation</span>
+		                <p:checkbox class="o_concat" style="display:none;" id="integration" for="custom" itemIndex="1" />
+		                <span class="o_concat objectiveOption" style="display:none;">Integration</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_accu')" />
+		            	<span class="objectiveGroup">Accumulation</span>
+		                <p:checkbox class="o_accu" style="display:none;" id="accumulation" for="custom" itemIndex="2" />
+		                <span class="o_accu objectiveOption" style="display:none;">Accumulation</span>
+		                <p:selectBooleanCheckbox class="o_accu" style="display:none;" onchange="f_toggleVisibility('o_dens')" />
+		                <span class="o_accu objectiveGroup" style="display:none;">Densification</span>
+		                <p:checkbox class="o_dens" style="display:none;" id="spatialDensification" for="custom" itemIndex="3" />
+		                <span class="o_dens objectiveOption" style="display:none;">Spatial Densification</span>
+		                <p:checkbox class="o_dens" style="display:none;" id="thematicDensification" for="custom" itemIndex="4" />
+		                <span class="o_dens objectiveOption" style="display:none;">Thematic Densification</span>
+		                <p:checkbox class="o_dens" style="display:none;" id="temporalDensification" for="custom" itemIndex="5" />
+		                <span class="o_dens objectiveOption" style="display:none;">Temporal Densification</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_corr')" />
+		                <span class="objectiveGroup">Correction</span>
+		                <p:checkbox class="o_corr" style="display:none;" id="temporalCorrection" for="custom" itemIndex="9" />
+		                <span class="o_corr objectiveOption" style="display:none;">Temporal Correction</span>
+		                <p:selectBooleanCheckbox class="o_corr" style="display:none;" onchange="f_toggleVisibility('o_vcorr')" />
+		                <span class="o_corr objectiveGroup" style="display:none;">Property Value Correction</span>
+		                <p:checkbox class="o_vcorr" style="display:none;" id="spatialValueCorrection" for="custom" itemIndex="6" />
+		                <span class="o_vcorr objectiveOption" style="display:none;">Spatial Value Correction</span>
+		                <p:checkbox class="o_vcorr" style="display:none;" id="thematicValueCorrection" for="custom" itemIndex="7" />
+		                <span class="o_vcorr objectiveOption" style="display:none;">Thematic Value Correction</span>
+		                <p:checkbox class="o_vcorr" style="display:none;" id="temporalValueCorrection" for="custom" itemIndex="8" />
+		                <span class="o_vcorr objectiveOption" style="display:none;">Temporal Value Correction</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_enri')" />
+		                <span class="objectiveGroup">Enrichment</span>
+		                <p:checkbox class="o_enri" style="display:none;" id="temporalEnrichment" for="custom" itemIndex="16" />
+		                <span class="o_enri objectiveOption" style="display:none;">Temporal Enrichment</span>
+		                <p:selectBooleanCheckbox class="o_enri" style="display:none;" onchange="f_toggleVisibility('o_penri')" />
+		                <span class="o_enri objectiveGroup" style="display:none;">Property Enrichment</span>
+		                <p:checkbox class="o_penri" style="display:none;" id="spatialPropertyEnrichment" for="custom" itemIndex="10" />
+		                <span class="o_penri objectiveOption" style="display:none;">Spatial Property Enrichment</span>
+		                <p:checkbox class="o_penri" style="display:none;" id="thematicPropertyEnrichment" for="custom" itemIndex="11" />
+		                <span class="o_penri objectiveOption" style="display:none;">Thematic Property Enrichment</span>
+		                <p:checkbox class="o_penri" style="display:none;" id="temporalPropertyEnrichment" for="custom" itemIndex="12" />
+		                <span class="o_penri objectiveOption" style="display:none;">Temporal Property Enrichment</span>
+		                <p:selectBooleanCheckbox class="o_enri" style="display:none;" onchange="f_toggleVisibility('o_venri')" />
+		                <span class="o_enri objectiveGroup" style="display:none;">Property Value Enrichment</span>
+		                <p:checkbox class="o_venri" style="display:none;" id="spatialValueEnrichment" for="custom" itemIndex="13" />
+		                <span class="o_venri objectiveOption" style="display:none;">Spatial Value Enrichment</span>
+		                <p:checkbox class="o_venri" style="display:none;" id="thematicValueEnrichment" for="custom" itemIndex="14" />
+		                <span class="o_venri objectiveOption" style="display:none;">Thematic Value Enrichment</span>
+		                <p:checkbox class="o_venri" style="display:none;" id="temporalValueEnrichment" for="custom" itemIndex="15" />
+		                <span class="o_venri objectiveOption" style="display:none;">Temporal Value Enrichment</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_upda')" />
+		            	<span class="objectiveGroup">Update</span>
+		            	<p:checkbox class="o_upda" style="display:none;" id="featureUpdate" for="custom" itemIndex="17" />
+		                <span class="o_upda objectiveOption" style="display:none;">Feature Update</span>
+		                <p:selectBooleanCheckbox class="o_upda" style="display:none;" onchange="f_toggleVisibility('o_pupda')" />
+		                <span class="o_upda objectiveGroup" style="display:none;">Property Value Update</span>
+		                <p:checkbox class="o_pupda" style="display:none;" id="spatialValueUpdate" for="custom" itemIndex="18" />
+		                <span class="o_pupda objectiveOption" style="display:none;">Spatial Value Update</span>
+		                <p:checkbox class="o_pupda" style="display:none;" id="thematicValueUpdate" for="custom" itemIndex="19" />
+		                <span class="o_pupda objectiveOption" style="display:none;">Thematic Value Update</span>
+		                <p:checkbox class="o_pupda" style="display:none;" id="temporalValueUpdate" for="custom" itemIndex="20" />
+		                <span class="o_pupda objectiveOption" style="display:none;">Temporal Value Update</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_diff')" />
+		            	<span class="objectiveGroup">Property Value Difference</span>
+		                <p:checkbox class="o_diff" style="display:none;" id="spatialValueDifference" for="custom" itemIndex="21" />
+		                <span class="o_diff objectiveOption" style="display:none;">Spatial Value Difference</span>
+		                <p:checkbox class="o_diff" style="display:none;" id="thematicValueDifference" for="custom" itemIndex="22" />
+		                <span class="o_diff objectiveOption" style="display:none;">Thematic Value Difference</span>
+		                <p:checkbox class="o_diff" style="display:none;" id="temporalValueDifference" for="custom" itemIndex="23" />
+		                <span class="o_diff objectiveOption" style="display:none;">Temporal Value Difference</span>
+		            </div>
+		            <div class="ui-grid-row">
+		            	<p:selectBooleanCheckbox onchange="f_toggleVisibility('o_vali')" />
+		            	<span class="objectiveGroup">Validation</span>
+		                <p:checkbox class="o_vali" style="display:none;" id="spatialValidation" for="custom" itemIndex="24" />
+		                <span class="o_vali objectiveOption" style="display:none;">Spatial Validation</span>
+		                <p:checkbox class="o_vali" style="display:none;" id="thematicValidation" for="custom" itemIndex="25" />
+		                <span class="o_vali objectiveOption" style="display:none;">Thematic Validation</span>
+		                <p:checkbox class="o_vali" style="display:none;" id="temporalValidation" for="custom" itemIndex="26" />
+		                <span class="o_vali objectiveOption" style="display:none;">Temporal Validation</span>
+		            </div>
+		        </div>
+		    </p:outputPanel>
+		</p:tab>
+	
+	</p:tabView>
+	
+	<h:panelGrid columns="1" style="width:100%;">
+		<div id="map_r" class="map" style="width:49%;float:left;">
+			<div id="map_r_info" class="info" />
+			<div id="map_r_coord" class="coord" />
+		</div>
+		<div id="map_t" class="map" style="width:49%;float:right;">
+			<div id="map_t_info" class="info" />
+			<div id="map_t_coord" class="coord" />	
+		</div>
+		<div id="mapMarker" style="display:none;">
+			<div id="tMarker" class="marker" />
+			<div id="rMarker" class="marker" />
+		</div>
+	</h:panelGrid>
+	
+	<p:accordionPanel id="p_fusion" multiple="true" activeIndex="-1" styleClass="small">
+	
+		<p:tab title="WPS Processes">	
+			<h:panelGrid id="p_wpsConnectors">
+		    <c:forEach items="#{wpsConnector.handlers}" var="handler">
+			    <h:panelGrid columns="4">
+					<p:inputText value="#{handler.baseURL}" placeholder="WPS URL" style="width:500px;" />
+					<p:commandButton title="Retrieve capabilities from server" action="#{handler.initCapabilities}" update="f_processes_#{handler.id} :form:message" icon="ui-icon-circle-arrow-s" />
+					<p:commandButton title="Remove WPS" icon="ui-icon-minus" action="#{wpsConnector.removeWPSHandler(handler.id)}" update="p_validation p_wpsConnectors" disabled="#{wpsConnector.numberOfHandlers eq 1}" />
+					<p:commandButton title="Add WPS" icon="ui-icon-plus" action="#{wpsConnector.addWPSHandler}" update="p_wpsConnectors" rendered="#{handler.id eq wpsConnector.lastId}" />
+			    </h:panelGrid>
+			    <p:selectManyCheckbox id="f_processes_#{handler.id}" layout="grid" value="#{handler.selectedProcesses}" valueChangeListener="#{handler.updateProcesses}" columns="1">
+					<f:selectItems value="#{handler.processDescriptions4Display.entrySet()}" var="entry" itemLabel="#{entry.value}" itemValue="#{entry.key}" escape="false" />
+					<f:ajax />
+	       		</p:selectManyCheckbox>
+		    </c:forEach>
+		    </h:panelGrid>		
+		</p:tab>
+		
+		<p:tab title="Processing Patterns">
+		
+			<h:panelGrid columns="2">
+				<p:inputText placeholder="Pattern Registry" style="width:500px;" />
+				<p:commandButton title="Retrieve patterns" icon="ui-icon-circle-arrow-s" />
+			</h:panelGrid>		
+			<h:panelGrid columns="5">
+				<p:selectBooleanCheckbox id="pattern_1_select"/>
+				<h:outputText id="pattern_1_name" value="Determination of homologous Objects" />
+				<h:link id="pattern_1_desc" value="Description" />
+				<h:link id="pattern_1_bpmn" value="BPMN" />
+				<h:outputText id="pattern_1_clsf" value="Relation Measurement; Feature Mapping" />
+				
+				<p:selectBooleanCheckbox id="pattern_2_select"/>
+				<h:outputText id="pattern_2_name" value="Spatial similarity measurement" />
+				<h:link id="pattern_2_desc" value="Description" />
+				<h:link id="pattern_2_bpmn" value="BPMN" />
+				<h:outputText id="pattern_2_clsf" value="Relation Measurement" />
+			</h:panelGrid>
+		</p:tab>
+	
+		<p:tab title="Process Composition" id="p_wpsComposition">		
+			<h:panelGrid columns="1" style="padding-top:0px;vertical-align:top;width:100%">
+				<h:panelGroup layout="block">
+					<div id="plumb_main" />
+					<div id="plumb_desc" />
+				</h:panelGroup>
+				<h:panelGroup>
+			     	<p:inputText id="p_literal" placeholder="value" styleClass="inputText" style="width:80px;" />
+		     		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
+		     		<p:commandButton value="Download BPMN" ajax="false" icon="ui-icon-arrowthick-1-s">
+			        	<p:fileDownload value="#{wpsConnector.bpmnXMLFile}" />
+			    	</p:commandButton>
+		     		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsConnector.execute}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnector.connectionInvalid}" update=":form:message" />
+		     		<p:commandButton id="p_reset" title="reset" icon="ui-icon-trash" action="#{wpsConnector.reset}" update="p_wpsConnectors p_validation p_execute" onclick="f_reset();" style="margin-left:800px;" />
+		     	</h:panelGroup>
+		     	 <h:panelGroup layout="block">
+		     		<h:outputText id="p_validation" value="#{wpsConnector.validationMessage}" escape="false" styleClass="p_validationResult bad"/>
+			     	<h:inputHidden id="p_connections" value="#{wpsConnector.connections}" />
+		     	</h:panelGroup>
+			</h:panelGrid>		     
+			<h:outputText rendered="false" id="p_bpmnXML" value="#{wpsConnector.bpmnXML}" style="white-space:pre-wrap;" />
+			<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation p_execute p_bpmnXML"/>	     	
+	     </p:tab>
+			
+	</p:accordionPanel>
+	
+	</h:form>
+	
+	<h:panelGrid columns="1" id="footer" class="ui-state-active">
+		© TUD - Geoinformatics, Stefan Wiemann
+	</h:panelGrid>
+	
+	<script src="http://openlayers.org/en/v3.13.0/build/ol.js" type="text/javascript"></script>
+	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.12/proj4.js" type="text/javascript"></script> -->
+	<h:outputScript name="js/ol-resource.js" />
+	<h:outputScript name="js/ol-common.js" />
+	<h:outputScript name="js/ol-stats.js" />
+	<h:outputScript name="js/ol-main.js" />
+	<h:outputScript name="js/common.js" />
+	<h:outputScript name="js/ld-relations.js" />
+	<h:outputScript name="js/extern/jsPlumb-2.0.6.js" />
+	<h:outputScript name="js/jsPlumb-main.js" />
+
+</h:body>
+</html>

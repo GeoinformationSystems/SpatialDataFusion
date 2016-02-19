@@ -22,7 +22,7 @@ public class RelationMeasurement extends Resource implements IRelationMeasuremen
 	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
 	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
 	private IIdentifiableResource VALUE = RDFVocabulary.VALUE.asResource();
-	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DESCRIPTION.asResource();
+	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DC_DESCRIPTION.asResource();
 	
 	public RelationMeasurement(String identifier, IIdentifiableResource source, IIdentifiableResource target, IMeasurement value, IMeasurementDescription description) {
 		super(identifier);
