@@ -1,7 +1,7 @@
 package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Collection;
-import java.util.Map;
+import java.util.List;
 
 import com.vividsolutions.jts.geom.Envelope;
 import de.tudresden.gis.fusion.data.IDataCollection;
@@ -9,6 +9,7 @@ import de.tudresden.gis.fusion.data.description.MeasurementDescription;
 import de.tudresden.gis.fusion.data.feature.IFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
@@ -55,22 +56,37 @@ public class BoundingBoxDistance extends ARelationMeasurementOperation {
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		dThreshold = ((DecimalLiteral) input(IN_THRESHOLD)).resolve();
+		dThreshold = inputContainsKey(IN_THRESHOLD) ? ((DecimalLiteral) input(IN_THRESHOLD)).resolve() : 0d;
 		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
 		
 		//execute
 		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
 						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
-						relations(inSource, inTarget);
+						relationsWithIndex(new GTIndexedFeatureCollection(inSource), inTarget);
 			
 		//return
 		setOutput(OUT_RELATIONS, relations);
 				
 	}
 	
+	private FeatureRelationCollection relationsWithIndex(GTIndexedFeatureCollection reference, GTFeatureCollection target) {
+		//create relation collection
+		FeatureRelationCollection relations = new FeatureRelationCollection();
+		//add relations
+		for(GTFeature tar : target){
+			List<GTFeature> intersections = reference.boundsIntersect(tar, dThreshold);
+			for(GTFeature ref : intersections){
+				IFeatureRelation relation = relation(ref, tar, null, true);
+				if(relation != null)
+					relations.add(relation);
+			}
+		}
+		return relations;
+	}
+	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		Envelope eReference = ((GTFeature) reference).getDefaultGeometry().getEnvelopeInternal();
 		Envelope eTarget = ((GTFeature) target).getDefaultGeometry().getEnvelopeInternal();
@@ -80,24 +96,24 @@ public class BoundingBoxDistance extends ARelationMeasurementOperation {
 		boolean bIntersect = getIntersect(eReference, eTarget);
 		//check for overlap		
 		if(bIntersect) {
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					null, 
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new BooleanLiteral(bIntersect), 
-					intersectDescription);
+					intersectDescription));
 		}
 		else {
 			//get distance
 			double dDistance = getDistance(eReference, eTarget);
 			//check for overlap
 			if(dDistance <= dThreshold)
-				return new RelationMeasurement(
+				return getMeasurements(new RelationMeasurement(
 						null, 
 						RDFVocabulary.PROPERTY_GEOM.asResource(),
 						RDFVocabulary.PROPERTY_GEOM.asResource(),
 						new DecimalLiteral(dDistance), 
-						distanceDescription);
+						distanceDescription));
 			//return null if distance > threshold
 			else
 				return null;
@@ -146,13 +162,13 @@ public class BoundingBoxDistance extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

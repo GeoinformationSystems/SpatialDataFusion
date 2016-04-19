@@ -16,7 +16,7 @@ import de.tudresden.gis.fusion.operation.description.IProcessDescription;
 import de.tudresden.gis.fusion.operation.description.OperationProfile;
 import de.tudresden.gis.fusion.operation.description.ProcessDescription;
 
-public abstract class AOperationInstance implements IOperationInstance {
+public abstract class AOperationInstance implements IOperation {
 	
 	public static final String OUT_START = "OUT_START";
 	public static final String OUT_RUNTIME = "OUT_RUNTIME";
@@ -53,7 +53,7 @@ public abstract class AOperationInstance implements IOperationInstance {
 	public IOperationProfile profile() {
 		return new OperationProfile(
 				getProcessIdentifier(),
-				getInputDescription(), 
+				getInputDescriptions(), 
 				getOutputDescriptions(), 
 				getProcessDescription());
 	}
@@ -68,13 +68,13 @@ public abstract class AOperationInstance implements IOperationInstance {
 	 * abstract method: get input descriptions
 	 * @return input description
 	 */
-	public abstract Map<String, IInputDescription> getInputDescription();
+	public abstract Collection<IInputDescription> getInputDescriptions();
 
 	/**
 	 * abstract method: get output descriptions
 	 * @return output descriptions
 	 */
-	public abstract Map<String, IOutputDescription> getOutputDescriptions();
+	public abstract Collection<IOutputDescription> getOutputDescriptions();
 
 	/**
 	 * execution of the process (called by execute(Map<String, IData> input))

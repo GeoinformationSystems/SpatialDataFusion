@@ -38,7 +38,15 @@ public class MeasurementRange extends Resource implements IMeasurementRange,ITri
 	
 	@Override
 	public TreeSet<IMeasurement> getRange() {
-		return (TreeSet<IMeasurement>) objectSet.get(RANGE_MEMBER, IMeasurement.class);
+		Set<INode> objects = objectSet.get(RANGE_MEMBER);
+		TreeSet<IMeasurement> measurements = new TreeSet<IMeasurement>();
+		for(INode object : objects){
+			if(object instanceof IMeasurement)
+				measurements.add((IMeasurement) object);
+			else //should not happen
+				throw new RuntimeException("node does not implement IMeasurement");
+		}
+		return(measurements);
 	}
 
 	@Override

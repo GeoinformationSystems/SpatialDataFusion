@@ -1,5 +1,5 @@
 package de.tudresden.gis.fusion.operation;
 
-public interface IParser extends IOperationInstance {
+public interface IParser extends IOperation {
 
 }

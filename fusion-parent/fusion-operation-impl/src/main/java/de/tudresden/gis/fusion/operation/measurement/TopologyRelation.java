@@ -1,8 +1,6 @@
 package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Collection;
-import java.util.Map;
-
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.IntersectionMatrix;
 
@@ -64,7 +62,7 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
 		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
@@ -74,12 +72,12 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 		IntersectionMatrix matrix = gReference.relate(gTarget);
 		//check for overlap		
 		if(!matrix.isDisjoint()){
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					null, 
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new StringLiteral(matrix.toString()), 
-					de9imDescription);
+					de9imDescription));
 		}
 		else
 			return null;
@@ -107,13 +105,13 @@ public class TopologyRelation extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

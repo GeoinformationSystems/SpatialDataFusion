@@ -22,6 +22,10 @@ public class URILiteral implements ILiteralData,ITypedLiteral {
 		this(value, null);
 	}
 
+	public URILiteral(String string) {
+		this(URI.create(string));
+	}
+
 	@Override
 	public URI resolve() {
 		return value;

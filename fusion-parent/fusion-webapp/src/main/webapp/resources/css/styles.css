@@ -33,7 +33,7 @@
 
 /* jsPlumb */
 #plumb_main { position:relative;width:80%;height:600px;background-color:white;overflow:auto;float:left;border-top:1px solid #5192b5;border-bottom:4px solid #5192b5;margin-bottom:0px; }
-#plumb_desc { height:600px;max-width:15%;overflow:auto;padding-left:5px;color:#5192b5;float:left; }
+#plumb_desc { height:600px;max-width:18%;overflow:auto;padding-left:5px;color:#5192b5;float:left; }
 .ioFormat { font-style:italic;padding:2px 8px;color:#39F; }
 .p_validationResult { font-size:1em; }
 .plumb_process { cursor:move;padding:3px;font-size:1em;font-weight:bold;color:white;min-width:150px;position:absolute;text-align:center;font-variant:small-caps;background-color:#5192b5;border:1px solid #5192b5; }

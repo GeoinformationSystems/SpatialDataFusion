@@ -1,6 +1,7 @@
 package de.tudresden.gis.fusion.data.relation;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import de.tudresden.gis.fusion.data.AbstractDataResource;
@@ -23,10 +24,9 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
 	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
 	private IIdentifiableResource RELATION_TYPE = RDFVocabulary.RELATION_TYPE.asResource();
-	private IIdentifiableResource VIEW = RDFVocabulary.RELATION_VIEW.asResource();
-	private IIdentifiableResource MEASUREMENTS = RDFVocabulary.RELATION_MEASUREMENT.asResource();
+	private IIdentifiableResource MEASUREMENT = RDFVocabulary.RELATION_MEASUREMENT.asResource();
 
-	public FeatureRelation(String identifier, IFeature source, IFeature target, IIdentifiableResource view, IRelationType type, Collection<IRelationMeasurement> measurements){
+	public FeatureRelation(String identifier, IFeature source, IFeature target, Set<IRelationType> types, Set<IRelationMeasurement> measurements){
 		super(identifier);
 		objectSet = new ObjectSet();
 		//set resource type
@@ -34,13 +34,12 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 		//set objects
 		objectSet.put(SOURCE, source, true);
 		objectSet.put(TARGET, target, true);
-		objectSet.put(RELATION_TYPE, type);
-		objectSet.put(VIEW, view);
-		objectSet.put(MEASUREMENTS, measurements);
+		objectSet.put(RELATION_TYPE, types);
+		objectSet.put(MEASUREMENT, measurements);
 	}
 	
 	public FeatureRelation(String identifier, IFeature source, IFeature target){
-		this(identifier, source, target, null, null, null);
+		this(identifier, source, target, null, null);
 	}
 	
 	public FeatureRelation(IFeature source, IFeature target){
@@ -49,28 +48,38 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 	
 	@Override
 	public IFeature getSource() {
-		return (IFeature) objectSet.getFirst(SOURCE);
+		return (IFeature) objectSet.getSingle(SOURCE);
 	}
 
 	@Override
 	public IFeature getTarget() {
-		return (IFeature) objectSet.getFirst(TARGET);
+		return (IFeature) objectSet.getSingle(TARGET);
 	}
 	
 	@Override
-	public IRelationType getRelationType() {
-		return (IRelationType) objectSet.getFirst(RELATION_TYPE);
+	public Set<IRelationType> getRelationTypes() {
+		Set<INode> objects = objectSet.get(RELATION_TYPE);
+		Set<IRelationType> relationTypes = new HashSet<IRelationType>();
+		for(INode object : objects){
+			if(object instanceof IRelationType)
+				relationTypes.add((IRelationType) object);
+			else //should not happen
+				throw new RuntimeException("node does not implement IRelationType");
+		}
+		return(relationTypes);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public Collection<IRelationMeasurement> getRelationMeasurements() {
-		return (Collection<IRelationMeasurement>) objectSet.getFirst(MEASUREMENTS);
-	}
-	
-	@Override
-	public IIdentifiableResource getFeatureView() {
-		return (IIdentifiableResource) objectSet.getFirst(VIEW);
+	public Set<IRelationMeasurement> getRelationMeasurements() {
+		Set<INode> objects = objectSet.get(MEASUREMENT);
+		Set<IRelationMeasurement> relationMeasurements = new HashSet<IRelationMeasurement>();
+		for(INode object : objects){
+			if(object instanceof IRelationMeasurement)
+				relationMeasurements.add((IRelationMeasurement) object);
+			else //should not happen
+				throw new RuntimeException("node does not implement IRelationMeasurement");
+		}
+		return(relationMeasurements);
 	}
 
 	@Override
@@ -90,7 +99,7 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 	
 	@Override
 	public void addMeasurement(IRelationMeasurement measurement){
-		objectSet.put(MEASUREMENTS, measurement);
+		objectSet.put(MEASUREMENT, measurement);
 	}
 	
 }

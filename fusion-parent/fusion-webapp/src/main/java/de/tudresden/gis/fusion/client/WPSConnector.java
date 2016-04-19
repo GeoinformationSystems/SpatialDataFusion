@@ -53,10 +53,10 @@ public class WPSConnector implements Serializable {
     public TargetWFS getTargetWFS() { return targetWFS; }
     public void setTargetWFS(TargetWFS targetWFS) { this.targetWFS = targetWFS; }
     
-    @ManagedProperty(value="#{fusekiConnector}")
-    private FusekiConnector fusekiConnector;
-    public FusekiConnector getFusekiConnector() { return fusekiConnector; }
-    public void setFusekiConnector(FusekiConnector fusekiConnector) { this.fusekiConnector = fusekiConnector; }
+    @ManagedProperty(value="#{outputConnector}")
+    private OutputConnector outputConnector;
+    public OutputConnector getOutputConnector() { return outputConnector; }
+    public void setOutputConnector(OutputConnector outputConnector) { this.outputConnector = outputConnector; }
 	
 	private SortedMap<Integer,WPSHandler> wpsHandlers = new TreeMap<Integer,WPSHandler>();
 	public List<WPSHandler> getHandlers() { return new ArrayList<WPSHandler>(wpsHandlers.values()); }
@@ -83,7 +83,7 @@ public class WPSConnector implements Serializable {
 		ioProcesses.put(referenceWFS.getIOProcess().getUUID(), referenceWFS.getIOProcess());
 		ioProcesses.put(targetWFS.getIOProcess().getUUID(), targetWFS.getIOProcess());
 		//add storage process
-		ioProcesses.put(fusekiConnector.getIOProcess().getUUID(), fusekiConnector.getIOProcess());
+		ioProcesses.put(outputConnector.getIOProcess().getUUID(), outputConnector.getIOProcess());
 		
 		return ioProcesses;
 	}
@@ -134,7 +134,7 @@ public class WPSConnector implements Serializable {
 	 * @return BPMN XML file
 	 */
 	public StreamedContent getBpmnXMLFile() {
-		return new ByteArrayContent(bpmnXML.getBytes(), "text/xml", "bpmnXML.xml");
+		return new ByteArrayContent(getBpmnXML().getBytes(), "text/xml", "bpmnXML.xml");
 	}
 	
 	/**

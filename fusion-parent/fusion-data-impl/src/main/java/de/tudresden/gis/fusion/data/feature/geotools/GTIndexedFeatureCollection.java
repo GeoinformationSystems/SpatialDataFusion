@@ -1,5 +1,6 @@
 package de.tudresden.gis.fusion.data.feature.geotools;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.geotools.feature.FeatureCollection;
@@ -23,11 +24,15 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 	}
 	
 	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		super(identifier, featureCollection);
+		this(identifier, featureCollection, null);
 	}
 	
 	public GTIndexedFeatureCollection(FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		super(featureCollection);
+		this(null, featureCollection);
+	}
+	
+	public GTIndexedFeatureCollection(GTFeatureCollection gtCollection){
+		this(gtCollection.asString(), gtCollection.collection(), gtCollection.getDescription());
 	}
 	
 	/**
@@ -73,4 +78,18 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 		return this.index.query(envelope);
 	}
 
+	/**
+	 * get intersecting features by input feature bounds
+	 * @param feature input feature
+	 * @param buffer buffer tolerance applied to bounds
+	 * @return all intersecting features within tolerance
+	 */
+	public List<GTFeature> boundsIntersect(GTFeature feature, double buffer) {
+		List<GTFeature> list = new ArrayList<GTFeature>();
+		List<Feature> intersections = boundsIntersect(feature.resolve(), buffer);
+		for(Feature feat : intersections){
+			list.add(this.elementById(feat.getIdentifier().toString()));
+		}
+		return list;
+	}
 }

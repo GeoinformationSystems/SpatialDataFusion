@@ -5,7 +5,7 @@ import java.util.Map;
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.operation.description.IOperationProfile;
 
-public interface IOperationInstance {
+public interface IOperation {
 
 	/**
 	 * executes an operation

@@ -20,20 +20,22 @@ public class RDFTurtleEncoder {
 	public static List<String> encodeTripleResource(ISubjectCollection collection, URI base, Map<URI,String> prefixes, int chunkSize) {
 		List<String> sList = new ArrayList<String>();
 		StringBuilder sTriple = new StringBuilder();
+		StringBuilder sTripleRoot = new StringBuilder();
 		//iterate collection
 		int i = 0;
 		for(ISubject rdf : collection.collection()){
 			i++;
-			sTriple.append(encodeTripleResource(rdf, base, prefixes, "", true, true));
+			sTriple.append(encodeTripleResource(rdf, base, prefixes, "", true, true, sTripleRoot));
 			//cut relation string by chunk size
 			if(i % chunkSize == 0){
-				sList.add(sTriple.toString());
+				sList.add(sTriple.append(sTripleRoot).toString());
 				sTriple.setLength(0);
+				sTripleRoot.setLength(0);
 			}
 		}
 		//add remaining relations
 		if(sTriple.length() > 0)
-			sList.add(sTriple.toString());
+			sList.add(sTriple.append(sTripleRoot).toString());
 		//return list
 		return sList;
 	}
@@ -46,7 +48,9 @@ public class RDFTurtleEncoder {
 	 * @return encoded RDF triple representation String
 	 */
 	public static String encodeTripleResource(ISubject rdf, URI base, Map<URI,String> prefixes) {
-		return encodeTripleResource(rdf, base, prefixes, "", true, true);
+		StringBuilder sTripleRoot = new StringBuilder();
+		String sTriple = encodeTripleResource(rdf, base, prefixes, "", true, true, sTripleRoot);
+		return sTripleRoot.append(sTriple).toString();
 	}
 	
 	/**
@@ -59,18 +63,18 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple representation String
 	 */
-	public static String encodeTripleResource(ISubject rdf, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
+	public static String encodeTripleResource(ISubject rdf, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) {
 		StringBuilder sTriple = new StringBuilder();
 		//if subject is not defined, do nothing
 		if(rdf == null)
 			return null;
 		//write triple
 		if(rdf instanceof ITriple){
-			sTriple.append(encodeTriple((ITriple) rdf, base, prefixes, indent, close));
+			sTriple.append(encodeTriple((ITriple) rdf, base, prefixes, indent, close, sTripleRoot));
 		}
 		//write triple set
 		else if(rdf instanceof ITripleSet){
-			sTriple.append(encodeTripleSet((ITripleSet) rdf, base, prefixes, indent, writeSubject, close));
+			sTriple.append(encodeTripleSet((ITripleSet) rdf, base, prefixes, indent, writeSubject, close, sTripleRoot));
 		}
 		//write resource, if objects are not defined
 		else
@@ -89,7 +93,7 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple set String
 	 */
-	public static String encodeTripleSet(ITripleSet tripleSet, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close) {
+	public static String encodeTripleSet(ITripleSet tripleSet, URI base, Map<URI,String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject, if requested
 		if(writeSubject)
@@ -111,7 +115,7 @@ public class RDFTurtleEncoder {
 				i--;
 				boolean lastObject = (i == 0);
 				boolean setClose = (close && lastObject);
-				sTriple.append(encodeObject(object, base, prefixes, indent, setClose));
+				sTriple.append(encodeObject(object, base, prefixes, indent, setClose, sTripleRoot));
 			}
 		}
 		//return
@@ -127,26 +131,32 @@ public class RDFTurtleEncoder {
 	 * @param close set true to close the set (. instead of ;)
 	 * @return encoded RDF triple String
 	 */
-	public static String encodeTriple(ITriple triple, URI base, Map<URI,String> prefixes, String indent, boolean close) {
+	public static String encodeTriple(ITriple triple, URI base, Map<URI,String> prefixes, String indent, boolean close, StringBuilder sTripleRoot) {
 		StringBuilder sTriple = new StringBuilder();
 		//write subject
 		sTriple.append(indent + encodeResource(triple, base, prefixes) + " ");
 		//write predicate
 		sTriple.append(encodeResource(triple.getPredicate(), base, prefixes));
 		//write object
-		sTriple.append(encodeObject(triple.getObject(), base, prefixes, indent, close));
+		sTriple.append(encodeObject(triple.getObject(), base, prefixes, indent, close, sTripleRoot));
 		
 		return sTriple.toString();
 	}
 	
-	public static String encodeObject(INode object, URI base, Map<URI,String> prefixes, String indent, boolean close){
+	public static String encodeObject(INode object, URI base, Map<URI,String> prefixes, String indent, boolean close, StringBuilder sTripleRoot){
 		StringBuilder sTriple = new StringBuilder();
 		//encode triple set
 		if(object instanceof ITripleSet){
 			if(((ITripleSet) object).size() > 0){
-				sTriple.append(" [\n");
-				sTriple.append(encodeTripleResource((ITripleSet) object, base, prefixes, indent, false, false));
-				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
+				if(((IResource) object).isBlank()){
+					sTriple.append(" [\n");
+					sTriple.append(encodeTripleResource((ITripleSet) object, base, prefixes, indent, false, false, sTripleRoot));
+					sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
+				}
+				else {
+					sTriple.append(" " + encodeResource((IResource) object, base, prefixes) + (close ? " ." : " ;") + "\n");
+					sTripleRoot.append(encodeTripleResource((ITripleSet) object, base, prefixes, "", true, true, sTripleRoot));
+				}
 			}
 			else
 				sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + " ;\n");		
@@ -154,9 +164,15 @@ public class RDFTurtleEncoder {
 		//encode triple
 		else if(object instanceof ITriple){
 			if(((ITriple) object).getObject() != null){
-				sTriple.append(" [\n");
-				sTriple.append(encodeTripleResource((ITriple) object, base, prefixes, indent, false, false));
-				sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
+				if(((IResource) object).isBlank()){
+					sTriple.append(" [\n");
+					sTriple.append(encodeTripleResource((ITriple) object, base, prefixes, indent, false, false, sTripleRoot));
+					sTriple.append(indent + "]" + (close ? " ." : " ;") + "\n");
+				} 
+				else {
+					sTriple.append(" " + encodeResource((IResource) object, base, prefixes) + (close ? " ." : " ;") + "\n");
+					sTripleRoot.append(encodeTripleResource((ITriple) object, base, prefixes, "", true, true, sTripleRoot));
+				}
 			}
 			else
 				sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + " ;\n");		
@@ -168,9 +184,13 @@ public class RDFTurtleEncoder {
 		else if(object instanceof IIdentifiableResource){
 			sTriple.append(" " + encodeResource((IIdentifiableResource) object, base, prefixes) + (close ? " ." : " ;") + "\n");
 		}
+		//encode resource if not blank
+		else if(object instanceof IResource && !((IResource) object).isBlank()){
+			sTriple.append(" " + encodeResource((IResource) object, base, prefixes) + (close ? " ." : " ;") + "\n");
+		}
 		else
 			//this should not happen
-			sTriple.append(" NotAResource ;\n");
+			sTriple.append(" NoIdentifiableRDFNode" + (close ? " ." : " ;") + "\n");
 		
 		return sTriple.toString();
 	}
@@ -182,12 +202,12 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded resource String
 	 */
-	public static String encodeResource(IIdentifiableResource resource, URI base, Map<URI,String> prefixes){
-		if(resource instanceof IResource && ((IResource) resource).isBlank())
+	public static String encodeResource(IResource resource, URI base, Map<URI,String> prefixes){
+		if(resource.isBlank())
 			//TODO: implement blank id
 			return "_:" + resource.getClass().getSimpleName() + "_" + UUID.randomUUID();
 		else {
-			URI uriPrefix = relativizeIdentifier(resource, base, prefixes);
+			URI uriPrefix = relativizeIdentifier(new IdentifiableResource(resource), base, prefixes);
 			//write full resource, if it has not been relativized
 			if(resource.asURI().equals(uriPrefix))
 				return "<" + resource.asString().toString() + ">";
@@ -202,7 +222,7 @@ public class RDFTurtleEncoder {
 	 * @param prefixes RDF prefixes
 	 * @return encoded resource String
 	 */
-	public static String encodeResource(IIdentifiableResource resource, Map<URI,String> prefixes){
+	public static String encodeResource(IResource resource, Map<URI,String> prefixes){
 		return encodeResource(resource, null, prefixes);
 	}
 	

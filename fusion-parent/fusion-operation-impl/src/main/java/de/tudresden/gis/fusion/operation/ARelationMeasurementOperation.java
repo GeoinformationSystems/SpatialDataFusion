@@ -1,5 +1,7 @@
 package de.tudresden.gis.fusion.operation;
 
+import java.util.List;
+
 import de.tudresden.gis.fusion.data.IDataCollection;
 import de.tudresden.gis.fusion.data.feature.IFeature;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
@@ -60,17 +62,20 @@ public abstract class ARelationMeasurementOperation extends AOperationInstance {
 	 * @return feature view relation
 	 */
 	protected IFeatureRelation relation(IFeature reference, IFeature target, IFeatureRelation relation, boolean drop){
-		IRelationMeasurement measurement = null;
+		IRelationMeasurement[] measurements = null;
 		try{
-			measurement = getMeasurement(reference, target);
+			measurements = getMeasurements(reference, target);
 		} catch(ProcessException e){
+			//TODO: log exception
 			//continue
 		}
-		//add measurement if not null
-		if(measurement != null){
+		//add measurements if not null
+		if(measurements != null && measurements.length > 0){
 			if(relation == null)
 				relation = new FeatureRelation(reference, target);
-			relation.addMeasurement(measurement);
+			for(IRelationMeasurement measurement : measurements){
+				relation.addMeasurement(measurement);
+			}
 			return relation;
 		}
 		else {
@@ -79,11 +84,29 @@ public abstract class ARelationMeasurementOperation extends AOperationInstance {
 	}
 	
 	/**
-	 * execute feature view measurement for this process
-	 * @param reference reference feature view
-	 * @param target target feature view
-	 * @return feature view measurement
+	 * execute feature measurements for this process
+	 * @param reference reference feature
+	 * @param target target feature
+	 * @return feature measurements
 	 */
-	protected abstract IRelationMeasurement getMeasurement(IFeature reference, IFeature target);
+	protected abstract IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target);
+	
+	/**
+	 * get array of measurements from single measurement 
+	 * @param measurement relation measurement
+	 * @return array of measurements
+	 */
+	protected IRelationMeasurement[] getMeasurements(IRelationMeasurement measurement){
+		return new IRelationMeasurement[]{measurement};
+	}
+	
+	/**
+	 * get array of measurements from list of measurement 
+	 * @param measurement relation measurement
+	 * @return array of measurements
+	 */
+	protected IRelationMeasurement[] getMeasurements(List<IRelationMeasurement> measurements){
+		return measurements.toArray(new IRelationMeasurement[measurements.size()]);
+	}
 	
 }

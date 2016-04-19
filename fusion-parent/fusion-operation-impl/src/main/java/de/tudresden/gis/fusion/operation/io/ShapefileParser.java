@@ -2,9 +2,8 @@ package de.tudresden.gis.fusion.operation.io;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Map;
-
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -38,6 +37,7 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 		try {
 			URL resourceURL = shapeResource.resolve().toURL();
 			ShapefileDataStore store = new ShapefileDataStore(resourceURL);
+			store.setCharset(StandardCharsets.UTF_8);
 	        String name = store.getTypeNames()[0];
 	        SimpleFeatureSource source = store.getFeatureSource(name);
 	        if(bWithIndex)
@@ -74,13 +74,13 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

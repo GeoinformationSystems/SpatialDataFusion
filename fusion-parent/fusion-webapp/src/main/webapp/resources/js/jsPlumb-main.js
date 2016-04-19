@@ -142,11 +142,13 @@ function f_init() {
 	f_addProcess(targetDescription);
 	
 	//output relations
-	f_initDemo();
-	var outputDescription = {title: 'Output', identifier: 'OutputFeatures', uuid: '0_OutputRelations',
-			inputs: [{identifier: 'IN_FEATURES', title: 'Relations input', 
-				defaultFormat: {mimetype: 'text/turtle'},
-				supportedFormats: [{mimetype: 'text/turtle'}] }],
+//	f_initDemo();
+	var outputDescription = {title: 'Output', identifier: 'Output', uuid: '0_Output',
+			inputs: [{identifier: 'IN_OUTPUT', title: 'Output of the fusion process', 
+				defaultFormat: {mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				supportedFormats: [{mimetype: 'text/xml', schema : 'http://schemas.opengis.net/gml/3.2.1/base/feature.xsd'},
+				                   {mimetype: 'application/json'},
+				                   {mimetype: 'text/turtle'}] }],
 			outputs: [] };
 	f_addProcess(outputDescription);
 	
@@ -322,17 +324,16 @@ function f_getFormatString(format){
 	return string + '</div>';
 }
 
-///**
-// * set connections valid, used for enabling execute button
-// * @param flag
-// */
-//function setConnectionsValid(flag){
-//	if(flag === true)
-//		p_setConnectionsInvalidFromJS([{name:"invalid", value:"false"}]);
-//	else
-//		p_setConnectionsInvalidFromJS([{"invalid":"true"}]);
-//		
-//}
+/**
+ * set connections valid, used for enabling execute button
+ * @param flag
+ */
+function setConnectionsValid(flag){
+	if(flag === true)
+		p_setConnectionsInvalidFromJS([{name:"invalid", value:"false"}]);
+	else
+		p_setConnectionsInvalidFromJS([{"invalid":"true"}]);
+}
 
 /**
  * validate connections
@@ -341,97 +342,97 @@ function f_setConnections() {
 	var connections = f_getConnections();
 	document.getElementById('form:p_fusion:p_connections').value = JSON.stringify(connections);
 	p_connectionsChanged();
-//	var connectionsValid = true;
-//	var errors = "";
-//	
-//	if(connections.length == 0){
-//		setConnectionsValid(false);
-//		document.getElementById('p_validationResult').innerHTML = '';
-//		document.getElementById('form:p_connections').value = '';
-//		return;
-//	}
-//	//check connections
-//	for(var i=0; i<connections.length; i++) {
-//		var validationError = f_validateConnection(connections[i]);
-//		if(validationError !== null){
-//			connectionsValid = false;
-//			errors += validationError + '<br />';
-//		}
-//	}
-//	//set connections input field
-//	if(connectionsValid) {
-//		setConnectionsValid(true);
-//		document.getElementById('p_validationResult').innerHTML = '<span class="good">Connections are valid</span>';
-//		document.getElementById('form:p_connections').value = '{ "connections" : ' + JSON.stringify(connections) + '}';
-//	}
-//	else {
-//		setConnectionsValid(false);
-//		document.getElementById('p_validationResult').innerHTML = '<span class="bad">Connections are not valid</span><br />' + errors;
-//		document.getElementById('form:p_connections').value = '';
-//	}
+	var connectionsValid = true;
+	var errors = "";
+	
+	if(connections.length == 0){
+		setConnectionsValid(false);
+		document.getElementById('p_validationResult').innerHTML = '';
+		document.getElementById('form:p_connections').value = '';
+		return;
+	}
+	//check connections
+	for(var i=0; i<connections.length; i++) {
+		var validationError = f_validateConnection(connections[i]);
+		if(validationError !== null){
+			connectionsValid = false;
+			errors += validationError + '<br />';
+		}
+	}
+	//set connections input field
+	if(connectionsValid) {
+		setConnectionsValid(true);
+		document.getElementById('p_validationResult').innerHTML = '<span class="good">Connections are valid</span>';
+		document.getElementById('form:p_connections').value = '{ "connections" : ' + JSON.stringify(connections) + '}';
+	}
+	else {
+		setConnectionsValid(false);
+		document.getElementById('p_validationResult').innerHTML = '<span class="bad">Connections are not valid</span><br />' + errors;
+		document.getElementById('form:p_connections').value = '';
+	}
 }
 
-///**
-// * validate connection
-// * @param connection input connection
-// */
-//function f_validateConnection(connection) {
-//	
-//	//get output list
-//	var outputs = null;
-//	for(var i=0; i<connection['ref_description'].outputs.length; i++) {
-//		if(connection['ref_description'].outputs[i].identifier == connection['ref_output'])
-//			outputs = connection['ref_description'].outputs[i].supportedFormats;
-//	}
-//	//get input list
-//	var inputs = null;
-//	for(i=0; i<connection['tar_description'].inputs.length; i++) {
-//		if(connection['tar_description'].inputs[i].identifier == connection['tar_input'])
-//			inputs = connection['tar_description'].inputs[i].supportedFormats;
-//	}
-//	//check if inputs and outputs are set	
-//	if(typeof outputs === null || typeof inputs === null)
-//		return 'inputs or outputs are not set properly for : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
-//	else if(!f_haveCommonFormat(inputs, outputs))
-//		return 'inputs and outputs have no common format : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
-//	else
-//		return null;
-//}
+/**
+ * validate connection
+ * @param connection input connection
+ */
+function f_validateConnection(connection) {
+	
+	//get output list
+	var outputs = null;
+	for(var i=0; i<connection['ref_description'].outputs.length; i++) {
+		if(connection['ref_description'].outputs[i].identifier == connection['ref_output'])
+			outputs = connection['ref_description'].outputs[i].supportedFormats;
+	}
+	//get input list
+	var inputs = null;
+	for(i=0; i<connection['tar_description'].inputs.length; i++) {
+		if(connection['tar_description'].inputs[i].identifier == connection['tar_input'])
+			inputs = connection['tar_description'].inputs[i].supportedFormats;
+	}
+	//check if inputs and outputs are set	
+	if(typeof outputs === null || typeof inputs === null)
+		return 'inputs or outputs are not set properly for : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+	else if(!f_haveCommonFormat(inputs, outputs))
+		return 'inputs and outputs have no common format : ' + connection['ref_output'] + ' --> ' + connection['tar_input'];
+	else
+		return null;
+}
 
-///**
-// * check two lists for common entry
-// * @param inputs first list
-// * @param outputs second list
-// */
-//function f_haveCommonFormat(inputs, outputs){
-//	for(var i=0; i<inputs.length; i++){
-//		for(var j=0; j<outputs.length; j++){
-//			if(f_compareFormats(inputs[i], outputs[j]))
-//				return true;
-//		}
-//	}
-//	return false;
-//}
+/**
+ * check two lists for common entry
+ * @param inputs first list
+ * @param outputs second list
+ */
+function f_haveCommonFormat(inputs, outputs){
+	for(var i=0; i<inputs.length; i++){
+		for(var j=0; j<outputs.length; j++){
+			if(f_compareFormats(inputs[i], outputs[j]))
+				return true;
+		}
+	}
+	return false;
+}
 
-///**
-// * compare two formats, returns 0 if equal
-// * @param input first format
-// * @param output second format
-// */
-//function f_compareFormats(input, output){
-//	
-//	if(typeof input.mimetype !== 'undefined' || typeof output.mimetype !== 'undefined')
-//		if(input.mimetype !== output.mimetype)
-//			return false;
-//	if(typeof input.schema !== 'undefined' || typeof output.schema !== 'undefined')
-//		if(input.schema !== output.schema)
-//			return false;
-//	if(typeof input.type !== 'undefined' || typeof output.type !== 'undefined')
-//		if(input.type !== output.type)
-//			return false;		
-//	
-//	return true;
-//}
+/**
+ * compare two formats, returns 0 if equal
+ * @param input first format
+ * @param output second format
+ */
+function f_compareFormats(input, output){
+	
+	if(typeof input.mimetype !== 'undefined' || typeof output.mimetype !== 'undefined')
+		if(input.mimetype !== output.mimetype)
+			return false;
+	if(typeof input.schema !== 'undefined' || typeof output.schema !== 'undefined')
+		if(input.schema !== output.schema)
+			return false;
+	if(typeof input.type !== 'undefined' || typeof output.type !== 'undefined')
+		if(input.type !== output.type)
+			return false;		
+	
+	return true;
+}
 
 /**
  * get jsPlumb connections

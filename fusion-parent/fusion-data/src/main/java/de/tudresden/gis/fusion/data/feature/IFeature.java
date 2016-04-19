@@ -2,11 +2,10 @@ package de.tudresden.gis.fusion.data.feature;
 
 import java.util.Collection;
 
-import de.tudresden.gis.fusion.data.IData;
+import de.tudresden.gis.fusion.data.IResourceData;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
-import de.tudresden.gis.fusion.data.rdf.IResource;
 
-public interface IFeature extends IData,IResource {
+public interface IFeature extends IResourceData {
 
 	/**
 	 * get concept of this feature

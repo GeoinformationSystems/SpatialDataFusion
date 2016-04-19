@@ -18,11 +18,11 @@ public abstract class AbstractDataResource extends AbstractData implements IReso
 		super(object);
 		this.identifier = identifier;
 	}
-	
-	public AbstractDataResource(Object object){
-		super(object);
-	}
 
+	public AbstractDataResource(String identifier){
+		this(identifier, null);
+	}
+	
 	@Override
 	public URI asURI() {
 		return URI.create(identifier);

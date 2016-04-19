@@ -1,7 +1,6 @@
 package de.tudresden.gis.fusion.operation.description;
 
-import java.util.Map;
-
+import java.util.Collection;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOperationProfile;
@@ -10,11 +9,11 @@ import de.tudresden.gis.fusion.operation.description.IProcessDescription;
 
 public class OperationProfile extends Resource implements IOperationProfile {
 	
-	private Map<String,IInputDescription> inputDesc;
-	private Map<String,IOutputDescription> outputDesc;
+	private Collection<IInputDescription> inputDesc;
+	private Collection<IOutputDescription> outputDesc;
 	private IProcessDescription processDesc;
 	
-	public OperationProfile(String identifier, Map<String,IInputDescription> inputDesc, Map<String,IOutputDescription> outputDesc, IProcessDescription processDesc){
+	public OperationProfile(String identifier, Collection<IInputDescription> inputDesc, Collection<IOutputDescription> outputDesc, IProcessDescription processDesc){
 		super(identifier);
 		this.inputDesc = inputDesc;
 		this.outputDesc = outputDesc;
@@ -22,12 +21,12 @@ public class OperationProfile extends Resource implements IOperationProfile {
 	}
 
 	@Override
-	public Map<String,IInputDescription> inputDescription() {
+	public Collection<IInputDescription> inputDescriptions() {
 		return inputDesc;
 	}
 
 	@Override
-	public Map<String,IOutputDescription> outputDescription() {
+	public Collection<IOutputDescription> outputDescriptions() {
 		return outputDesc;
 	}
 

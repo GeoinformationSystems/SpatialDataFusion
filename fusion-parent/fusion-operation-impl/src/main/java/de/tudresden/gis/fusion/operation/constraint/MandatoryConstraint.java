@@ -7,23 +7,21 @@ import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 
 public class MandatoryConstraint implements IDataConstraint {
 	
-	private String[] keys;
-	
-	public MandatoryConstraint(String[] keys){
-		this.keys = keys;
-	}
+	private String key;
 	
 	public MandatoryConstraint(String key){
-		this(new String[]{key});
+		this.key = key;
+	}
+
+	public boolean compliantWith(Map<String,IData> data) {
+		if(data.containsKey(key) && compliantWith(data.get(key)))
+			return true;
+		return false;
 	}
 
 	@Override
-	public boolean compliantWith(Map<String,IData> data) {
-		for(String key : keys){
-			if(!data.containsKey(key) || data.get(key) == null)
-				return false;
-		}
-		return true;
+	public boolean compliantWith(IData data) {
+		return data != null;
 	}
 
 }

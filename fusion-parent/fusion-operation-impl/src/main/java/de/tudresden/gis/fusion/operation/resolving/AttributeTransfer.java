@@ -1,8 +1,6 @@
 package de.tudresden.gis.fusion.operation.resolving;
 
 import java.util.Collection;
-import java.util.Map;
-
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
@@ -39,13 +37,13 @@ public class AttributeTransfer extends AOperationInstance {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

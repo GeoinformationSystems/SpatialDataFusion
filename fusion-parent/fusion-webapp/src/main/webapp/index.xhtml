@@ -101,8 +101,7 @@
 				<p:selectBooleanButton id="c_bindViews" offLabel="BindView" onLabel="BindView" onchange="f_toggleViewBind(this.checked);" />
 		    </h:panelGrid>
 		    <h:panelGrid columns="2">
-	    		<p:inputText id="f_tripleStore" placeholder="SPARQL endpoint" value="#{fusekiConnector.fusekiURL}" style="width:600px;" />
-	    		<p:selectBooleanButton id="f_useFusionResult" offLabel="Relations" onLabel="Relations" onchange="f_useRelations(this.checked);"/>
+	    		<p:selectBooleanButton id="f_showRelations" offLabel="Relations" onLabel="Relations" onchange="f_showRelations(this.checked);"/>
 			</h:panelGrid>
 			<h:panelGrid columns="1">
 				<div id="stats_rt" />
@@ -304,7 +303,7 @@
 				<h:panelGroup>
 			     	<p:inputText id="p_literal" placeholder="value" styleClass="inputText" style="width:80px;" />
 		     		<p:commandButton id="p_addLiteral" title="addLiteral" onclick="f_addLiteral();" value="add literal" icon="ui-icon-plus" />
-		     		<p:commandButton value="Download BPMN" ajax="false" icon="ui-icon-arrowthick-1-s">
+		     		<p:commandButton id="p_downloadBPMN" value="Download BPMN" ajax="false" icon="ui-icon-arrowthick-1-s" disabled="#{wpsConnector.connectionInvalid}">
 			        	<p:fileDownload value="#{wpsConnector.bpmnXMLFile}" />
 			    	</p:commandButton>
 		     		<p:commandButton id="p_execute" title="execute" value="execute" action="#{wpsConnector.execute}" icon="ui-icon-arrowreturnthick-1-e" disabled="#{wpsConnector.connectionInvalid}" update=":form:message" />
@@ -316,7 +315,7 @@
 		     	</h:panelGroup>
 			</h:panelGrid>		     
 			<h:outputText rendered="false" id="p_bpmnXML" value="#{wpsConnector.bpmnXML}" style="white-space:pre-wrap;" />
-			<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation p_execute p_bpmnXML"/>	     	
+			<p:remoteCommand name="p_connectionsChanged" process="p_connections" update="p_validation p_execute p_downloadBPMN"/>	     	
 	     </p:tab>
 			
 	</p:accordionPanel>

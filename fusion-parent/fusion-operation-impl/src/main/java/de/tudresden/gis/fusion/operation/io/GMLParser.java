@@ -12,8 +12,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
@@ -228,13 +226,13 @@ public class GMLParser extends AOperationInstance implements IParser {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

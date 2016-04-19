@@ -17,15 +17,15 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
+import de.tudresden.gis.fusion.data.feature.IObservation;
 import de.tudresden.gis.fusion.data.literal.TemporalMeasurement;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
-import de.tudresden.gis.fusion.data.observation.IObservation;
 import de.tudresden.gis.fusion.data.observation.ObservationCollection;
 import de.tudresden.gis.fusion.data.observation.SpeciesEntity;
 import de.tudresden.gis.fusion.data.observation.SpeciesMeasurement;
 import de.tudresden.gis.fusion.data.observation.SpeciesObservation;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
 import de.tudresden.gis.fusion.operation.ProcessException;
@@ -134,7 +134,7 @@ public class GBIFParser extends AOperationInstance implements IParser {
 		String identifier = values[index.get(PROPERTY_ID)];
 		SpeciesEntity entity = new SpeciesEntity(identifier);
 		SpeciesMeasurement measurement = new SpeciesMeasurement(
-				new Resource(values[index.get(PROPERTY_SCIENTIFIC_NAME)]), 
+				new IdentifiableResource(values[index.get(PROPERTY_SCIENTIFIC_NAME)]), 
 				getPoint(values),
 				getCount(values[index.get(PROPERTY_COUNT)]),
 				description);
@@ -197,13 +197,13 @@ public class GBIFParser extends AOperationInstance implements IParser {
 	}
 	
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

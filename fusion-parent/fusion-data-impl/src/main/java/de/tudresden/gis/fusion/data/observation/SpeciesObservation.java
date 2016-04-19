@@ -1,6 +1,14 @@
 package de.tudresden.gis.fusion.data.observation;
 
+import java.util.Collection;
+
 import de.tudresden.gis.fusion.data.AbstractDataResource;
+import de.tudresden.gis.fusion.data.feature.IFeatureConcept;
+import de.tudresden.gis.fusion.data.feature.IFeatureEntity;
+import de.tudresden.gis.fusion.data.feature.IFeatureRepresentation;
+import de.tudresden.gis.fusion.data.feature.IFeatureType;
+import de.tudresden.gis.fusion.data.feature.IObservation;
+import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.literal.TemporalMeasurement;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
@@ -39,6 +47,36 @@ public class SpeciesObservation extends AbstractDataResource implements IObserva
 	@Override
 	public TemporalMeasurement getPhenomenonTime() {
 		return time;
+	}
+
+	@Override
+	public IFeatureConcept getConcept() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IFeatureType getType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IFeatureEntity getEntity() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public IFeatureRepresentation getRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Collection<IFeatureRelation> getRelations() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

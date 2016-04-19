@@ -1,7 +1,6 @@
 package de.tudresden.gis.fusion.operation.io;
 
 import java.io.File;
-import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,12 +34,12 @@ public class GMLParserTest {
 	
 	@Test
 	public void readWFS11() throws ProcessException {
-		readGML(new URILiteral(URI.create("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs")));	
+		readGML(new URILiteral("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs"));	
 	}
 	
 	@Ignore
 	public void readWFS20() throws ProcessException {
-		readGML(new URILiteral(URI.create("http://localhost:8081/geoserver/fusion/wfs?service=WFS&version=2.0&request=GetFeature&typeName=fusion:osm_dd")));	
+		readGML(new URILiteral("http://localhost:8081/geoserver/fusion/wfs?service=WFS&version=2.0&request=GetFeature&typeName=fusion:osm_dd"));	
 	}
 	
 	private void readGML(URILiteral resource) throws ProcessException {

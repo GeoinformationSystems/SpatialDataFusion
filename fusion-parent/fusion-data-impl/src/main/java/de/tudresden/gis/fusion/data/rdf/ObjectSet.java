@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 public class ObjectSet extends HashMap<IIdentifiableResource,Set<INode>> {
@@ -80,33 +79,25 @@ public class ObjectSet extends HashMap<IIdentifiableResource,Set<INode>> {
 	/**
 	 * get object collection
 	 * @param predicate input predicate
-	 * @param clazz collection type generic
 	 * @return object collection
 	 */
-	@SuppressWarnings("unchecked")
-	public <T extends INode> Collection<T> get(IIdentifiableResource predicate, Class<T> clazz){
-		Set<INode> objectSet = this.get(predicate);
-		Collection<T> collection = new HashSet<T>();
-		for(INode node : objectSet){
-			if(clazz.isAssignableFrom(node.getClass()))
-				collection.add((T) node);
-		}
-		return collection;
+	public Set<INode> get(IIdentifiableResource predicate){
+		return super.get(predicate);
 	}
 	
 	/**
-	 * get first element in Set (for single element Sets)
+	 * get single object
 	 * @param predicate input predicate
-	 * @return first object in Set
+	 * @return single object
+	 * @throws IllegalArgumentException if multiple objects exist for predicate
 	 */
-	public INode getFirst(IIdentifiableResource predicate){
+	public INode getSingle(IIdentifiableResource predicate){
 		if(!super.containsKey(predicate))
 			return null;
-		Iterator<INode> iterator = super.get(predicate).iterator();
-		if(iterator.hasNext())
-			return super.get(predicate).iterator().next();
-		else
-			return null;
+		Set<INode> objectSet = this.get(predicate);
+		if(objectSet.size() != 1)
+			throw new IllegalArgumentException("predicate is related to multiple objects");
+		return objectSet.iterator().next();
 	}
 	
 	/**

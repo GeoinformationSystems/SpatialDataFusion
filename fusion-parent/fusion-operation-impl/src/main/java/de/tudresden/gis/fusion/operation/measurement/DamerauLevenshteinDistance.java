@@ -2,8 +2,6 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
-
 import org.opengis.feature.Property;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
@@ -16,9 +14,7 @@ import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.IntegerLiteral;
 import de.tudresden.gis.fusion.data.literal.StringLiteral;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
@@ -40,11 +36,9 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	
 	private final String OUT_RELATIONS = "OUT_RELATIONS";
 	
-	private String referenceAtt, targetAtt;
+	private String sourceAtt, targetAtt;
 	private int iThreshold;
 	private boolean bDropRelations;
-	
-	private IIdentifiableResource referenceProperty, targetProperty;
 	
 	private MeasurementDescription distanceDescription = new MeasurementDescription(
 			RDFVocabulary.TYPE_MEAS_STRING_DAMLEV.asString(),
@@ -58,15 +52,11 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 
 		//get input
 		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		referenceAtt = ((StringLiteral) input(IN_SOURCE_ATT)).resolve();
+		sourceAtt = ((StringLiteral) input(IN_SOURCE_ATT)).resolve();
 		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
 		targetAtt = ((StringLiteral) input(IN_TARGET_ATT)).resolve();
 		iThreshold = ((IntegerLiteral) input(IN_THRESHOLD)).resolve();
 		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
-		
-		//set properties
-		referenceProperty = new Resource(RDFVocabulary.PROPERTY_THEM.asString() + "#" + referenceAtt);
-		targetProperty = new Resource(RDFVocabulary.PROPERTY_THEM.asString() + "#" + targetAtt);
 		
 		//execute
 		IDataCollection<IFeatureRelation> relations = 
@@ -80,21 +70,21 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get attributes
-		String sReference = getAttributeValue((GTFeature) reference, referenceAtt);
+		String sReference = getAttributeValue((GTFeature) reference, sourceAtt);
 		String sTarget = getAttributeValue((GTFeature) target, targetAtt);
 		if(sReference == null || sReference.isEmpty() || sTarget == null || sTarget.isEmpty())
 			return null;
 		//get distance
 		int iDistance = getDistance(sReference, sTarget);
-		//check for overlap		
-		if(iDistance <= iThreshold) {
-			return new RelationMeasurement(
-					referenceProperty,
-					targetProperty,
+		//check for overlap
+		if(iDistance <= iThreshold){
+			return getMeasurements(new RelationMeasurement(
+					new StringLiteral(sourceAtt),
+					new StringLiteral(targetAtt),
 					new IntegerLiteral(iDistance), 
-					distanceDescription);
+					distanceDescription));
 		}
 		else return null;
 	}
@@ -107,7 +97,7 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	 */
 	private String getAttributeValue(GTFeature feature, String name) throws ProcessException {
 		Property property = feature.resolve().getProperty(name);
-		if(property == null)
+		if(property == null || property.getValue() == null)
 			throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "Feature has no attribute " + name);
 		return property.getValue().toString();
 	}
@@ -180,13 +170,13 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -7,7 +7,7 @@ import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 
 public class ProcessDescription extends Resource implements IProcessDescription {
 	
-	private String title, description;
+	String title, description;
 	private Collection<IProcessConstraint> constraints;
 	
 	public ProcessDescription(String identifier, String title, String description, Collection<IProcessConstraint> constraints){
@@ -18,6 +18,11 @@ public class ProcessDescription extends Resource implements IProcessDescription 
 	}
 
 	@Override
+	public Collection<IProcessConstraint> constraints() {
+		return constraints;
+	}
+
+	@Override
 	public String getTitle() {
 		return title;
 	}
@@ -25,11 +30,6 @@ public class ProcessDescription extends Resource implements IProcessDescription 
 	@Override
 	public String getDescription() {
 		return description;
-	}
-
-	@Override
-	public Collection<IProcessConstraint> constraints() {
-		return constraints;
 	}
 
 }

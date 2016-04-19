@@ -20,6 +20,13 @@ public enum RDFVocabulary {
 	STRING("http://www.w3.org/2001/XMLSchema/#string"),
 	ANYURI("http://www.w3.org/2001/XMLSchema/#anyURI"),
 	
+	//RDF geo
+	W3C_GEO_LAT("http://www.w3.org/2003/01/geo/wgs84_pos#lat"),
+	W3C_GEO_LON("http://www.w3.org/2003/01/geo/wgs84_pos#long"),
+	GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
+	WKT("http://www.opengis.net/ont/geosparql#asWKT"),
+	WKT_LITERAL("http://www.opengis.net/ont/geosparql#wktLiteral"),
+	
 	//collection type
 	BAG("http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"),
 	MEMBER("http://www.w3.org/1999/02/22-rdf-syntax-ns#li"),
@@ -69,6 +76,7 @@ public enum RDFVocabulary {
 	UOM_NUMBER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Number"),
 	UOM_UNDEFINED("http://tu-dresden.de/uw/geo/gis/fusion/uom#undefined"),
 	UOM_UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
+	UOM_MAP_UNITS("http://tu-dresden.de/uw/geo/gis/fusion/uom#mapUnits"),
 	
 	//Darwin Core
 	DWC_OCCURRENCE("http://rs.tdwg.org/dwc/terms/Occurrence"),
@@ -131,16 +139,26 @@ public enum RDFVocabulary {
 	TYPE_MEAS_GEOM_DIFFERENCE_ANGLE("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#angleDifference"),
 	TYPE_MEAS_GEOM_DIFFERENCE_SINUOSITY("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#sinuosityDifference"),
 	TYPE_MEAS_GEOM_OVERLAP("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#overlap"),
+	TYPE_MEAS_GEOM_LENGTH_IN_POLYGON("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#lengthInPolygon"),
+	
+	//measurement - geometry / raster
+	TYPE_MEAS_RASTER_ZONAL_STATS_MEAN("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial/raster/zonalStats#mean"),
+	TYPE_MEAS_RASTER_ZONAL_STATS_MIN("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial/raster/zonalStats#min"),
+	TYPE_MEAS_RASTER_ZONAL_STATS_MAX("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial/raster/zonalStats#max"),
+	TYPE_MEAS_RASTER_ZONAL_STATS_STD("http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial/raster/zonalStats#std"),
 	
 	//measurement - thematic
 	TYPE_MEAS_STRING_DAMLEV("http://tu-dresden.de/uw/geo/gis/fusion/operation/thematic#damerauLevenshteinDistance"),
+	
+	//measurement - confidence
+	TYPE_MEAS_CONF_BEST("http://tu-dresden.de/uw/geo/gis/fusion/operation/confidence#bestCorrespondence"),
 	
 	;
 	
 	private IIdentifiableResource resource;
 	
 	private RDFVocabulary(String identifier){
-		this.resource = new Resource(identifier);
+		this.resource = new IdentifiableResource(identifier);
 	}
 	
 	public IIdentifiableResource asResource(){

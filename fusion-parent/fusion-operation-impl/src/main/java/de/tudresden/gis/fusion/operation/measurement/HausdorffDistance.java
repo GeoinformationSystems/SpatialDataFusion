@@ -2,8 +2,6 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -75,7 +73,7 @@ public class HausdorffDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
 		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
@@ -85,12 +83,12 @@ public class HausdorffDistance extends ARelationMeasurementOperation {
 		double dDistance = getDistance(gReference, gTarget);
 		//check for overlap		
 		if(dDistance <= dThreshold) {
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					null, 
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new DecimalLiteral(dDistance), 
-					distanceDescription);
+					distanceDescription));
 		}		
 		else 
 			return null;
@@ -183,13 +181,13 @@ public class HausdorffDistance extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

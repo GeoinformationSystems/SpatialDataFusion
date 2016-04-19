@@ -3,14 +3,11 @@ package de.tudresden.gis.fusion.operation.orchestration;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.xml.ModelValidationException;
 
 import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.operation.IOperationInstance;
 import de.tudresden.gis.fusion.operation.aggregate.IProcessModel;
 
 public class CamundaBPMNModel implements IProcessModel {
@@ -28,12 +25,6 @@ public class CamundaBPMNModel implements IProcessModel {
 
 	@Override
 	public IDataDescription getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public LinkedList<IOperationInstance> getOperations() {
 		// TODO Auto-generated method stub
 		return null;
 	}

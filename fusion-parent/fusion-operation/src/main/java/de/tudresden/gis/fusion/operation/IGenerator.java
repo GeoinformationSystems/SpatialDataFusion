@@ -1,5 +1,5 @@
 package de.tudresden.gis.fusion.operation;
 
-public interface IGenerator extends IOperationInstance {
+public interface IGenerator extends IOperation {
 
 }

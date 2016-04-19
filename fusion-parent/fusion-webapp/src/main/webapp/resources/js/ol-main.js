@@ -64,7 +64,7 @@ function f_toggleViewBind(bind){
 
 //function: set fusion result usage handler
 var useRelations = false;
-function f_useRelations(checked){
+function f_showRelations(checked){
 	useRelations = !useRelations;
 	f_setCompareInteraction();
 }

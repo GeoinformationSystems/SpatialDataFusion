@@ -1,24 +1,13 @@
 package de.tudresden.gis.fusion.data.relation;
 
 import de.tudresden.gis.fusion.data.feature.relation.IRole;
+import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
 
-public class Role implements IRole {
+public class Role extends IdentifiableResource implements IRole {
 
-	private String name, description;
-	
-	public Role(String name, String description){
-		this.name = name;
-		this.description = description;
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getDescription() {
-		return description;
+	public Role(String identifier) {
+		super(identifier);
+		// TODO Auto-generated constructor stub
 	}
 
 }

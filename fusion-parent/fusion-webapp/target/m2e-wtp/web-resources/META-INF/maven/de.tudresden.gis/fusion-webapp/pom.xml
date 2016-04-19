@@ -19,6 +19,20 @@
   	</repository>
   </repositories>
   
+	<build>
+	 	<plugins>
+	 		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+				 	<source>1.8</source>
+				  	<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  
 	<dependencies>
 		<dependency>
 		    <groupId>com.sun.faces</groupId>
@@ -49,14 +63,7 @@
 			<groupId>org.camunda.bpm.model</groupId>
 			<artifactId>camunda-bpmn-model</artifactId>
 			<version>7.4.0-alpha3</version>
-		</dependency>
-		<dependency>
-			<groupId>xdoclet</groupId>
-			<artifactId>xdoclet</artifactId>
-			<version>1.2.3</version>
-		</dependency>
-
-		
+		</dependency>		
 		
 	</dependencies>
 

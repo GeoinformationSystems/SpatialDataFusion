@@ -2,7 +2,6 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.TreeSet;
 
 import javax.vecmath.Vector3d;
@@ -73,7 +72,7 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		LineString gReference = getLinestring(((GTFeature) reference).getDefaultGeometry());
 		LineString gTarget = getLinestring(((GTFeature) target).getDefaultGeometry());
@@ -81,11 +80,11 @@ public class AngleDifference extends ARelationMeasurementOperation {
 		double dAngle = getAngle((LineString) gReference, (LineString) gTarget);
 		//check for overlap		
 		if(dAngle <= dThreshold) {
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new DecimalLiteral(dAngle), 
-					measurementDescription);
+					measurementDescription));
 		}
 		else return null;
 	}
@@ -168,13 +167,13 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

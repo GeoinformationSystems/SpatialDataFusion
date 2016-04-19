@@ -1,7 +1,6 @@
 package de.tudresden.gis.fusion.operation.description;
 
-import java.util.Map;
-
+import java.util.Collection;
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
 public interface IOperationProfile extends IIdentifiableResource {
@@ -10,13 +9,13 @@ public interface IOperationProfile extends IIdentifiableResource {
 	 * get input descriptions
 	 * @return operation input descriptions
 	 */
-	public Map<String,IInputDescription> inputDescription();
+	public Collection<IInputDescription> inputDescriptions();
 	
 	/**
 	 * get output descriptions
 	 * @return operation output descriptions
 	 */
-	public Map<String,IOutputDescription> outputDescription();
+	public Collection<IOutputDescription> outputDescriptions();
 	
 	/**
 	 * get process description for this operation

@@ -8,9 +8,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
+import de.tudresden.gis.fusion.data.feature.IObservation;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
-import de.tudresden.gis.fusion.data.observation.IObservation;
 import de.tudresden.gis.fusion.data.observation.ObservationCollection;
 import de.tudresden.gis.fusion.data.observation.SpeciesObservation;
 import de.tudresden.gis.fusion.operation.ProcessException;

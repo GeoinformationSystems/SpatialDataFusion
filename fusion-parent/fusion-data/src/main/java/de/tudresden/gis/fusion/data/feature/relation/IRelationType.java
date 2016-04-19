@@ -1,7 +1,5 @@
 package de.tudresden.gis.fusion.data.feature.relation;
 
-import java.util.Collection;
-
 import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 
 public interface IRelationType extends IIdentifiableResource {
@@ -41,11 +39,5 @@ public interface IRelationType extends IIdentifiableResource {
 	 * @return inverse relation type, null if no inverse type exists
 	 */
 	public IRelationType getInverse();
-	
-	/**
-	 * get disjoint relation types
-	 * @return disjoint relation types, empty set if no disjoint types exist
-	 */
-	public Collection<IRelationType> getDisjoint();
 	
 }

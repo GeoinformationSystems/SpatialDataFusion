@@ -14,32 +14,32 @@ import de.tudresden.gis.fusion.client.ows.orchestration.IONode;
 import de.tudresden.gis.fusion.client.ows.orchestration.IOProcess;
 import de.tudresden.gis.fusion.client.ows.orchestration.IONode.NodeType;
 
-@ManagedBean(name = "fusekiConnector")
+@ManagedBean(name = "outputConnector")
 @SessionScoped
-public class FusekiConnector implements Serializable {
+public class OutputConnector implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private final String ID = "0_OutputRelations";
-	private final String TYPE = "SPARQLEndpoint";
-	private final String NAME = "FusekiSPARQLEndpoint";
-	
-	private String fusekiURL;
-	public String getFusekiURL() { return fusekiURL; }
-	public void setFusekiURL(String fusekiURL) { this.fusekiURL = fusekiURL; }
+	private final String ID = "0_Output";
+	private final String TYPE = "Output";
+	private final String NAME = "FusionOutput";
 	
 	/**
 	 * get Relation storage as IOProcess for chaining purposes
 	 * @return io process
 	 */
 	public IOProcess getIOProcess(){
-		IOFormat defaultFormat = new IOFormat("text/turtle", "", "");
+		IOFormat defaultFormat = new IOFormat("text/xml", "http://schemas.opengis.net/gml/3.2.1/base/feature.xsd", "");
+		IOFormat suppFormat1 = new IOFormat("application/json", "", "");
+		IOFormat suppFormat2 = new IOFormat("text/turtle", "", "");
 		Set<IOFormat> supportedFormats = new HashSet<IOFormat>();
 		supportedFormats.add(defaultFormat);
-		IONode node = new IONode(null, "IN_RDF", defaultFormat, supportedFormats, NodeType.INPUT);
+		supportedFormats.add(suppFormat1);
+		supportedFormats.add(suppFormat2);
+		
+		IONode node = new IONode(null, "IN_OUTPUT", defaultFormat, supportedFormats, NodeType.INPUT);
 		Map<String,String> properties = new HashMap<String,String>();
 		properties.put("name", NAME);
-		properties.put("url", fusekiURL);
 		IOProcess process = new IOProcess(TYPE, ID, properties, node);
 		node.setProcess(process);
 		return process;

@@ -1,41 +1,36 @@
 package de.tudresden.gis.fusion.operation.constraint;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import java.util.Collection;
+import java.util.HashSet;
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 
 public class BindingConstraint implements IDataConstraint {
 	
-	private Map<String,Class<? extends IData>[]> bindings;
+	private Collection<Class<?>> bindings;
 	
-	public BindingConstraint(Map<String,Class<? extends IData>[]> bindings){
+	public BindingConstraint(Collection<Class<?>> bindings){
 		this.bindings = bindings;
 	}
 	
-	public BindingConstraint(String key, Class<? extends IData>[] bindings){
-		this.bindings = new HashMap<String,Class<? extends IData>[]>();
-		this.bindings.put(key, bindings);
-	}
-	
-	@SuppressWarnings("unchecked")
-	public BindingConstraint(String key, Class<? extends IData> binding){
-		this.bindings = new HashMap<String,Class<? extends IData>[]>();
-		this.bindings.put(key, new Class[]{binding});
+
+	public BindingConstraint(Class<?> binding){
+		this.bindings = new HashSet<Class<?>>();
+		this.bindings.add(binding);
 	}
 
 	@Override
-	public boolean compliantWith(Map<String,IData> data) {
-		for(String key : bindings.keySet()){
-			if(!data.containsKey(key) || !compliantWith(bindings.get(key), data.get(key).getClass()))
-				return false;
-		}
-		return true;
+	public boolean compliantWith(IData target){
+		return compliantWith(target.getClass());
 	}
 	
-	private boolean compliantWith(Class<? extends IData>[] bindings, Class<? extends IData> target){
-		for(Class<? extends IData> binding : bindings){
+	/**
+	 * check if object classes are compliant
+	 * @param target target object
+	 * @return true, if one of the bindings can be assigned from target class
+	 */
+	public boolean compliantWith(Class<?> target){
+		for(Class<?> binding : bindings){
 			if(target.isAssignableFrom(binding))
 				return true;
 		}

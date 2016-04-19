@@ -1,8 +1,6 @@
 package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Collection;
-import java.util.Map;
-
 import com.vividsolutions.jts.geom.Geometry;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
@@ -71,7 +69,7 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
 		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
@@ -81,24 +79,24 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 		boolean bIntersect = getIntersect(gReference, gTarget);
 		//check for overlap		
 		if(bIntersect) {
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					null, 
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new BooleanLiteral(bIntersect), 
-					intersectDescription);
+					intersectDescription));
 		}
 		else {
 			//get distance
 			double dDistance = getDistance(gReference, gTarget);
 			//check for overlap
 			if(dDistance <= dThreshold)
-				return new RelationMeasurement(
+				return getMeasurements(new RelationMeasurement(
 						null, 
 						RDFVocabulary.PROPERTY_GEOM.asResource(),
 						RDFVocabulary.PROPERTY_GEOM.asResource(),
 						new DecimalLiteral(dDistance), 
-						distanceDescription);
+						distanceDescription));
 			//return null if distance > threshold
 			else
 				return null;
@@ -147,13 +145,13 @@ public class GeometryDistance extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -1,6 +1,6 @@
 package de.tudresden.gis.fusion.data.feature.relation;
 
-import java.util.Collection;
+import java.util.Set;
 
 public interface IRelation<T> {
 
@@ -20,13 +20,13 @@ public interface IRelation<T> {
 	 * get relation type for this relation
 	 * @return relation type
 	 */
-	public IRelationType getRelationType();
+	public Set<IRelationType> getRelationTypes();
 	
 	/**
 	 * get relation measurements for this relation
 	 * @return relation measurements
 	 */
-	public Collection<IRelationMeasurement> getRelationMeasurements();
+	public Set<IRelationMeasurement> getRelationMeasurements();
 	
 	/**
 	 * add a measurement to this relation

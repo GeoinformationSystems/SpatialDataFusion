@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
@@ -19,7 +20,7 @@ public class ShapefileParserTest {
 	@Test
 	public void readShapeFile() throws ProcessException {
 		Map<String,IData> input = new HashMap<String,IData>();
-		input.put("IN_RESOURCE", new URILiteral(new File("D:/Diss/implementation/testdata/shape", "atkis_dd.shp").toURI()));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/Diss/implementation/testdata/shape", "atkis_svs_wgs84.shp").toURI()));
 		
 		ShapefileParser parser = new ShapefileParser();
 		Map<String,IData> output = parser.execute(input);
@@ -31,6 +32,10 @@ public class ShapefileParserTest {
 		GTFeatureCollection features = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
 		Assert.assertTrue(features.size() > 0);
+		
+		for(GTFeature feature : features){
+			System.out.println(feature.resolve().getProperty("GN").getValue());;
+		}
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();

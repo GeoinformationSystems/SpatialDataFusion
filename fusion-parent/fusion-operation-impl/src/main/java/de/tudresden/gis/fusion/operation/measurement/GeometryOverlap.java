@@ -2,7 +2,6 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.TreeSet;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -65,7 +64,7 @@ public class GeometryOverlap extends ARelationMeasurementOperation {
 	}
 	
 	@Override
-	protected IRelationMeasurement getMeasurement(IFeature reference, IFeature target){
+	protected IRelationMeasurement[] getMeasurements(IFeature reference, IFeature target){
 		//get geometries
 		Geometry gReference = ((GTFeature) reference).getDefaultGeometry();
 		Geometry gTarget = ((GTFeature) target).getDefaultGeometry();
@@ -75,12 +74,12 @@ public class GeometryOverlap extends ARelationMeasurementOperation {
 		double dOverlap = getOverlap(gReference, gTarget) * 100;
 		//check for overlap		
 		if(dOverlap >= 0) {
-			return new RelationMeasurement(
+			return getMeasurements(new RelationMeasurement(
 					null, 
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					RDFVocabulary.PROPERTY_GEOM.asResource(),
 					new DecimalLiteral(dOverlap), 
-					overlapDescription);
+					overlapDescription));
 		}
 		else
 			return null;
@@ -134,13 +133,13 @@ public class GeometryOverlap extends ARelationMeasurementOperation {
 	}
 
 	@Override
-	public Map<String, IInputDescription> getInputDescription() {
+	public Collection<IInputDescription> getInputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Map<String, IOutputDescription> getOutputDescriptions() {
+	public Collection<IOutputDescription> getOutputDescriptions() {
 		// TODO Auto-generated method stub
 		return null;
 	}

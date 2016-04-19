@@ -6,6 +6,7 @@ import java.util.Iterator;
 import de.tudresden.gis.fusion.data.AbstractDataResource;
 import de.tudresden.gis.fusion.data.IDataCollection;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
+import de.tudresden.gis.fusion.data.feature.IObservation;
 
 public class ObservationCollection extends AbstractDataResource implements IDataCollection<IObservation> {
 
