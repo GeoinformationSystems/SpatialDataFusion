@@ -210,7 +210,7 @@ public class RDFTurtleEncoder {
 			URI uriPrefix = relativizeIdentifier(new IdentifiableResource(resource), base, prefixes);
 			//write full resource, if it has not been relativized
 			if(resource.asURI().equals(uriPrefix))
-				return "<" + resource.asString().toString() + ">";
+				return "<" + resource.identifier().toString() + ">";
 			else
 				return uriPrefix.toString();
 		}
@@ -236,7 +236,7 @@ public class RDFTurtleEncoder {
 	public static String encodeTypedLiteral(ITypedLiteral literal, URI base, Map<URI,String> prefixes){
 		IIdentifiableResource resource = literal.getType();
 		URI relative = relativizeIdentifier(resource, base, prefixes);
-		return "\"" + literal.getValue() + "\"^^" + (resource.asString().equals(relative) ? "<" + resource.asString() + ">" : relative);
+		return "\"" + literal.getValue() + "\"^^" + (resource.identifier().equals(relative) ? "<" + resource.identifier() + ">" : relative);
 	}
 	
 	/**
@@ -310,7 +310,7 @@ public class RDFTurtleEncoder {
 	 */
 	public static URI relativizeIdentifier(IIdentifiableResource resource, URI uri, String prefix) {
 		//special case: http://www.w3.org/1999/02/22-rdf-syntax-ns#type --> a
-		if(resource.asString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
+		if(resource.identifier().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 			return URI.create("a");
 		//default
 		URI relative = resource.relativizeURI(uri);

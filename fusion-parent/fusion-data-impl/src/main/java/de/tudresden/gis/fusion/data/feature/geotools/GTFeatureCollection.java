@@ -1,14 +1,26 @@
 package de.tudresden.gis.fusion.data.feature.geotools;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import javax.xml.stream.XMLStreamException;
+
+import org.geotools.data.DataUtilities;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.xml.Configuration;
+import org.geotools.xml.PullParser;
 import org.opengis.feature.Feature;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.FeatureType;
+import org.xml.sax.SAXException;
 
 import de.tudresden.gis.fusion.data.AbstractDataResource;
 import de.tudresden.gis.fusion.data.IDataCollection;
@@ -18,23 +30,48 @@ public class GTFeatureCollection extends AbstractDataResource implements IDataCo
 
 	private transient Map<String,GTFeature> featureMap;
 	
-	public GTFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+	public GTFeatureCollection(String identifier, Collection<GTFeature> featureCollection, IDataDescription description){
 		super(identifier, featureCollection, description);
 	}
 	
-	public GTFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
+	public GTFeatureCollection(String identifier, Collection<GTFeature> featureCollection){
 		this(identifier, featureCollection, null);
 	}
 	
-	public GTFeatureCollection(FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		this(featureCollection.getID(), featureCollection, null);
+	public GTFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+		this(identifier, getGTCollection(featureCollection), description);
 	}
 	
+	public GTFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
+		this(identifier, getGTCollection(featureCollection), null);
+	}
+	
+	public static Collection<GTFeature> getGTCollection(FeatureCollection<? extends FeatureType, ? extends Feature> featureCollection) {
+		Collection<GTFeature> collection = new HashSet<GTFeature>();
+		try (FeatureIterator<? extends Feature> iterator = featureCollection.features()){
+		     while(iterator.hasNext()){
+		    	 collection.add(new GTFeature(iterator.next()));
+		     }
+		}
+		return collection;
+	}
+
+	public GTFeatureCollection(String identifier, InputStream xmlIS, Configuration configuration) throws IOException, XMLStreamException, SAXException {	
+		super(identifier);
+		featureMap = new HashMap<String,GTFeature>();		
+		PullParser gmlParser = new PullParser(configuration, xmlIS, SimpleFeature.class);
+		SimpleFeature feature = null;
+	    while((feature = (SimpleFeature) gmlParser.parse()) != null) {        	
+	    	String featureID = identifier == null ? feature.getID() : (identifier + "#" + feature.getID());
+        	featureMap.put(featureID, new GTFeature(featureID, feature));
+	    }
+	    this.setObject(featureMap.values());
+	}
+	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Collection<GTFeature> resolve(){
-		if(featureMap == null)
-			initMap();
-		return featureMap.values();
+		return (Collection<GTFeature>) super.resolve();
 	}
 	
 	@Override
@@ -54,9 +91,13 @@ public class GTFeatureCollection extends AbstractDataResource implements IDataCo
 	 * get GeoTools FeatureCollection
 	 * @return GeoTools FeatureCollection
 	 */
-	@SuppressWarnings("unchecked")
 	public FeatureCollection<? extends FeatureType,? extends Feature> collection() {
-		return (FeatureCollection<? extends FeatureType,? extends Feature>) super.resolve();
+		Collection<GTFeature> features = resolve();
+		List<SimpleFeature> featureList = new ArrayList<SimpleFeature>();
+		for(GTFeature feature : features){
+			featureList.add((SimpleFeature) feature.resolve());
+		}
+		return DataUtilities.collection(featureList);
 	}
 
 	/**
@@ -75,20 +116,21 @@ public class GTFeatureCollection extends AbstractDataResource implements IDataCo
 	 */
 	private void initMap() {
 		featureMap = new HashMap<String,GTFeature>();
-		try (FeatureIterator<? extends Feature> iterator = this.collection().features()){
-		     while(iterator.hasNext()){
-		           GTFeature feature = new GTFeature(iterator.next());
-		           featureMap.put(feature.asString(), feature);
-		     }
+		for(GTFeature feature : resolve()){
+			featureMap.put(feature.identifier(), feature);
 		}
 	}
 
 	/**
 	 * add a feature
-	 * @param object input feature
+	 * @param feature input feature
 	 */
 	public void add(GTFeature feature) {
-		featureMap.put(feature.asString(), feature);
+		this.resolve().add(feature);
+		if(featureMap == null)
+			initMap();
+		else
+			featureMap.put(feature.identifier(), feature);
 	}
 
 }

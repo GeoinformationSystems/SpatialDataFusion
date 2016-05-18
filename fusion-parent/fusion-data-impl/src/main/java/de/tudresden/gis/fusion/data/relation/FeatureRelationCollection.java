@@ -64,10 +64,10 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 			relationIndex = new HashMap<String,Collection<IFeatureRelation>>();
 		
 		//add source
-		addToIndex(relation.getSource().asString(), relation);
+		addToIndex(relation.getSource().identifier(), relation);
 		
 		//add target
-		addToIndex(relation.getTarget().asString(), relation);
+		addToIndex(relation.getTarget().identifier(), relation);
 	}
 	
 	private void addToIndex(String key, IFeatureRelation relation) {
@@ -164,8 +164,8 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 		Map<String,IFeature> features = new HashMap<String,IFeature>();
 		for(IFeatureRelation relation : this.relations){
 			IFeature feature = source ? relation.getSource() : relation.getTarget();
-			if(!features.containsKey(feature.asString()))
-				features.put(feature.asString(), feature);
+			if(!features.containsKey(feature.identifier()))
+				features.put(feature.identifier(), feature);
 		}
 		return features.values();
 	}
@@ -178,7 +178,7 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	public Collection<IFeatureRelation> getRelations(IFeature feature) {
 
 		//get relations
-		return relationIndex.get(feature.asString());
+		return relationIndex.get(feature.identifier());
 		
 //		Collection<IFeatureRelation> relations = new HashSet<IFeatureRelation>();
 //		for(IFeatureRelation relation : this.relations){

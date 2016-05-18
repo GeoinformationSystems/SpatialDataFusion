@@ -17,12 +17,12 @@ import de.tudresden.gis.fusion.operation.io.GMLParser;
 
 public class GMLParserTest {
 
-	@Test
+	@Ignore
 	public void readGMLFile_V21() throws ProcessException {
 		readGML(new URILiteral(new File("D:/Diss/implementation/testdata/gml", "wfs100.xml").toURI()));	
 	}
 	
-	@Test
+	@Ignore
 	public void readGMLFile_V31() throws ProcessException {
 		readGML(new URILiteral(new File("D:/Diss/implementation/testdata/gml", "wfs110.xml").toURI()));	
 	}
@@ -32,7 +32,7 @@ public class GMLParserTest {
 		readGML(new URILiteral(new File("D:/Diss/implementation/testdata/gml", "wfs20.xml").toURI()));	
 	}
 	
-	@Test
+	@Ignore
 	public void readWFS11() throws ProcessException {
 		readGML(new URILiteral("http://cobweb.gis.geo.tu-dresden.de/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=sampleObs"));	
 	}
@@ -40,6 +40,11 @@ public class GMLParserTest {
 	@Ignore
 	public void readWFS20() throws ProcessException {
 		readGML(new URILiteral("http://localhost:8081/geoserver/fusion/wfs?service=WFS&version=2.0&request=GetFeature&typeName=fusion:osm_dd"));	
+	}
+	
+	@Test
+	public void readCOBWEB() throws ProcessException {
+		readGML(new URILiteral("https://dyfi.cobwebproject.eu/pcapi/ows?version=1.1.0&service=WFS&request=GetFeature&Typename=cobweb:HT_Protokoll_Flat"));	
 	}
 	
 	private void readGML(URILiteral resource) throws ProcessException {

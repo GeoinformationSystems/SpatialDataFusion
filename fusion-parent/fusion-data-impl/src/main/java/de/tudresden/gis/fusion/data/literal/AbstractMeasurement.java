@@ -22,5 +22,10 @@ public abstract class AbstractMeasurement<T> implements IMeasurement {
 	public IMeasurementDescription getDescription() {
 		return description;
 	}
+	
+	@Override
+	public String toString(){
+		return resolve().toString();
+	}
 
 }

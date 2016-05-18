@@ -23,7 +23,7 @@ public class Resource implements IResource {
 		return identifier == null || identifier.isEmpty();
 	}
 	
-	public String asString(){
+	public String identifier(){
 		return identifier;
 	}
 	

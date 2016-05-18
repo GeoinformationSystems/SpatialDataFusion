@@ -9,19 +9,15 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import org.geotools.data.DataUtilities;
-import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.xml.Configuration;
-import org.geotools.xml.PullParser;
-import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.SAXException;
 
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
@@ -32,9 +28,13 @@ import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class GMLParser extends AOperationInstance implements IParser {
 	
@@ -45,12 +45,15 @@ public class GMLParser extends AOperationInstance implements IParser {
 	
 	private String resource;
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() {
 		
-		URILiteral gmlResource = (URILiteral) input(IN_RESOURCE);
+		URILiteral gmlResource = (URILiteral) getInput(IN_RESOURCE);
 		resource = gmlResource.resolve().toString();
-		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).resolve() : false;
+		boolean bWithIndex = ((BooleanLiteral) getInput(IN_WITH_INDEX)).resolve();
 		
 		GTFeatureCollection gmlFC = null;
 
@@ -77,12 +80,26 @@ public class GMLParser extends AOperationInstance implements IParser {
 			//get connection
 			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 			urlConnection.connect();
-			return parseGML(urlConnection.getContentType(), urlConnection.getInputStream(), bWithIndex);						
+			return parseGML(getContentTypeFromURL(urlConnection, url.toString().toLowerCase()), urlConnection.getInputStream(), bWithIndex);						
 		} catch (Exception e){
 			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Could not parse GML", e);
 		}
 	}
 	
+	private String getContentTypeFromURL(HttpURLConnection urlConnection, String sUrl) {
+		if(urlConnection.getContentType() != null && urlConnection.getContentType().toLowerCase().contains("gml"))
+			return urlConnection.getContentType();
+		else if(sUrl.contains("wfs")){
+			if(sUrl.contains("version=1.0.0"))	
+				return "2.0";
+			else if(sUrl.contains("version=1.1.0"))	
+				return "3.1.1";
+			else if(sUrl.contains("version=2.0.0"))
+				return "3.2";
+		}
+		return null;
+	}
+
 	private GTFeatureCollection parseGMLFromFile(URL url, boolean bWithIndex) {
 		File file = new File(url.getFile());
 		if(!file.exists() || file.isDirectory())
@@ -95,34 +112,24 @@ public class GMLParser extends AOperationInstance implements IParser {
 		}
 	}
 	
-	private GTFeatureCollection parseGML(String contentType, InputStream stream, boolean bWithIndex) {		
-		try {
-			//brute force if content type is null
-			if(contentType == null)
-				return parse(stream, bWithIndex);
-			//redirect based on content type
-			if(contentType.contains("3.2"))
-				return parseGML32(stream, bWithIndex);
-			else if(contentType.contains("3."))
-				return parseGML3(stream, bWithIndex);
-			else if(contentType.contains("2."))
-				return parseGML2(stream, bWithIndex);
-			else
-				return null;
-			
-		} catch (Exception e) {
-			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Could not determine GML version", e);
-			
-		} finally {
-			try {
-				stream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+	private GTFeatureCollection parseGML(String contentType, InputStream stream, boolean bWithIndex) throws IOException, XMLStreamException, SAXException {		
+		//test different encodings if content type is null
+		if(contentType == null)
+			return parse(stream, bWithIndex);
+		//redirect based on content type
+		if(contentType.contains("3.2"))
+			return parseGML32(stream, bWithIndex);
+		else if(contentType.contains("3."))
+			return parseGML3(stream, bWithIndex);
+		else if(contentType.contains("2."))
+			return parseGML2(stream, bWithIndex);
+		else if(contentType.contains("text/xml"))
+			return parse(stream, bWithIndex);
+		else
+			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Could not determine GML version");
 	}
 
-	private GTFeatureCollection parse(InputStream stream, boolean bWithIndex) throws XMLStreamException, SAXException {
+	private GTFeatureCollection parse(InputStream stream, boolean bWithIndex) {
 		GTFeatureCollection gmlFC = null;
 		try {
 			gmlFC = parseGML32(stream, bWithIndex);
@@ -131,7 +138,7 @@ public class GMLParser extends AOperationInstance implements IParser {
 			if(gmlFC == null || gmlFC.size() == 0)
 				gmlFC = parseGML2(stream, bWithIndex);
 			
-		} catch (IOException e){ 
+		} catch (Exception e){ 
 			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Could not parse GML", e);
 		}
 		
@@ -189,19 +196,9 @@ public class GMLParser extends AOperationInstance implements IParser {
 	
 	private GTFeatureCollection parseGML(InputStream stream, Configuration configuration, boolean bWithIndex) throws XMLStreamException, IOException, SAXException {
 		if(bWithIndex)
-        	return new GTIndexedFeatureCollection(resource, parse(stream, configuration), null);
+        	return new GTIndexedFeatureCollection(resource, stream, configuration);
         else
-        	return new GTFeatureCollection(resource, parse(stream, configuration), null);
-	}
-	
-	public SimpleFeatureCollection parse(InputStream xmlIS, Configuration configuration) throws XMLStreamException, IOException, SAXException {		
-		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
-		PullParser gmlParser = new PullParser(configuration, xmlIS, SimpleFeature.class);
-		SimpleFeature feature = null;
-	    while((feature = (SimpleFeature) gmlParser.parse()) != null) {        	
-			features.add(feature);
-	    }
-	    return DataUtilities.collection(features);
+        	return new GTFeatureCollection(resource, stream, configuration);
 	}
 	
 	@Override
@@ -227,14 +224,34 @@ public class GMLParser extends AOperationInstance implements IParser {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RESOURCE, IN_RESOURCE, "Link to input GML)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RESOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{URILiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_WITH_INDEX, IN_WITH_INDEX, "If true, an indexed feature collection is created",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_FEATURES, OUT_FEATURES, "Output feature collection",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_FEATURES),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

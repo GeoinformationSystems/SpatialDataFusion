@@ -8,7 +8,11 @@ import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.description.MeasurementDescription;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
+import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.BindingConstraint;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
+import de.tudresden.gis.fusion.operation.constraint.MandatoryConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOperationProfile;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
@@ -69,6 +73,80 @@ public abstract class AOperationInstance implements IOperation {
 	 * @return input description
 	 */
 	public abstract Collection<IInputDescription> getInputDescriptions();
+	
+	/**
+	 * get input data
+	 * @param identifier input identifier
+	 * @return input data object
+	 * @throws IllegalArgumentException if identifier was not found
+	 */
+	public IData getInput(String identifier){
+		if(!inputContainsKey(identifier)){
+			return getDefaultInput(identifier);
+		}
+		validateInput(input(identifier), getInputDescription(identifier));
+		return input(identifier);
+	}
+	
+	/**
+	 * validate input data
+	 * @param input input data
+	 * @param inputDescription process input data description
+	 * @throws ProcessException if input does not match input description
+	 */
+	private void validateInput(IData input, IInputDescription inputDescription) {
+		for(IDataConstraint constraint : inputDescription.constraints()){
+			if(constraint instanceof BindingConstraint && !((BindingConstraint) constraint).compliantWith(input))
+				throw new ProcessException(ExceptionKey.INPUT_NOT_APPLICABLE, "input does not match required binding");
+		}
+	}
+
+	/**
+	 * get input description for identifier
+	 * @param identifier input identifier
+	 * @return input description
+	 * @throws IllegalArgumentException if identifier was not found
+	 */
+	public IInputDescription getInputDescription(String identifier){	
+		for(IInputDescription inputDesc : getInputDescriptions()){
+			if(inputDesc.identifier().equalsIgnoreCase(identifier)){
+				return inputDesc;
+			}
+		}
+		throw new IllegalArgumentException("Identifier " + identifier + " has no description");
+	}
+	
+	/**
+	 * check, if input data is mandatory
+	 * @param identifier input identifier
+	 * @return true, if input data is mandatory, false otherwise
+	 */
+	public boolean isMandatory(String identifier) {
+		IInputDescription desc = getInputDescription(identifier);
+		for(IDataConstraint constraint : desc.constraints()){
+			if(constraint instanceof MandatoryConstraint)
+				return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * get default input for identifier
+	 * @param identifier input identifier
+	 * @return default input
+	 * @throws IllegalArgumentException if identifier was not found or has no default
+	 */
+	public IData getDefaultInput(String identifier){
+		IInputDescription desc = getInputDescription(identifier);
+		if(desc.getDefault() != null)
+			return desc.getDefault();
+		else {
+			if(isMandatory(identifier))
+				throw new ProcessException(ExceptionKey.INPUT_MISSING, "Identifier " + identifier + " has no default");
+			else
+				return null;
+		}
+	}
 
 	/**
 	 * abstract method: get output descriptions
@@ -94,19 +172,11 @@ public abstract class AOperationInstance implements IOperation {
 	/**
 	 * clear output map
 	 */
-	protected void clearOutput(){
+	private void clearOutput(){
 		if(output == null)
 			output = new HashMap<String,IData>();
 		else
 			output.clear();
-	}
-
-	/**
-	 * get all inputs
-	 * @return inputs
-	 */
-	public Map<String,IData> input() {
-		return input;
 	}
 	
 	/**
@@ -114,7 +184,7 @@ public abstract class AOperationInstance implements IOperation {
 	 * @param key input key
 	 * @return input for specified key
 	 */
-	public IData input(String key) {
+	private IData input(String key) {
 		return input.get(key);
 	}
 

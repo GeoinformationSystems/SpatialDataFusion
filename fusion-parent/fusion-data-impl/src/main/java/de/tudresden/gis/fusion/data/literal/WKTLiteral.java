@@ -18,4 +18,5 @@ public class WKTLiteral extends StringLiteral {
 	public IIdentifiableResource getType() {
 		return RDFVocabulary.WKT_LITERAL.asResource();
 	}
+	
 }

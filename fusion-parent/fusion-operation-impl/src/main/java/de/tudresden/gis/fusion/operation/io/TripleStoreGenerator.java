@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.operation.io;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +18,18 @@ import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.data.rdf.ISubjectCollection;
 import de.tudresden.gis.fusion.data.rdf.ISubject;
 import de.tudresden.gis.fusion.data.rdf.RDFTurtleEncoder;
+import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IGenerator;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class TripleStoreGenerator extends AOperationInstance implements IGenerator {
 	
@@ -38,14 +44,17 @@ public class TripleStoreGenerator extends AOperationInstance implements IGenerat
 	private boolean bClear = false;
 	private String sTripleStore;
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() throws ProcessException {
 
 		//get base and prefixes
-		URI base = inputContainsKey(IN_URI_BASE) ? URI.create(((StringLiteral) input(IN_URI_BASE)).resolve()) : null;
+		URI base = inputContainsKey(IN_URI_BASE) ? URI.create(((StringLiteral) getInput(IN_URI_BASE)).resolve()) : null;
 		Map<URI,String> prefixes = new LinkedHashMap<URI,String>();
 		if(inputContainsKey(IN_URI_PREFIXES)){
-			String[] prefixesArray = ((StringLiteral) input(IN_URI_PREFIXES)).resolve().split(";");
+			String[] prefixesArray = ((StringLiteral) getInput(IN_URI_PREFIXES)).resolve().split(";");
 			for(int i=0; i<prefixesArray.length; i+=2){
 				prefixes.put(URI.create(prefixesArray[i]), prefixesArray[i+1]);
 			}
@@ -54,10 +63,10 @@ public class TripleStoreGenerator extends AOperationInstance implements IGenerat
 				prefixes.put(base, "base");
 		}
 		
-		bClear = inputContainsKey(IN_CLEAR_STORE) ? (boolean) input(IN_CLEAR_STORE).resolve() : false;
-		sTripleStore = ((URILiteral) input(IN_TRIPLE_STORE)).getValue();
+		bClear = ((BooleanLiteral) getInput(IN_CLEAR_STORE)).resolve();
+		sTripleStore = ((URILiteral) getInput(IN_TRIPLE_STORE)).getValue();
 		
-		IData data = input(IN_RDF);
+		IData data = getInput(IN_RDF);
 		
 		if(data instanceof ISubjectCollection || data instanceof ISubject)
 			insertRDF(data, prefixes);
@@ -143,14 +152,47 @@ public class TripleStoreGenerator extends AOperationInstance implements IGenerat
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RDF, IN_RDF, "Input RDF triples)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RDF),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_TRIPLE_STORE, IN_TRIPLE_STORE, "SPARQL Insert endpoint",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_TRIPLE_STORE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{StringLiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_CLEAR_STORE, IN_CLEAR_STORE, "If true, the triple store is emptied first",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+			inputDescriptions.add(new InputDescription(IN_URI_BASE, IN_URI_BASE, "RDF Base uri",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{StringLiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_URI_PREFIXES, IN_URI_PREFIXES, "RDF Prefixes",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{StringLiteral.class})
+					}));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_SUCCESS, OUT_SUCCESS, "True, if triples were inserted successfully",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_SUCCESS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

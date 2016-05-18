@@ -28,16 +28,17 @@ public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
 	
 	//predicates
 	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource WKT = RDFVocabulary.WKT.asResource();
+//	private IIdentifiableResource WKT = RDFVocabulary.WKT.asResource();
 	
 	public GTFeature(String identifier, Feature feature, IDataDescription description){
 		super(identifier, feature, description);
 		objectSet = new ObjectSet();
 		//set resource type
 		objectSet.put(RESOURCE_TYPE, RDFVocabulary.FEATURE.asResource());
-		objectSet.put(RESOURCE_TYPE, RDFVocabulary.GEOMETRY.asResource());
+//		objectSet.put(RESOURCE_TYPE, RDFVocabulary.GEOMETRY.asResource());
 		//set objects
-		objectSet.put(WKT, getWKT(feature), true);
+		//TODO geometry on demand; large geometries likely to cause memory issues
+//		objectSet.put(WKT, getWKT(feature), true);
 	}
 
 	public GTFeature(String identifier, Feature feature){

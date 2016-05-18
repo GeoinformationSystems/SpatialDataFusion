@@ -9,7 +9,7 @@ public class IdentifiableResource extends Resource implements IIdentifiableResou
 	}
 	
 	public IdentifiableResource(IResource resource) {
-		this(resource.asString());
+		this(resource.identifier());
 	}
 	
 	@Override

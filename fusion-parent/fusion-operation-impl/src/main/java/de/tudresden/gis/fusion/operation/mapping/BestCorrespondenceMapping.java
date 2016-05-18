@@ -11,9 +11,13 @@ import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.ProcessException;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class BestCorrespondenceMapping extends AOperationInstance {
 	
@@ -22,6 +26,9 @@ public class BestCorrespondenceMapping extends AOperationInstance {
 	private final String IN_DROP_RELATIONS = "IN_DROP_RELATIONS";
 	
 	private boolean bDropRelations;
+	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
 	
 	private MeasurementDescription measurementDescription = new MeasurementDescription(
 			RDFVocabulary.TYPE_MEAS_CONF_BEST.asString(),
@@ -34,8 +41,8 @@ public class BestCorrespondenceMapping extends AOperationInstance {
 	public void execute() throws ProcessException {
 		
 		//get input
-		FeatureRelationCollection relations = (FeatureRelationCollection) input(IN_RELATIONS);
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
+		FeatureRelationCollection relations = (FeatureRelationCollection) getInput(IN_RELATIONS);
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
 		
 		//add best correspondence relations
 		addBestCorrespondences(relations);
@@ -164,14 +171,34 @@ public class BestCorrespondenceMapping extends AOperationInstance {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "Input relations with measurements)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RELATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that are not best correspondences are dropped",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_RELATIONS, OUT_RELATIONS, "Output relations with correspondence mapping",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

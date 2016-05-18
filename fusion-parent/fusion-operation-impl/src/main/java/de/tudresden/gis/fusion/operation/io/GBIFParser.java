@@ -30,9 +30,13 @@ import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class GBIFParser extends AOperationInstance implements IParser {
 	
@@ -52,6 +56,9 @@ public class GBIFParser extends AOperationInstance implements IParser {
 	private String separator = "\t";
 	private GeometryFactory geometryFactory = new GeometryFactory();
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	private final MeasurementDescription description = new MeasurementDescription(
 			RDFVocabulary.MEASUREMENT_DESCRIPTION.asString(), 
 			"Species occurrence", 
@@ -62,7 +69,7 @@ public class GBIFParser extends AOperationInstance implements IParser {
 	@Override
 	public void execute() throws ProcessException {
 
-		URILiteral gbifResource = (URILiteral) input(IN_RESOURCE);
+		URILiteral gbifResource = (URILiteral) getInput(IN_RESOURCE);
 		
 		ObservationCollection observations = null;
 
@@ -198,14 +205,29 @@ public class GBIFParser extends AOperationInstance implements IParser {
 	
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RESOURCE, IN_RESOURCE, "Link to GBIF observations)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RESOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{URILiteral.class})
+					}));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_OBSERVATIONS, OUT_OBSERVATIONS, "Output observations",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_OBSERVATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{ObservationCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

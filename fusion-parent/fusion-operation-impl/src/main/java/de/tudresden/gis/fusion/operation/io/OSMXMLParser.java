@@ -7,6 +7,8 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashSet;
+
 import javax.xml.stream.XMLStreamException;
 import org.xml.sax.SAXException;
 
@@ -19,9 +21,13 @@ import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class OSMXMLParser extends AOperationInstance implements IParser {
 	
@@ -34,12 +40,15 @@ public class OSMXMLParser extends AOperationInstance implements IParser {
 	private String resource;
 	private boolean bWithIndex;
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() {
 		
-		URILiteral osmResource = (URILiteral) input(IN_RESOURCE);
+		URILiteral osmResource = (URILiteral) getInput(IN_RESOURCE);
 		resource = osmResource.resolve().toString();
-		bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).resolve() : false;
+		bWithIndex = ((BooleanLiteral) getInput(IN_WITH_INDEX)).resolve();
 		
 		GTFeatureCollection[] osmFC;
 
@@ -124,14 +133,40 @@ public class OSMXMLParser extends AOperationInstance implements IParser {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RESOURCE, IN_RESOURCE, "Link to input OSM XML)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RESOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{URILiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_WITH_INDEX, IN_WITH_INDEX, "If true, indexed feature collections are created",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_NODES, OUT_NODES, "Output OSM nodes",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_NODES),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			outputDescriptions.add(new OutputDescription(
+					OUT_WAYS, OUT_WAYS, "Output OSM ways",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_WAYS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

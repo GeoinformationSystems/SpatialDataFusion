@@ -9,12 +9,18 @@ public class BindingConstraint implements IDataConstraint {
 	
 	private Collection<Class<?>> bindings;
 	
-	public BindingConstraint(Collection<Class<?>> bindings){
+	protected BindingConstraint(Collection<Class<?>> bindings){
 		this.bindings = bindings;
 	}
 	
-
-	public BindingConstraint(Class<?> binding){
+	protected BindingConstraint(Class<?>[] bindings){
+		this.bindings = new HashSet<Class<?>>();
+		for(Class<?> binding : bindings){
+			this.bindings.add(binding);
+		}
+	}
+	
+	protected BindingConstraint(Class<?> binding){
 		this.bindings = new HashSet<Class<?>>();
 		this.bindings.add(binding);
 	}

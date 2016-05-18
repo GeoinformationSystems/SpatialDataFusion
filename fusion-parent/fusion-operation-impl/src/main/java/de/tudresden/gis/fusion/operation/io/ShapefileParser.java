@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashSet;
+
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -16,9 +18,13 @@ import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.IParser;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class ShapefileParser extends AOperationInstance implements IParser {
 	
@@ -27,11 +33,14 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 	
 	private final String OUT_FEATURES = "OUT_FEATURES";
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() throws ProcessException {
 		
-		URILiteral shapeResource = (URILiteral) input(IN_RESOURCE);
-		boolean bWithIndex = inputContainsKey(IN_WITH_INDEX) ? ((BooleanLiteral) input(IN_WITH_INDEX)).resolve() : false;
+		URILiteral shapeResource = (URILiteral) getInput(IN_RESOURCE);
+		boolean bWithIndex = ((BooleanLiteral) getInput(IN_WITH_INDEX)).resolve();
 		
 		GTFeatureCollection shapeFC;
 		try {
@@ -41,9 +50,9 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 	        String name = store.getTypeNames()[0];
 	        SimpleFeatureSource source = store.getFeatureSource(name);
 	        if(bWithIndex)
-	        	shapeFC = new GTIndexedFeatureCollection(DataUtilities.collection(source.getFeatures().features()));
+	        	shapeFC = new GTIndexedFeatureCollection(shapeResource.getValue(), DataUtilities.collection(source.getFeatures().features()));
 	        else
-	        	shapeFC = new GTFeatureCollection(DataUtilities.collection(source.getFeatures().features()));
+	        	shapeFC = new GTFeatureCollection(shapeResource.getValue(), DataUtilities.collection(source.getFeatures().features()));
 	        store.dispose();
 		} catch (IOException e) {
 			throw new ProcessException(ExceptionKey.PROCESS_EXCEPTION, "Error while parsing Shapefile", e);
@@ -75,14 +84,34 @@ public class ShapefileParser extends AOperationInstance implements IParser {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_RESOURCE, IN_RESOURCE, "Link to input shapefile)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_RESOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{URILiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_WITH_INDEX, IN_WITH_INDEX, "If true, an indexed feature collection is created",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_FEATURES, OUT_FEATURES, "Output feature collection",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_FEATURES),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

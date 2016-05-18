@@ -45,5 +45,10 @@ public class URILiteral implements ILiteralData,ITypedLiteral {
 	public IIdentifiableResource getType() {
 		return RDFVocabulary.ANYURI.asResource();
 	}
+	
+	@Override
+	public String toString(){
+		return getValue();
+	}
 
 }

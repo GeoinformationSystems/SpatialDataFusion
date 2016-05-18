@@ -32,7 +32,7 @@ import de.tudresden.gis.fusion.operation.measurement.HausdorffDistance;
 
 public class UseCase2 {
 	
-	private boolean tripleStore = true;
+	private boolean tripleStore = false;
 
 	@Test
 	public void chain() throws MalformedURLException, URISyntaxException {
@@ -175,7 +175,7 @@ public class UseCase2 {
 	private Runtime runtime = Runtime.getRuntime();
 	private void systemOut(AOperationInstance op, String result){
 		runtime.gc();
-		System.out.print(op.profile().asString() + "\n\t" +
+		System.out.print(op.profile().identifier() + "\n\t" +
 				"result: " + result + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) op.output("OUT_RUNTIME")).resolve() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");

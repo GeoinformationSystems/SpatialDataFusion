@@ -3,6 +3,7 @@ package de.tudresden.gis.fusion.operation.enhancement;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -13,20 +14,27 @@ import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.ProcessException;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class MultiToSinglepart extends AOperationInstance {
 	
 	private final String IN_FEATURES = "IN_FEATURES";
 	private final String OUT_FEATURES = "OUT_FEATURES";
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() throws ProcessException {
 		
 		//get input
-		GTFeatureCollection inFeatures = (GTFeatureCollection) input(IN_FEATURES);
+		GTFeatureCollection inFeatures = (GTFeatureCollection) getInput(IN_FEATURES);
 		
 		//intersect
 		GTFeatureCollection outFeatures = multiToSingle(inFeatures);
@@ -52,7 +60,7 @@ public class MultiToSinglepart extends AOperationInstance {
 	    		nFeatures.add((SimpleFeature) feature.resolve());
 		}			    
 		//return
-		return new GTFeatureCollection(inFeatures.asString(), DataUtilities.collection(nFeatures), inFeatures.getDescription());
+		return new GTFeatureCollection(inFeatures.identifier(), DataUtilities.collection(nFeatures), inFeatures.getDescription());
 	}
 
 	/**
@@ -113,13 +121,28 @@ public class MultiToSinglepart extends AOperationInstance {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_FEATURES, IN_FEATURES, "Input features)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_FEATURES),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_FEATURES, OUT_FEATURES, "Singlepart features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_FEATURES),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 }

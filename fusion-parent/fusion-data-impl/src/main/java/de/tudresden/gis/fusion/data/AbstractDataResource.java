@@ -29,7 +29,7 @@ public abstract class AbstractDataResource extends AbstractData implements IReso
 	}
 	
 	@Override
-	public String asString() {
+	public String identifier() {
 		return identifier;
 	}
 	

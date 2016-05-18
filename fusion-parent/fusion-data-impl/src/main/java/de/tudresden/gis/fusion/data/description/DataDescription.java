@@ -11,10 +11,6 @@ public class DataDescription extends Resource implements IDataDescription {
 		this.title = title;
 		this.description = description;
 	}
-	
-	public DataDescription(String title, String description){
-		this(null, title, description);
-	}
 
 	@Override
 	public String getTitle() {

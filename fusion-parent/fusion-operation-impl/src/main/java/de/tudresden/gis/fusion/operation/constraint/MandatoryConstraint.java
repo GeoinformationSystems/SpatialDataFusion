@@ -9,7 +9,7 @@ public class MandatoryConstraint implements IDataConstraint {
 	
 	private String key;
 	
-	public MandatoryConstraint(String key){
+	protected MandatoryConstraint(String key){
 		this.key = key;
 	}
 

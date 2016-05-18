@@ -87,7 +87,7 @@ public class ManualChain {
 	private Runtime runtime = Runtime.getRuntime();
 	private void systemOut(AOperationInstance op, String result){
 		runtime.gc();
-		System.out.print(op.profile().asString() + "\n\t\t" +
+		System.out.print(op.profile().identifier() + "\n\t\t" +
 				"result: " + result + "\n\t\t" +
 				"process runtime (ms): " + ((LongLiteral) op.output("OUT_RUNTIME")).resolve() + "\n\t\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n\t");

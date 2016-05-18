@@ -25,7 +25,7 @@ import de.tudresden.gis.fusion.operation.measurement.ZonalStatistics;
 
 public class UseCase1 {
 	
-	private boolean tripleStore = true;
+	private boolean tripleStore = false;
 
 	@Test
 	public void chain() throws MalformedURLException, URISyntaxException {

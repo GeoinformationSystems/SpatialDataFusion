@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
-import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
@@ -32,10 +31,6 @@ public class ShapefileParserTest {
 		GTFeatureCollection features = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
 		Assert.assertTrue(features.size() > 0);
-		
-		for(GTFeature feature : features){
-			System.out.println(feature.resolve().getProperty("GN").getValue());;
-		}
 		
 		Runtime runtime = Runtime.getRuntime();
 		runtime.gc();

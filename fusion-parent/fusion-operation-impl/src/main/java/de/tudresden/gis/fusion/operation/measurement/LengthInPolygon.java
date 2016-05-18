@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.TreeSet;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -21,9 +22,13 @@ import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
 import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class LengthInPolygon extends ARelationMeasurementOperation {
 		
@@ -36,6 +41,9 @@ public class LengthInPolygon extends ARelationMeasurementOperation {
 	
 	private boolean bDropRelations;
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	private MeasurementDescription measurementDescription = new MeasurementDescription(
 			RDFVocabulary.TYPE_MEAS_GEOM_LENGTH_IN_POLYGON.asString(),
 			"length in polygon",
@@ -47,14 +55,14 @@ public class LengthInPolygon extends ARelationMeasurementOperation {
 	public void execute() throws ProcessException {
 
 		//get input
-		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
+		GTFeatureCollection inSource = (GTFeatureCollection) getInput(IN_SOURCE);
+		GTFeatureCollection inTarget = (GTFeatureCollection) getInput(IN_TARGET);
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
 		
 		//execute
 		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
-						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
+						relations(inSource, inTarget, (FeatureRelationCollection) getInput(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
 			
 		//return
@@ -109,14 +117,44 @@ public class LengthInPolygon extends ARelationMeasurementOperation {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(
+					IN_SOURCE, IN_SOURCE, "Reference features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_SOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_TARGET, IN_TARGET, "Target features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_TARGET),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "If set, relation measures are added to existing relations (reference and target inputs are ignored)",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that do not satisfy the threshold are dropped",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_RELATIONS, OUT_RELATIONS, "Output relations with length-in-polygon relation",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

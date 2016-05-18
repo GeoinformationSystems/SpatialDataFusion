@@ -27,6 +27,6 @@ public interface IResource extends INode {
 	 * String representation of this identifier
 	 * @return identifier String
 	 */
-	public String asString();
+	public String identifier();
 	
 }

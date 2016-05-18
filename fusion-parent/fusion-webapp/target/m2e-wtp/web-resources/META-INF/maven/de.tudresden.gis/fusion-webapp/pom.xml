@@ -9,7 +9,6 @@
   </parent>
   <artifactId>fusion-webapp</artifactId>
   <packaging>war</packaging>
-  <name>Fusion Client</name>
   
   <repositories>
   	<repository>

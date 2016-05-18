@@ -4,6 +4,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import javax.media.jai.ROI;
 import javax.media.jai.ROIShape;
@@ -47,9 +48,13 @@ import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class ZonalStatistics extends ARelationMeasurementOperation {
 
@@ -65,6 +70,9 @@ public class ZonalStatistics extends ARelationMeasurementOperation {
 	private int iBand;
 	private double dBuffer;
 	private boolean bDropRelations;
+	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
 
 	private MeasurementDescription measurementDescription_mean = new MeasurementDescription(
 			RDFVocabulary.TYPE_MEAS_RASTER_ZONAL_STATS_MEAN.asString(),
@@ -105,17 +113,17 @@ public class ZonalStatistics extends ARelationMeasurementOperation {
 	public void execute() throws ProcessException {
 
 		//get input
-		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		GTGridCoverage inTarget = (GTGridCoverage) input(IN_TARGET);
+		GTFeatureCollection inSource = (GTFeatureCollection) getInput(IN_SOURCE);
+		GTGridCoverage inTarget = (GTGridCoverage) getInput(IN_TARGET);
 		
-		iBand = ((IntegerLiteral) input(IN_BAND)).resolve();
-		dBuffer = ((DecimalLiteral) input(IN_BUFFER)).resolve();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
+		iBand = ((IntegerLiteral) getInput(IN_BAND)).resolve();
+		dBuffer = ((DecimalLiteral) getInput(IN_BUFFER)).resolve();
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
 		
 		//execute
 		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
-						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS)) :
+						relations(inSource, inTarget, (FeatureRelationCollection) getInput(IN_RELATIONS)) :
 						relations(inSource, inTarget);
 			
 		//return
@@ -304,14 +312,53 @@ public class ZonalStatistics extends ARelationMeasurementOperation {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(
+					IN_SOURCE, IN_SOURCE,"Reference features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_SOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_TARGET, IN_TARGET, "Target features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_TARGET),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTGridCoverage.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_BAND, IN_BAND, "Coverage band used for statistics calculation",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{IntegerLiteral.class})
+					},
+					new IntegerLiteral(0)));
+			inputDescriptions.add(new InputDescription(IN_BUFFER, IN_BUFFER, "Geometry buffer to be applied before zonal statisitcs computation",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{DecimalLiteral.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "If set, relation measures are added to existing relations (reference and target inputs are ignored)",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that do not satisfy the threshold are dropped",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_RELATIONS, OUT_RELATIONS, "Output relations with zonal statistics relation",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 	
 }

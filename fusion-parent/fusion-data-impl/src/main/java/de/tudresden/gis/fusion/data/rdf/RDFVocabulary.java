@@ -166,6 +166,6 @@ public enum RDFVocabulary {
 	}
 	
 	public String asString(){
-		return resource.asString();
+		return resource.identifier();
 	}
 }

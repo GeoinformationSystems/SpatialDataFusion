@@ -17,10 +17,6 @@ public class IODescription extends Resource implements IIODataDescription {
 		this.description = description;
 		this.constraints = constraints;
 	}
-	
-	public IODescription(String title, String abstrakt, Collection<IDataConstraint> constraints){
-		this(null, title, abstrakt, constraints);
-	}
 
 	@Override
 	public String getTitle() {

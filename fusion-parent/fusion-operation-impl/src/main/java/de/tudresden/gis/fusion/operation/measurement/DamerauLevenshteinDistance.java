@@ -2,6 +2,8 @@ package de.tudresden.gis.fusion.operation.measurement;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+
 import org.opengis.feature.Property;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
@@ -20,9 +22,13 @@ import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 import de.tudresden.gis.fusion.operation.ARelationMeasurementOperation;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	
@@ -40,10 +46,13 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	private int iThreshold;
 	private boolean bDropRelations;
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	private MeasurementDescription distanceDescription = new MeasurementDescription(
 			RDFVocabulary.TYPE_MEAS_STRING_DAMLEV.asString(),
 			"Damerau Levenshtein distance",
-			"Damerau Levenshtein distance between two Strings",
+			"Damerau Levenshtein distance between two attribute values",
 			IntegerLiteral.positiveRange(),
 			RDFVocabulary.UOM_UNDEFINED.asResource());
 
@@ -51,17 +60,17 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 	public void execute() throws ProcessException {
 
 		//get input
-		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		sourceAtt = ((StringLiteral) input(IN_SOURCE_ATT)).resolve();
-		GTFeatureCollection inTarget = (GTFeatureCollection) input(IN_TARGET);
-		targetAtt = ((StringLiteral) input(IN_TARGET_ATT)).resolve();
-		iThreshold = ((IntegerLiteral) input(IN_THRESHOLD)).resolve();
-		bDropRelations = inputContainsKey(IN_DROP_RELATIONS) ? ((BooleanLiteral) input(IN_DROP_RELATIONS)).resolve() : false;
+		GTFeatureCollection inSource = (GTFeatureCollection) getInput(IN_SOURCE);
+		sourceAtt = ((StringLiteral) getInput(IN_SOURCE_ATT)).resolve();
+		GTFeatureCollection inTarget = (GTFeatureCollection) getInput(IN_TARGET);
+		targetAtt = ((StringLiteral) getInput(IN_TARGET_ATT)).resolve();
+		iThreshold = ((IntegerLiteral) getInput(IN_THRESHOLD)).resolve();
+		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
 		
 		//execute
 		IDataCollection<IFeatureRelation> relations = 
 				inputContainsKey(IN_RELATIONS) ?
-						relations(inSource, inTarget, (FeatureRelationCollection) input(IN_RELATIONS), bDropRelations) :
+						relations(inSource, inTarget, (FeatureRelationCollection) getInput(IN_RELATIONS), bDropRelations) :
 						relations(inSource, inTarget);
 			
 		//return
@@ -155,12 +164,12 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 
 	@Override
 	public String getProcessTitle() {
-		return "Damerau Levenshtein String distance calculation";
+		return "Damerau-Levenshtein String distance calculation";
 	}
 
 	@Override
 	public String getTextualProcessDescription() {
-		return "Calculates feature attribute relation based on Damerau Levenshtein String distance for specified attribute";
+		return "Calculates feature attribute relation based on Damerau-Levenshtein String distance for specified attribute";
 	}
 
 	@Override
@@ -171,14 +180,59 @@ public class DamerauLevenshteinDistance extends ARelationMeasurementOperation {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(
+					IN_SOURCE, IN_SOURCE, "Reference features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_SOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_TARGET, IN_TARGET, "Target features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_TARGET),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_THRESHOLD, IN_THRESHOLD, "Threshold for Damerau-Levenshtein distance",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{IntegerLiteral.class})
+					},
+					new IntegerLiteral(3)));
+			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "If set, relation measures are added to existing relations (reference and target inputs are ignored)",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that do not satisfy the threshold are dropped",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
+					},
+					new BooleanLiteral(false)));
+			inputDescriptions.add(new InputDescription(IN_SOURCE_ATT, IN_SOURCE_ATT, "Name of the source attribute",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{StringLiteral.class}),
+							ContraintFactory.getMandatoryConstraint(IN_SOURCE_ATT)
+					}));
+			inputDescriptions.add(new InputDescription(IN_TARGET_ATT, IN_TARGET_ATT, "Name of the target attribute",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{StringLiteral.class}),
+							ContraintFactory.getMandatoryConstraint(IN_TARGET_ATT)
+					}));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_RELATIONS, OUT_RELATIONS, "Output relations with Damerau-Levenshtein distance relation between attributes",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 
 }

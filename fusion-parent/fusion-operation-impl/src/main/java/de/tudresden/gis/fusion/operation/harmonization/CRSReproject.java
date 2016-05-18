@@ -2,6 +2,7 @@ package de.tudresden.gis.fusion.operation.harmonization;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.AttributeTypeBuilder;
@@ -26,9 +27,13 @@ import de.tudresden.gis.fusion.data.literal.URILiteral;
 import de.tudresden.gis.fusion.operation.AOperationInstance;
 import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.ProcessException.ExceptionKey;
+import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
+import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
 import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 import de.tudresden.gis.fusion.operation.description.IInputDescription;
 import de.tudresden.gis.fusion.operation.description.IOutputDescription;
+import de.tudresden.gis.fusion.operation.description.InputDescription;
+import de.tudresden.gis.fusion.operation.description.OutputDescription;
 
 public class CRSReproject extends AOperationInstance {
 	
@@ -39,12 +44,15 @@ public class CRSReproject extends AOperationInstance {
 	private final String OUT_SOURCE = "OUT_SOURCE";
 	private final String OUT_TARGET = "OUT_TARGET";
 	
+	private Collection<IInputDescription> inputDescriptions = null;
+	private Collection<IOutputDescription> outputDescriptions = null;
+	
 	@Override
 	public void execute() throws ProcessException {
 		
 		//get input
-		GTFeatureCollection inSource = (GTFeatureCollection) input(IN_SOURCE);
-		GTFeatureCollection inTarget = inputContainsKey(IN_TARGET) ? (GTFeatureCollection) input(IN_TARGET) : null;
+		GTFeatureCollection inSource = (GTFeatureCollection) getInput(IN_SOURCE);
+		GTFeatureCollection inTarget = inputContainsKey(IN_TARGET) ? (GTFeatureCollection) getInput(IN_TARGET) : null;
 		
 		//get source and target crs
 		CoordinateReferenceSystem crsSource = inSource.collection().getSchema().getCoordinateReferenceSystem();
@@ -53,7 +61,7 @@ public class CRSReproject extends AOperationInstance {
 		//get final crs
 		CoordinateReferenceSystem crsFinal;
 		if(inputContainsKey(IN_CRS))
-			crsFinal = decodeCRS(((URILiteral) input(IN_CRS)).resolve().toString());
+			crsFinal = decodeCRS(((URILiteral) getInput(IN_CRS)).resolve().toString());
 		else if(crsTarget != null)
 			crsFinal = crsTarget;
 		else
@@ -104,7 +112,7 @@ public class CRSReproject extends AOperationInstance {
 		}
 	    
 		//return
-		return new GTFeatureCollection(features.asString(), DataUtilities.collection(features_proj), features.getDescription());
+		return new GTFeatureCollection(features.identifier(), DataUtilities.collection(features_proj), features.getDescription());
 	}
 
 	/**
@@ -228,13 +236,42 @@ public class CRSReproject extends AOperationInstance {
 
 	@Override
 	public Collection<IInputDescription> getInputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(inputDescriptions == null){
+			inputDescriptions = new HashSet<IInputDescription>();
+			inputDescriptions.add(new InputDescription(IN_SOURCE, IN_SOURCE, "Source features)",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(IN_SOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_TARGET, IN_TARGET, "Target features)",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			inputDescriptions.add(new InputDescription(IN_CRS, IN_CRS, "Final coordinate reference system)",
+					new IDataConstraint[]{
+							ContraintFactory.getBindingConstraint(new Class<?>[]{URILiteral.class})
+					}));
+		}
+		return inputDescriptions;
 	}
 
 	@Override
 	public Collection<IOutputDescription> getOutputDescriptions() {
-		// TODO Auto-generated method stub
-		return null;
+		if(outputDescriptions == null){
+			outputDescriptions = new HashSet<IOutputDescription>();
+			outputDescriptions.add(new OutputDescription(
+					OUT_SOURCE, OUT_SOURCE, "Transformed source features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_SOURCE),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+			outputDescriptions.add(new OutputDescription(
+					OUT_TARGET, OUT_TARGET, "Transformed target features",
+					new IDataConstraint[]{
+							ContraintFactory.getMandatoryConstraint(OUT_TARGET),
+							ContraintFactory.getBindingConstraint(new Class<?>[]{GTFeatureCollection.class})
+					}));
+		}
+		return outputDescriptions;
 	}
 }

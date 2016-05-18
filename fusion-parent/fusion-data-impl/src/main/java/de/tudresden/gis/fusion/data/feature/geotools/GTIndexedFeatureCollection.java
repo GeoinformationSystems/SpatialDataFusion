@@ -1,13 +1,20 @@
 package de.tudresden.gis.fusion.data.feature.geotools;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
 
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.xml.Configuration;
 import org.opengis.feature.Feature;
 import org.opengis.feature.type.FeatureType;
+import org.xml.sax.SAXException;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.index.strtree.STRtree;
@@ -18,21 +25,30 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
 
 	private STRtree index;
 	
-	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+	public GTIndexedFeatureCollection(String identifier, Collection<GTFeature> featureCollection, IDataDescription description){
 		super(identifier, featureCollection, description);
 		buildIndex();
 	}
 	
-	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
+	public GTIndexedFeatureCollection(String identifier, Collection<GTFeature> featureCollection){
 		this(identifier, featureCollection, null);
 	}
 	
-	public GTIndexedFeatureCollection(FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
-		this(null, featureCollection);
+	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
+		this(identifier, getGTCollection(featureCollection), description);
 	}
 	
-	public GTIndexedFeatureCollection(GTFeatureCollection gtCollection){
-		this(gtCollection.asString(), gtCollection.collection(), gtCollection.getDescription());
+	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
+		this(identifier, getGTCollection(featureCollection), null);
+	}
+	
+	public GTIndexedFeatureCollection(String identifier, InputStream xmlIS, Configuration configuration) throws IOException, XMLStreamException, SAXException {
+		super(identifier, xmlIS, configuration);
+		buildIndex();
+	}
+	
+	public GTIndexedFeatureCollection(GTFeatureCollection featureCollection){
+		this(featureCollection.identifier(), featureCollection.resolve(), featureCollection.getDescription());
 	}
 	
 	/**
