@@ -89,12 +89,18 @@ public class GMLParser extends AOperationInstance implements IParser {
 	private String getContentTypeFromURL(HttpURLConnection urlConnection, String sUrl) {
 		if(urlConnection.getContentType() != null && urlConnection.getContentType().toLowerCase().contains("gml"))
 			return urlConnection.getContentType();
-		else if(sUrl.contains("wfs")){
-			if(sUrl.contains("version=1.0.0"))	
+
+		String sUrlLower = sUrl.toLowerCase();
+		if(sUrlLower.contains("outputformat=gml")){
+			if(sUrlLower.contains("gml3.2"))	
+				return "3.2";
+		}
+		else if(sUrlLower.contains("wfs")){
+			if(sUrlLower.contains("version=1.0.0"))	
 				return "2.0";
-			else if(sUrl.contains("version=1.1.0"))	
+			else if(sUrlLower.contains("version=1.1.0"))	
 				return "3.1.1";
-			else if(sUrl.contains("version=2.0.0"))
+			else if(sUrlLower.contains("version=2.0.0"))
 				return "3.2";
 		}
 		return null;

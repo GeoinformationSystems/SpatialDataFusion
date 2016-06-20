@@ -7,8 +7,11 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.opengis.feature.Feature;
+import org.opengis.feature.Property;
 
 import de.tudresden.gis.fusion.data.IData;
+import de.tudresden.gis.fusion.data.feature.geotools.GTFeature;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
@@ -44,7 +47,7 @@ public class GMLParserTest {
 	
 	@Test
 	public void readCOBWEB() throws ProcessException {
-		readGML(new URILiteral("https://dyfi.cobwebproject.eu/pcapi/ows?version=1.1.0&service=WFS&request=GetFeature&Typename=cobweb:HT_Protokoll_Flat"));	
+		readGML(new URILiteral("https://dyfi.cobwebproject.eu/pcapi/ows?outputFormat=gml3.2&version=1.1.0&service=WFS&request=GetFeature&typename=cobweb:SNP_JKS_August"));	
 	}
 	
 	private void readGML(URILiteral resource) throws ProcessException {
@@ -60,6 +63,14 @@ public class GMLParserTest {
 		Assert.assertTrue(output.get("OUT_FEATURES") instanceof GTFeatureCollection);
 		
 		GTFeatureCollection features = (GTFeatureCollection) output.get("OUT_FEATURES");
+		
+		for(GTFeature feature : features){
+			Feature gtFeature = (Feature) feature.getRepresentation().resolve();
+			System.out.println(gtFeature.getIdentifier().toString());
+			for(Property prop : gtFeature.getProperties()){
+				System.out.println("\t" + prop.getName() + " : " + prop.getValue());
+			}
+		}
 		
 		Assert.assertTrue(features.size() > 0);
 		
