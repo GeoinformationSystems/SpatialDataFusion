@@ -38,7 +38,7 @@ public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
 //		objectSet.put(RESOURCE_TYPE, RDFVocabulary.GEOMETRY.asResource());
 		//set objects
 		//TODO geometry on demand; large geometries likely to cause memory issues
-//		objectSet.put(WKT, getWKT(feature), true);
+//		objectSet.put(WKT, getWKTGeometry(feature), true);
 	}
 
 	public GTFeature(String identifier, Feature feature){
@@ -54,7 +54,7 @@ public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
 	 * @param feature
 	 * @return
 	 */
-	private WKTLiteral getWKT(Feature feature) {
+	public WKTLiteral getWKTGeometry(Feature feature) {
 		Geometry geom = (Geometry) feature.getDefaultGeometryProperty().getValue();
 		return new WKTLiteral(geom.toText());
 	}
