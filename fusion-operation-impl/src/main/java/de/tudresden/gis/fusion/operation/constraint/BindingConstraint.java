@@ -37,7 +37,7 @@ public class BindingConstraint implements IDataConstraint {
 	 */
 	public boolean compliantWith(Class<?> target){
 		for(Class<?> binding : bindings){
-			if(target.isAssignableFrom(binding))
+			if(binding.isAssignableFrom(target))
 				return true;
 		}
 		return false;

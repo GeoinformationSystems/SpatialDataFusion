@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
+import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
@@ -25,6 +26,7 @@ public class GeometryDistanceTest {
 		
 		ShapefileParser parser = new ShapefileParser();
 		Map<String,IData> input = new HashMap<String,IData>();
+		input.put("IN_WITH_INDEX", new BooleanLiteral(true));
 
 		input.put("IN_RESOURCE", new URILiteral(new File("D:/Diss/implementation/testdata/shape", "atkis_dd.shp").toURI()));
 		Map<String,IData> output = parser.execute(input);		
