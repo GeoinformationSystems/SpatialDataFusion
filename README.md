@@ -15,13 +15,22 @@ The components are written in Java. The Web-client uses JSF with Primefaces
 
 For each implementation, a number of test units are provided. However, some of them refer to spatial data and data services that are not publicly available. They accordingly need to be ignored for testing.
 
+Available operations are located under ``de.tudresden.gis.fusion.operation``. As operation input, the ``IData`` interface must be implemented.
+
+## Installation
+
+The project is built using ``Maven install``. The result are 4 .jar files that need to be referenced in the classpath by an implementing application. For extensions, the data nd operation interfaces must be implemented.
+
+The data for unit tests is not uploaded. Moreover, there is no public triple store available for testing SPARQL. To prevent build failures, those tests need to be ignored.
+
+To test the Webapp, a Servlet container (e.g. Tomcat) is required. 
+
 ## Libraries
 
 * GeoTools for server-side geoprocessing (GNU Lesser General Public License (LGPL))
 * JUnit for testing (Eclipse Public License 1.0)
 * Apache Jena for RDF and SPARQL handling (Apache License, Version 2.0)
 * Primefaces for client implementation (Apache License, Version 2.0)
-
 * OpenLayers 3 for map rendering (BSD 2-Clause License)
 
 ## License
