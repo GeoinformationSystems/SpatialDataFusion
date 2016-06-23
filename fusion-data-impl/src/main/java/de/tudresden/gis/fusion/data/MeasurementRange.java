@@ -1,44 +1,47 @@
 package de.tudresden.gis.fusion.data;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
 import de.tudresden.gis.fusion.data.description.IMeasurementRange;
 import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.ITripleSet;
-import de.tudresden.gis.fusion.data.rdf.ObjectSet;
+import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.Subject;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
-import de.tudresden.gis.fusion.data.rdf.Resource;
 
-public class MeasurementRange extends Resource implements IMeasurementRange,ITripleSet {
-
-	private ObjectSet objectSet;
+public class MeasurementRange extends Subject implements IMeasurementRange {
 	
-	//predicates
-	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource RANGE_MEMBER = RDFVocabulary.RANGE_MEMBER.asResource();
-	private IIdentifiableResource CONTINUOUS = RDFVocabulary.RANGE_CONTINUOUS.asResource();
+	private IResource RANGE_MEMBER = RDFVocabulary.RANGE_MEMBER.getResource();
+	private IResource CONTINUOUS = RDFVocabulary.RANGE_CONTINUOUS.getResource();
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param range measurement range
+	 * @param continuous true for continuous range
+	 */
 	public MeasurementRange(String identifier, TreeSet<? extends IMeasurement> range, boolean continuous){
 		super(identifier);
-		objectSet = new ObjectSet();
 		//set resource type
-		objectSet.put(RESOURCE_TYPE, RDFVocabulary.RANGE.asResource());
+		this.put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.RANGE.getResource());
 		//set objects
-		objectSet.put(RANGE_MEMBER, range, true);
-		objectSet.put(CONTINUOUS, new BooleanLiteral(continuous), true);
+		this.put(RDFVocabulary.RANGE_MEMBER.getResource(), range, true);
+		this.put(RDFVocabulary.RANGE_CONTINUOUS.getResource(), new BooleanLiteral(continuous), true);
 	}
 	
+	/**
+	 * constructor
+	 * @param range measurement range
+	 * @param continuous true for continuous range
+	 */
 	public MeasurementRange(TreeSet<? extends IMeasurement> range, boolean continuous){
 		this(null, range, continuous);
 	}
 	
 	@Override
 	public TreeSet<IMeasurement> getRange() {
-		Set<INode> objects = objectSet.get(RANGE_MEMBER);
+		Set<INode> objects = this.getObjects(RANGE_MEMBER);
 		TreeSet<IMeasurement> measurements = new TreeSet<IMeasurement>();
 		for(INode object : objects){
 			if(object instanceof IMeasurement)
@@ -51,7 +54,7 @@ public class MeasurementRange extends Resource implements IMeasurementRange,ITri
 
 	@Override
 	public boolean isContinuous() {
-		return ((BooleanLiteral) objectSet.get(CONTINUOUS)).resolve();
+		return ((BooleanLiteral) this.getObjects(CONTINUOUS)).resolve();
 	}
 
 	@Override
@@ -92,21 +95,6 @@ public class MeasurementRange extends Resource implements IMeasurementRange,ITri
 	 */
 	private boolean inBetweenRange(IMeasurement target){
 		return(getMin().compareTo(target) >= 0 && getMax().compareTo(target) <= 0);
-	}
-
-	@Override
-	public Collection<IIdentifiableResource> getPredicates() {
-		return objectSet.keySet();
-	}
-
-	@Override
-	public Set<INode> getObject(IIdentifiableResource predicate) {
-		return objectSet.get(predicate);
-	}
-
-	@Override
-	public int size() {
-		return objectSet.numberOfObjects();
 	}
 
 }

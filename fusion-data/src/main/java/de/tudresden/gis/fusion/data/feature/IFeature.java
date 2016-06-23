@@ -1,6 +1,6 @@
 package de.tudresden.gis.fusion.data.feature;
 
-import java.util.Collection;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.IResourceData;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
@@ -35,6 +35,6 @@ public interface IFeature extends IResourceData {
 	 * get all relations attached to this feature
 	 * @return all feature relations
 	 */
-	public Collection<IFeatureRelation> getRelations();
+	public Set<IFeatureRelation> getRelations();
 	
 }

@@ -4,6 +4,11 @@ import java.net.URI;
 
 import de.tudresden.gis.fusion.data.ILiteralData;
 
+/**
+ * utility to create proper literal object
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class LiteralUtility {
 
 	/**

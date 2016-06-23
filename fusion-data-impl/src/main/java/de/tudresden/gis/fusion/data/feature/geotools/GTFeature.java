@@ -1,6 +1,5 @@
 package de.tudresden.gis.fusion.data.feature.geotools;
 
-import java.util.Collection;
 import java.util.Set;
 
 import org.opengis.feature.Feature;
@@ -16,35 +15,50 @@ import de.tudresden.gis.fusion.data.feature.IFeatureEntity;
 import de.tudresden.gis.fusion.data.feature.IFeatureRepresentation;
 import de.tudresden.gis.fusion.data.feature.IFeatureType;
 import de.tudresden.gis.fusion.data.literal.WKTLiteral;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.ITripleSet;
-import de.tudresden.gis.fusion.data.rdf.ObjectSet;
+import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.ISubject;
+import de.tudresden.gis.fusion.data.rdf.Subject;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
+/**
+ * GeoTools feature implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public class GTFeature extends AbstractFeature<Feature> implements ISubject {
 	
-	private ObjectSet objectSet;
+	/**
+	 * feature subject
+	 */
+	private Subject subject;
 	
-	//predicates
-	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-//	private IIdentifiableResource WKT = RDFVocabulary.WKT.asResource();
-	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param feature feature object
+	 * @param description feature description
+	 */
 	public GTFeature(String identifier, Feature feature, IDataDescription description){
 		super(identifier, feature, description);
-		objectSet = new ObjectSet();
+		subject = new Subject(identifier);
 		//set resource type
-		objectSet.put(RESOURCE_TYPE, RDFVocabulary.FEATURE.asResource());
-//		objectSet.put(RESOURCE_TYPE, RDFVocabulary.GEOMETRY.asResource());
-		//set objects
-		//TODO geometry on demand; large geometries likely to cause memory issues
-//		objectSet.put(WKT, getWKTGeometry(feature), true);
+		subject.put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.FEATURE.getResource());
 	}
 
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param feature feature object
+	 */
 	public GTFeature(String identifier, Feature feature){
 		this(identifier, feature, null);
 	}
 	
+	/**
+	 * constructor
+	 * @param feature feature object
+	 */
 	public GTFeature(Feature feature){
 		this(feature.getIdentifier().getID(), feature, null);
 	}
@@ -54,9 +68,8 @@ public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
 	 * @param feature
 	 * @return
 	 */
-	public WKTLiteral getWKTGeometry(Feature feature) {
-		Geometry geom = (Geometry) feature.getDefaultGeometryProperty().getValue();
-		return new WKTLiteral(geom.toText());
+	public WKTLiteral getWKTGeometry() {
+		return new WKTLiteral(getDefaultGeometry().toText());
 	}
 	
 	@Override
@@ -94,18 +107,28 @@ public class GTFeature extends AbstractFeature<Feature> implements ITripleSet {
 	}
 
 	@Override
-	public Collection<IIdentifiableResource> getPredicates() {
-		return objectSet.keySet();
+	public Set<IResource> getPredicates() {
+		return subject.getPredicates();
 	}
 
 	@Override
-	public Set<INode> getObject(IIdentifiableResource predicate) {
-		return objectSet.get(predicate);
+	public Set<INode> getObjects(IResource predicate) {
+		return subject.getObjects(predicate);
 	}
 
-	@Override
+	/**
+	 * get number of associated objects
+	 * @return object count
+	 */
 	public int size() {
-		return objectSet.numberOfObjects();
+		return subject.getNumberOfObjects();
+	}
+	
+	/**
+	 * add geometry as WKT to RDF representation (caution: large geometries are likely to cause memory issues)
+	 */
+	public void addWKTGeometry(){
+		subject.put(RDFVocabulary.WKT.getResource(), getWKTGeometry(), true);
 	}
 
 }

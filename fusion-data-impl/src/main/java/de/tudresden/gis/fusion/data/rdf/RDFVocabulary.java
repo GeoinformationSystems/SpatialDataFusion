@@ -1,5 +1,10 @@
 package de.tudresden.gis.fusion.data.rdf;
 
+/**
+ * RDF vocabulary
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public enum RDFVocabulary {
 	
 	/**
@@ -9,10 +14,16 @@ public enum RDFVocabulary {
 	RDF("http://www.w3.org/1999/02/22-rdf-syntax-ns"),
 	
 	/**
-	 * Subjects & Objects
+	 * RDF predicates
 	 */
 	
-	//RDF literal types
+	TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+	VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
+	
+	/**
+	 * RDF Literal types
+	 */
+	
 	BOOLEAN("http://www.w3.org/2001/XMLSchema/#boolean"),
 	INTEGER("http://www.w3.org/2001/XMLSchema/#integer"),
 	LONG("http://www.w3.org/2001/XMLSchema/#long"),
@@ -20,41 +31,34 @@ public enum RDFVocabulary {
 	STRING("http://www.w3.org/2001/XMLSchema/#string"),
 	ANYURI("http://www.w3.org/2001/XMLSchema/#anyURI"),
 	
-	//RDF geo
-	W3C_GEO_LAT("http://www.w3.org/2003/01/geo/wgs84_pos#lat"),
-	W3C_GEO_LON("http://www.w3.org/2003/01/geo/wgs84_pos#long"),
-	GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
-	WKT("http://www.opengis.net/ont/geosparql#asWKT"),
-	WKT_LITERAL("http://www.opengis.net/ont/geosparql#wktLiteral"),
+	/**
+	 * RDF collection types
+	 */
 	
-	//collection type
 	BAG("http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag"),
 	MEMBER("http://www.w3.org/1999/02/22-rdf-syntax-ns#li"),
 	
-	//measurement
-	RANGE("http://tu-dresden.de/uw/geo/gis/fusion#range"),
-	RANGE_MEMBER("http://tu-dresden.de/uw/geo/gis/fusion#rangeMember"),
-	RANGE_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#rangeContinuous"),
+	/**
+	 * W3C Geo Vocabular
+	 */
 	
-	//feature
-	FEATURE("http://tu-dresden.de/uw/geo/gis/fusion#feature"),
-	FEATURE_CONCEPT("http://tu-dresden.de/uw/geo/gis/fusion#featureConcept"),
-	FEATURE_TYPE("http://tu-dresden.de/uw/geo/gis/fusion#featureType"),
-	FEATURE_ENTITY("http://tu-dresden.de/uw/geo/gis/fusion#featureInstance"),
-	FEATURE_REPRESENTATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRepresentation"),
+	W3C_GEO_LAT("http://www.w3.org/2003/01/geo/wgs84_pos#lat"),
+	W3C_GEO_LON("http://www.w3.org/2003/01/geo/wgs84_pos#long"),
 	
-	//feature property
-	PROPERTY_GEOM("http://tu-dresden.de/uw/geo/gis/fusion#geometryProperty"),
-	PROPERTY_THEM("http://tu-dresden.de/uw/geo/gis/fusion#thematicProperty"),
+	/**
+	 * OGC GeoSPARQL vocabulary
+	 */
 	
-	//relation
-	FEATURE_RELATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRelation"),
-	RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion#relationMeasurement"),
+	GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
+	WKT("http://www.opengis.net/ont/geosparql#asWKT"),
+	WKT_LITERAL("http://www.opengis.net/ont/geosparql#wktLiteral"),
+	SF_INTERSECTS("http://www.opengis.net/ont/geosparql#sfIntersects"),
+	SF_OVERLAPS("http://www.opengis.net/ont/geosparql#sfOverlaps"),
 	
-	//metadata
-	METADATA("http://tu-dresden.de/uw/geo/gis/fusion#metadata"),
+	/**
+	 * OGC GML geometry types
+	 */
 	
-	//GML geometry types
 	GML3_0D_POINT("http://www.opengis.net/ont/gml#Point"),
 	GML3_0D_MULTIPOINT("http://www.opengis.net/ont/gml#MultiPoint"),	
 	GML3_1D_CURVE("http://www.opengis.net/ont/gml#Curve"),
@@ -67,7 +71,10 @@ public enum RDFVocabulary {
 	GML3_GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
 	GML3_MULTIGEOMETRY("http://www.opengis.net/ont/gml#MultiGeometry"),
 	
-	//uom
+	/**
+	 * QUDT units of measurement
+	 */
+	
 	UOM_DEGREE_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#DegreeAngle"),
 	UOM_RADIAN_ANGLE("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Radian"),
 	UOM_KILOMETER("http://www.qudt.org/qudt/owl/1.0.0/unit/Instances.html#Kilometer"),
@@ -78,38 +85,67 @@ public enum RDFVocabulary {
 	UOM_UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
 	UOM_MAP_UNITS("http://tu-dresden.de/uw/geo/gis/fusion/uom#mapUnits"),
 	
-	//Darwin Core
+	/**
+	 * Darwin Core
+	 */
+		
 	DWC_OCCURRENCE("http://rs.tdwg.org/dwc/terms/Occurrence"),
 	
 	/**
-	 * Predicates
+	 * Dublin Core
 	 */
-	
-	//RDF basics
-	TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-	VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
-	
-	//Dublin Core
+		
 	DC_DESCRIPTION("http://purl.org/dc/terms/description"),
 	DC_TITLE("http://purl.org/dc/elements/1.1/title"),
 	DC_ABSTRACT("http://purl.org/dc/terms/abstract"),
-	
+		
 	/**
-	 * Processes
+	 * W3C time vocabulary
 	 */
 	
-	//Measurements
-	MEASUREMENT_TIME_INTERVAL("http://www.w3.org/2006/time#interval"),
-	MEASURMENT_TIME_INSTANT("http://www.w3.org/2006/time#instant"),
+	TIME_INTERVAL("http://www.w3.org/2006/time#interval"),
+	TIME_INSTANT("http://www.w3.org/2006/time#instant"),
 	
+	/**
+	 * **********************************************
+	 * fusion specific vocabulary		*************
+	 * **********************************************
+	 */
 	
+	/**
+	 * measurement range
+	 */
+	
+	RANGE("http://tu-dresden.de/uw/geo/gis/fusion#range"),
+	RANGE_MEMBER("http://tu-dresden.de/uw/geo/gis/fusion#rangeMember"),
+	RANGE_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#rangeContinuous"),
+	
+	/**
+	 * feature and feature views
+	 */
+	
+	FEATURE("http://tu-dresden.de/uw/geo/gis/fusion#feature"),
+	COVERAGE("http://tu-dresden.de/uw/geo/gis/fusion#coverage"),
+	FEATURE_CONCEPT("http://tu-dresden.de/uw/geo/gis/fusion#featureConcept"),
+	FEATURE_TYPE("http://tu-dresden.de/uw/geo/gis/fusion#featureType"),
+	FEATURE_ENTITY("http://tu-dresden.de/uw/geo/gis/fusion#featureInstance"),
+	FEATURE_REPRESENTATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRepresentation"),
+	
+	/**
+	 * feature properties
+	 */
 
+	PROPERTY_GEOM("http://tu-dresden.de/uw/geo/gis/fusion#geometryProperty"),
+	PROPERTY_THEM("http://tu-dresden.de/uw/geo/gis/fusion#thematicProperty"),
+	
+	/**
+	 * feature relation
+	 */
+	
+	FEATURE_RELATION("http://tu-dresden.de/uw/geo/gis/fusion#featureRelation"),
+	RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion#relationMeasurement"),
 	MEASUREMENT_DESCRIPTION("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurementDescription"),
-	
-	
-
-	//relation basics
-	RELATION_SOURCE("http://tu-dresden.de/uw/geo/gis/fusion/relation#source"),
+	RELATION_REFERENCE("http://tu-dresden.de/uw/geo/gis/fusion/relation#reference"),
 	RELATION_TARGET("http://tu-dresden.de/uw/geo/gis/fusion/relation#target"),
 	RELATION_VIEW("http://tu-dresden.de/uw/geo/gis/fusion/relation#featureView"),
 	PREDICATE_RELATION_PROCESS("http://tu-dresden.de/uw/geo/gis/fusion/relation#process"),
@@ -117,19 +153,17 @@ public enum RDFVocabulary {
 	RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),
 	PREDICATE_RELATION_MEASUREMENT_UOM("http://tu-dresden.de/uw/geo/gis/fusion/relation#uom"),
 	
+	/**
+	 * description
+	 */
 	
-	
-	//feature properties
-	
-	
-	
-	
-	//measurement - time
-	
+	METADATA("http://tu-dresden.de/uw/geo/gis/fusion#metadata"),
+
+	/**
+	 * operations
+	 */
 	
 	//measurement - topology
-	TYPE_MEAS_TOP_INTERSECTS("http://www.opengis.net/ont/geosparql#sfIntersects"),
-	TYPE_MEAS_TOP_OVERLAPS("http://www.opengis.net/ont/geosparql#sfOverlaps"),
 	TYPE_MEAS_TOP_DE9IM("http://tu-dresden.de/uw/geo/gis/fusion/operation/topology#de9im"),
 	
 	//measurement - geometry
@@ -155,17 +189,33 @@ public enum RDFVocabulary {
 	
 	;
 	
-	private IIdentifiableResource resource;
+	/**
+	 * resource object
+	 */
+	private IResource resource;
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 */
 	private RDFVocabulary(String identifier){
-		this.resource = new IdentifiableResource(identifier);
+		this.resource = new Resource(identifier);
 	}
 	
-	public IIdentifiableResource asResource(){
+	/**
+	 * get RDF resource
+	 * @return RDF resource
+	 */
+	public IResource getResource(){
 		return resource;
 	}
 	
-	public String asString(){
-		return resource.identifier();
+	/**
+	 * get RDF resource as string
+	 * @returnRDF resource string
+	 */
+	public String getString(){
+		return resource.getIdentifier();
 	}
+	
 }

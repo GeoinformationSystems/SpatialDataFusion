@@ -2,6 +2,11 @@ package de.tudresden.gis.fusion.data.description;
 
 import de.tudresden.gis.fusion.data.rdf.IResource;
 
+/**
+ * description of a data object
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public interface IDataDescription extends IResource {
 	
 	/**

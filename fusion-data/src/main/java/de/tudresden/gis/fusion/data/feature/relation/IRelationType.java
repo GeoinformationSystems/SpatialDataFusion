@@ -1,20 +1,25 @@
 package de.tudresden.gis.fusion.data.feature.relation;
 
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 
-public interface IRelationType extends IIdentifiableResource {
+/**
+ * relation type
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public interface IRelationType extends IResource {
 
 	/**
-	 * get role of the source feature view as specified by this relation type
+	 * get role of the reference as specified by this relation type
 	 * @return source role
 	 */
-	public IRole getSource();
+	public IResource getSource();
 	
 	/**
-	 * get role of the target feature view as specified by this relation type
+	 * get role of the target as specified by this relation type
 	 * @return source role
 	 */
-	public IRole getTarget();
+	public IResource getTarget();
 	
 	/**
 	 * check if a relation type is symmetric

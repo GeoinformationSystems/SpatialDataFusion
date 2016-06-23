@@ -8,10 +8,21 @@ import de.tudresden.gis.fusion.data.feature.IFeatureEntity;
 import de.tudresden.gis.fusion.data.feature.IFeatureRepresentation;
 import de.tudresden.gis.fusion.data.feature.IFeatureType;
 
+/**
+ * observed feature
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class SpeciesObservationFeature extends AbstractFeature<SpeciesObservation> {
 
-	public SpeciesObservationFeature(String identifier, SpeciesObservation feature, IDataDescription description) {
-		super(identifier, feature, description);
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param observation observation object
+	 * @param description observation description
+	 */
+	public SpeciesObservationFeature(String identifier, SpeciesObservation observation, IDataDescription description) {
+		super(identifier, observation, description);
 	}
 
 	@Override

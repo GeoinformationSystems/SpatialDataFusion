@@ -6,16 +6,30 @@ import java.util.TreeSet;
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
+/**
+ * decimal literal implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class DecimalLiteral extends AbstractMeasurement<Double> implements ITypedLiteral {
 
+	/**
+	 * constructor
+	 * @param value decimal literal value
+	 * @param description literal description 
+	 */
 	public DecimalLiteral(double value, IMeasurementDescription description){
 		super(value, description);
 	}
 	
+	/**
+	 * constructor
+	 * @param value decimal literal value
+	 */
 	public DecimalLiteral(double value){
 		this(value,	null);
 	}
@@ -34,8 +48,8 @@ public class DecimalLiteral extends AbstractMeasurement<Double> implements IType
 	}
 	
 	@Override
-	public IIdentifiableResource getType() {
-		return RDFVocabulary.DECIMAL.asResource();
+	public IResource getType() {
+		return RDFVocabulary.DECIMAL.getResource();
 	}
 
 	/**

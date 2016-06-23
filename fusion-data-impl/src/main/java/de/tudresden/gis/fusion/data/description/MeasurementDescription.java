@@ -1,19 +1,46 @@
 package de.tudresden.gis.fusion.data.description;
 
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 
+/**
+ * measurement description implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class MeasurementDescription extends DataDescription implements IMeasurementDescription {
 	
+	/**
+	 * range of the measurement
+	 */
 	private IMeasurementRange range;
-	private IIdentifiableResource uom;
+	
+	/**
+	 * unit of measurement
+	 */
+	private IResource uom;
 
-	public MeasurementDescription(String identifier, String title, String description, IMeasurementRange range, IIdentifiableResource uom) {
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param title measurement title
+	 * @param description measurement description
+	 * @param range measurement range
+	 * @param uom measurement uom
+	 */
+	public MeasurementDescription(String identifier, String title, String description, IMeasurementRange range, IResource uom) {
 		super(identifier, title, description);
 		this.range = range;
 		this.uom = uom;
 	}
 	
-	public MeasurementDescription(String title, String description, IMeasurementRange range, IIdentifiableResource uom) {
+	/**
+	 * constructor
+	 * @param title measurement title
+	 * @param description measurement description
+	 * @param range measurement range
+	 * @param uom measurement uom
+	 */
+	public MeasurementDescription(String title, String description, IMeasurementRange range, IResource uom) {
 		this(null, title, description, range, uom);
 	}
 	
@@ -23,7 +50,7 @@ public class MeasurementDescription extends DataDescription implements IMeasurem
 	}
 
 	@Override
-	public IIdentifiableResource getUnitOfMeasurement() {
+	public IResource getUnitOfMeasurement() {
 		return uom;
 	}
 

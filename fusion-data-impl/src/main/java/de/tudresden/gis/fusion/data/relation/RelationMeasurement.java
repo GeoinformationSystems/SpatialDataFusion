@@ -1,58 +1,79 @@
 package de.tudresden.gis.fusion.data.relation;
 
-import java.util.Collection;
 import java.util.Set;
 
+import de.tudresden.gis.fusion.data.AbstractDataResource;
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.ITripleSet;
-import de.tudresden.gis.fusion.data.rdf.ObjectSet;
-import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.ISubject;
+import de.tudresden.gis.fusion.data.rdf.Subject;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class RelationMeasurement extends Resource implements IRelationMeasurement,ITripleSet {
+/**
+ * relation measurement implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public class RelationMeasurement extends AbstractDataResource implements IRelationMeasurement,ISubject {
 
-	private ObjectSet objectSet;
+	/**
+	 * measurement subject
+	 */
+	private Subject subject;
 	
 	//predicates
-	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
-	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
-	private IIdentifiableResource VALUE = RDFVocabulary.VALUE.asResource();
-	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DC_DESCRIPTION.asResource();
+	private IResource REFERENCE = RDFVocabulary.RELATION_REFERENCE.getResource();
+	private IResource TARGET = RDFVocabulary.RELATION_TARGET.getResource();
+	private IResource VALUE = RDFVocabulary.VALUE.getResource();
+	private IResource DESCRIPTION = RDFVocabulary.DC_DESCRIPTION.getResource();
 	
-	public RelationMeasurement(String identifier, INode source, INode target, IMeasurement value, IMeasurementDescription description) {
-		super(identifier);
-		objectSet = new ObjectSet();
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param reference measurement reference
+	 * @param target measurement target
+	 * @param value measurement value
+	 * @param description measurement description
+	 */
+	public RelationMeasurement(String identifier, INode reference, INode target, IMeasurement value, IMeasurementDescription description) {
+		super(identifier, value, description);
+		subject = new Subject(identifier);
 		//set resource type
-		objectSet.put(RESOURCE_TYPE, getType());
+		subject.put(RDFVocabulary.TYPE.getResource(), getType());
 		//set objects
-		objectSet.put(SOURCE, source, true);
-		objectSet.put(TARGET, target, true);
-		objectSet.put(VALUE, value);
-		objectSet.put(DESCRIPTION, description);
+		subject.put(REFERENCE, reference, true);
+		subject.put(TARGET, target, true);
+		subject.put(VALUE, value);
+		subject.put(DESCRIPTION, description);
 	}
 	
+	/**
+	 * constructor
+	 * @param reference measurement reference
+	 * @param target measurement target
+	 * @param value measurement value
+	 * @param description measurement description
+	 */
 	public RelationMeasurement(INode source, INode target, IMeasurement value, IMeasurementDescription description) {
 		this(null, source, target, value, description);
 	}
 	
 	@Override
-	public INode getSource() {
-		return (IIdentifiableResource) objectSet.getSingle(SOURCE);
+	public INode getReference() {
+		return (IResource) subject.getSingle(REFERENCE);
 	}
 
 	@Override
 	public INode getTarget() {
-		return (IIdentifiableResource) objectSet.getSingle(TARGET);
+		return (IResource) subject.getSingle(TARGET);
 	}
 
 	@Override
 	public IMeasurement resolve() {
-		return (IMeasurement) objectSet.get(VALUE);
+		return (IMeasurement) super.resolve();
 	}
 
 	@Override
@@ -62,17 +83,17 @@ public class RelationMeasurement extends Resource implements IRelationMeasuremen
 
 	@Override
 	public IMeasurementDescription getDescription() {
-		return (IMeasurementDescription) objectSet.getSingle(DESCRIPTION);
+		return (IMeasurementDescription) subject.getSingle(DESCRIPTION);
 	}
 
 	@Override
-	public Collection<IIdentifiableResource> getPredicates() {
-		return objectSet.keySet();
+	public Set<IResource> getPredicates() {
+		return subject.getPredicates();
 	}
 
 	@Override
-	public Set<INode> getObject(IIdentifiableResource predicate) {
-		return objectSet.get(predicate);
+	public Set<INode> getObjects(IResource predicate) {
+		return subject.getObjects(predicate);
 	}
 
 	@Override
@@ -81,13 +102,8 @@ public class RelationMeasurement extends Resource implements IRelationMeasuremen
 	}
 
 	@Override
-	public int size() {
-		return objectSet.numberOfObjects();
-	}
-
-	@Override
-	public IIdentifiableResource getType() {
-		return RDFVocabulary.RELATION_MEASUREMENT.asResource();
+	public IResource getType() {
+		return RDFVocabulary.RELATION_MEASUREMENT.getResource();
 	}
 
 }

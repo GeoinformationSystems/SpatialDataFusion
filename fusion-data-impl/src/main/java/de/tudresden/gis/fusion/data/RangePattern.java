@@ -9,16 +9,39 @@ import de.tudresden.gis.fusion.data.description.IMeasurementRange;
 import de.tudresden.gis.fusion.data.literal.StringLiteral;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 
+/**
+ * string range using regular expression
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class RangePattern extends Resource implements IMeasurementRange {
 
+	/**
+	 * regular expression pattern
+	 */
 	private Pattern pattern;
+	
+	/**
+	 * string range
+	 */
 	private transient Collection<IMeasurement> range;
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param pattern string regex pattern
+	 * @throws PatternSyntaxException
+	 */
 	public RangePattern(String identifier, String pattern) throws PatternSyntaxException {
 		super(identifier);
 		this.pattern = Pattern.compile(pattern);
 	}
 	
+	/**
+	 * constructor
+	 * @param pattern string regex pattern
+	 * @throws PatternSyntaxException
+	 */
 	public RangePattern(String pattern) throws PatternSyntaxException {
 		this(null, pattern);
 	}

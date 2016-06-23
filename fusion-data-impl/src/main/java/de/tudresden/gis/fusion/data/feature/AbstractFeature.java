@@ -1,33 +1,77 @@
 package de.tudresden.gis.fusion.data.feature;
 
-import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import de.tudresden.gis.fusion.data.AbstractDataResource;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 
+/**
+ * abstract feature implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ * @param <T> feature object type
+ */
 public abstract class AbstractFeature<T extends Object> extends AbstractDataResource implements IFeature {
 
+	/**
+	 * feature concept
+	 */
 	private IFeatureConcept concept;
-	private IFeatureType type;
-	private IFeatureEntity entity;
-	private IFeatureRepresentation representation;
-	private Collection<IFeatureRelation> relations;
 	
+	/**
+	 * feature type
+	 */
+	private IFeatureType type;
+	
+	/**
+	 * feature entity
+	 */
+	private IFeatureEntity entity;
+	
+	/**
+	 * feature representation
+	 */
+	private IFeatureRepresentation representation;
+	
+	/**
+	 * relations associated with the feature
+	 */
+	private Set<IFeatureRelation> relations;
+	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param feature feature object
+	 * @param description feature description
+	 */
 	public AbstractFeature(String identifier, T feature, IDataDescription description){
 		super(identifier, feature, description);
 		initFeature(feature);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param feature feature object
+	 */
 	public AbstractFeature(String identifier, T feature){
 		this(identifier, feature, null);
 	}
 	
+	/**
+	 * constructor
+	 * @param feature feature object
+	 */
 	public AbstractFeature(T feature){
 		this(null, feature, null);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 */
 	public AbstractFeature(String identifier){
 		super(identifier);
 	}
@@ -53,7 +97,7 @@ public abstract class AbstractFeature<T extends Object> extends AbstractDataReso
 	}
 
 	@Override
-	public Collection<IFeatureRelation> getRelations() {
+	public Set<IFeatureRelation> getRelations() {
 		return relations;
 	}
 	

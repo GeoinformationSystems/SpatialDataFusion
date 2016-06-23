@@ -1,18 +1,32 @@
 package de.tudresden.gis.fusion.data.relation;
 
 import de.tudresden.gis.fusion.data.feature.relation.IRelationType;
-import de.tudresden.gis.fusion.data.feature.relation.IRole;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.Resource;
 
+/**
+ * relation type implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class RelationType extends Resource implements IRelationType {
 	
-	private IRole sourceRole, targetRole;
+	private IResource referenceRole, targetRole;
 	private boolean symmetric, transitive, reflexive;
 	private IRelationType inverse;
 
-	public RelationType(String identifier, IRole sourceRole, IRole targetRole, boolean symmetric, boolean transitive, boolean reflexive) {
+	/**
+	 * constructor
+	 * @param identifier type identifier
+	 * @param referenceRole reference role
+	 * @param targetRole target role
+	 * @param symmetric
+	 * @param transitive
+	 * @param reflexive
+	 */
+	public RelationType(String identifier, IResource referenceRole, IResource targetRole, boolean symmetric, boolean transitive, boolean reflexive) {
 		super(identifier);
-		this.sourceRole = sourceRole;
+		this.referenceRole = referenceRole;
 		this.targetRole = targetRole;
 		this.symmetric = symmetric;
 		this.transitive = transitive;
@@ -20,12 +34,12 @@ public class RelationType extends Resource implements IRelationType {
 	}
 
 	@Override
-	public IRole getSource() {
-		return sourceRole;
+	public IResource getSource() {
+		return referenceRole;
 	}
 
 	@Override
-	public IRole getTarget() {
+	public IResource getTarget() {
 		return targetRole;
 	}
 
@@ -43,6 +57,11 @@ public class RelationType extends Resource implements IRelationType {
 	public boolean isReflexive() {
 		return reflexive;
 	}
+
+	@Override
+	public IRelationType getInverse() {
+		return inverse;
+	}
 	
 	/**
 	 * set inverse relation type
@@ -50,11 +69,6 @@ public class RelationType extends Resource implements IRelationType {
 	 */
 	public void addInverse(IRelationType inverse){
 		this.inverse = inverse;
-	}
-
-	@Override
-	public IRelationType getInverse() {
-		return inverse;
 	}
 
 }

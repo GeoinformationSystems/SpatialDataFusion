@@ -1,5 +1,10 @@
 package de.tudresden.gis.fusion.data.feature;
 
+/**
+ * feature representation view of a feature
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public interface IFeatureRepresentation extends IFeatureView {
 
 	/**

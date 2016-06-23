@@ -1,6 +1,5 @@
 package de.tudresden.gis.fusion.data.relation;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -9,56 +8,82 @@ import de.tudresden.gis.fusion.data.feature.IFeature;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationMeasurement;
 import de.tudresden.gis.fusion.data.feature.relation.IRelationType;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
 import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.ITripleSet;
-import de.tudresden.gis.fusion.data.rdf.ObjectSet;
+import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tudresden.gis.fusion.data.rdf.ISubject;
+import de.tudresden.gis.fusion.data.rdf.Subject;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class FeatureRelation extends AbstractDataResource implements IFeatureRelation,ITripleSet {
+/**
+ * feature relation implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public class FeatureRelation extends AbstractDataResource implements IFeatureRelation,ISubject {
 	
-	private ObjectSet objectSet;
+	/**
+	 * relation subject
+	 */
+	private Subject subject;
 	
 	//predicates
-	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource SOURCE = RDFVocabulary.RELATION_SOURCE.asResource();
-	private IIdentifiableResource TARGET = RDFVocabulary.RELATION_TARGET.asResource();
-	private IIdentifiableResource RELATION_TYPE = RDFVocabulary.RELATION_TYPE.asResource();
-	private IIdentifiableResource MEASUREMENT = RDFVocabulary.RELATION_MEASUREMENT.asResource();
+	private IResource REFERENCE = RDFVocabulary.RELATION_REFERENCE.getResource();
+	private IResource TARGET = RDFVocabulary.RELATION_TARGET.getResource();
+	private IResource RELATION_TYPE = RDFVocabulary.RELATION_TYPE.getResource();
+	private IResource MEASUREMENT = RDFVocabulary.RELATION_MEASUREMENT.getResource();
 
-	public FeatureRelation(String identifier, IFeature source, IFeature target, Set<IRelationType> types, Set<IRelationMeasurement> measurements){
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param reference relation reference 
+	 * @param target relation target
+	 * @param types relation types
+	 * @param measurements relation measurements
+	 */
+	public FeatureRelation(String identifier, IFeature reference, IFeature target, Set<IRelationType> types, Set<IRelationMeasurement> measurements){
 		super(identifier);
-		objectSet = new ObjectSet();
+		subject = new Subject(identifier);
 		//set resource type
-		objectSet.put(RESOURCE_TYPE, RDFVocabulary.FEATURE_RELATION.asResource());
+		subject.put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.FEATURE_RELATION.getResource());
 		//set objects
-		objectSet.put(SOURCE, source, true);
-		objectSet.put(TARGET, target, true);
-		objectSet.put(RELATION_TYPE, types);
-		objectSet.put(MEASUREMENT, measurements);
+		subject.put(REFERENCE, reference, true);
+		subject.put(TARGET, target, true);
+		subject.put(RELATION_TYPE, types);
+		subject.put(MEASUREMENT, measurements);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param reference relation reference 
+	 * @param target relation target
+	 */
 	public FeatureRelation(String identifier, IFeature source, IFeature target){
 		this(identifier, source, target, null, null);
 	}
 	
+	/**
+	 * constructor
+	 * @param reference relation reference 
+	 * @param target relation target
+	 */
 	public FeatureRelation(IFeature source, IFeature target){
 		this(null, source, target);
 	}
 	
 	@Override
-	public IFeature getSource() {
-		return (IFeature) objectSet.getSingle(SOURCE);
+	public IFeature getReference() {
+		return (IFeature) subject.getSingle(REFERENCE);
 	}
 
 	@Override
 	public IFeature getTarget() {
-		return (IFeature) objectSet.getSingle(TARGET);
+		return (IFeature) subject.getSingle(TARGET);
 	}
 	
 	@Override
 	public Set<IRelationType> getRelationTypes() {
-		Set<INode> objects = objectSet.get(RELATION_TYPE);
+		Set<INode> objects = subject.getObjects(RELATION_TYPE);
 		Set<IRelationType> relationTypes = new HashSet<IRelationType>();
 		for(INode object : objects){
 			if(object instanceof IRelationType)
@@ -71,7 +96,7 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 
 	@Override
 	public Set<IRelationMeasurement> getRelationMeasurements() {
-		Set<INode> objects = objectSet.get(MEASUREMENT);
+		Set<INode> objects = subject.getObjects(MEASUREMENT);
 		Set<IRelationMeasurement> relationMeasurements = new HashSet<IRelationMeasurement>();
 		for(INode object : objects){
 			if(object instanceof IRelationMeasurement)
@@ -83,23 +108,18 @@ public class FeatureRelation extends AbstractDataResource implements IFeatureRel
 	}
 
 	@Override
-	public Collection<IIdentifiableResource> getPredicates() {
-		return objectSet.keySet();
+	public Set<IResource> getPredicates() {
+		return subject.getPredicates();
 	}
 
 	@Override
-	public Set<INode> getObject(IIdentifiableResource predicate) {
-		return objectSet.get(predicate);
-	}
-
-	@Override
-	public int size() {
-		return objectSet.numberOfObjects();
+	public Set<INode> getObjects(IResource predicate) {
+		return subject.getObjects(predicate);
 	}
 	
 	@Override
 	public void addMeasurement(IRelationMeasurement measurement){
-		objectSet.put(MEASUREMENT, measurement);
+		subject.put(MEASUREMENT, measurement);
 	}
 	
 }

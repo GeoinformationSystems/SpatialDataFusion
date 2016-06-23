@@ -21,34 +21,77 @@ import com.vividsolutions.jts.index.strtree.STRtree;
 
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 
+/**
+ * GeoTools indexed feature collection implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class GTIndexedFeatureCollection extends GTFeatureCollection {
 
+	/**
+	 * geometry index
+	 */
 	private STRtree index;
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param featureCollection GeoTools GTFeature collection
+	 * @param description collection description
+	 */
 	public GTIndexedFeatureCollection(String identifier, Collection<GTFeature> featureCollection, IDataDescription description){
 		super(identifier, featureCollection, description);
 		buildIndex();
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param featureCollection GeoTools GTFeature collection
+	 */
 	public GTIndexedFeatureCollection(String identifier, Collection<GTFeature> featureCollection){
 		this(identifier, featureCollection, null);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param featureCollection GeoTools feature collection
+	 * @param description collection description
+	 */
 	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection, IDataDescription description){
 		this(identifier, getGTCollection(featureCollection), description);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param featureCollection GeoTools GTFeature collection
+	 */
 	public GTIndexedFeatureCollection(String identifier, FeatureCollection<? extends FeatureType,? extends Feature> featureCollection){
 		this(identifier, getGTCollection(featureCollection), null);
 	}
 	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param xmlIS XML input stream with GML encoded features
+	 * @param configuration parser configuration
+	 * @throws IOException
+	 * @throws XMLStreamException
+	 * @throws SAXException
+	 */
 	public GTIndexedFeatureCollection(String identifier, InputStream xmlIS, Configuration configuration) throws IOException, XMLStreamException, SAXException {
 		super(identifier, xmlIS, configuration);
 		buildIndex();
 	}
 	
+	/**
+	 * create indexed feature collection from existing GTFeatureCollection
+	 * @param featureCollection input collection
+	 */
 	public GTIndexedFeatureCollection(GTFeatureCollection featureCollection){
-		this(featureCollection.identifier(), featureCollection.resolve(), featureCollection.getDescription());
+		this(featureCollection.getIdentifier(), featureCollection.resolve(), featureCollection.getDescription());
 	}
 	
 	/**

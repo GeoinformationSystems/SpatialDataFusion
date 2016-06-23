@@ -2,6 +2,11 @@ package de.tudresden.gis.fusion.data.feature;
 
 import java.util.Collection;
 
+/**
+ * feature concept view of a feature
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public interface IFeatureConcept extends IFeatureView {
 
 	/**

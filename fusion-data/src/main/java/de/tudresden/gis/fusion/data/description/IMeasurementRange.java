@@ -5,6 +5,11 @@ import java.util.Collection;
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 
+/**
+ * description of the range of a measurement
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public interface IMeasurementRange extends IResource {
 
 	/**

@@ -3,12 +3,17 @@ package de.tudresden.gis.fusion.data.literal;
 import java.time.LocalDateTime;
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
 public class TemporalMeasurement extends AbstractMeasurement<LocalDateTime> implements ITypedLiteral {
 	
+	/**
+	 * constructor
+	 * @param value time literal value
+	 * @param description literal description 
+	 */
 	public TemporalMeasurement(LocalDateTime instant, IMeasurementDescription description){
 		super(instant, description);
 	}
@@ -27,8 +32,8 @@ public class TemporalMeasurement extends AbstractMeasurement<LocalDateTime> impl
 	}
 
 	@Override
-	public IIdentifiableResource getType() {
-		return RDFVocabulary.MEASURMENT_TIME_INSTANT.asResource();
+	public IResource getType() {
+		return RDFVocabulary.TIME_INSTANT.getResource();
 	}
 
 }

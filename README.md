@@ -7,10 +7,8 @@ This repository contains basic components and a Web-Client for the implementatio
 
 The components are written in Java. The Web-client uses JSF with Primefaces
 
-* ``/fusion-data`` - Interface specifications for data
-* ``/fusion-data-impl`` - Data implementation (uses GeoTools)
-* ``/fusion-operation`` - Interface specifications for operations  
-* ``/fusion-operation-impl`` - Operation implementation (uses GeoTools)
+* ``/fusion-model`` - Interface specifications for data and operations
+* ``/fusion-impl`` - Data and operation implementation (uses GeoTools)
 * ``/fusion-webapp`` - Web-Client based on Java Server Faces
 
 For each implementation, a number of test units are provided. However, some of them refer to spatial data and data services that are not publicly available. They accordingly need to be ignored for testing.

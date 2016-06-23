@@ -6,16 +6,30 @@ import java.util.TreeSet;
 import de.tudresden.gis.fusion.data.IMeasurement;
 import de.tudresden.gis.fusion.data.MeasurementRange;
 import de.tudresden.gis.fusion.data.description.IMeasurementDescription;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ITypedLiteral;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
+/**
+ * boolean literal implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public class BooleanLiteral extends AbstractMeasurement<Boolean> implements ITypedLiteral {
 	
+	/**
+	 * constructor
+	 * @param value boolean literal value
+	 * @param description literal description 
+	 */
 	public BooleanLiteral(boolean value, IMeasurementDescription description){
 		super(value, description);
 	}
 	
+	/**
+	 * constructor
+	 * @param value boolean literal value
+	 */
 	public BooleanLiteral(boolean value){
 		this(value,	null);
 	}
@@ -34,8 +48,8 @@ public class BooleanLiteral extends AbstractMeasurement<Boolean> implements ITyp
 	}
 	
 	@Override
-	public IIdentifiableResource getType() {
-		return RDFVocabulary.BOOLEAN.asResource();
+	public IResource getType() {
+		return RDFVocabulary.BOOLEAN.getResource();
 	}
 	
 	/**

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>de.tudresden.gis</groupId>
   <artifactId>fusion-parent</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.2</version>
   <packaging>pom</packaging>
   
    <build>
@@ -21,33 +21,21 @@
 	</build>
 	
    <modules>
-		<module>fusion-data</module>
-   		<module>fusion-data-impl</module>
-		<module>fusion-operation</module>
+		<module>fusion-model</module>
+		<module>fusion-impl</module>
 		<module>fusion-webapp</module>
-		<module>fusion-operation-impl</module>
    </modules>
    
    <dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-data</artifactId>
+			<artifactId>fusion-model</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-data-impl</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-operation</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-operation-impl</artifactId>
+			<artifactId>fusion-impl</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

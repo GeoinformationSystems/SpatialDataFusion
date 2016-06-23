@@ -2,16 +2,37 @@ package de.tudresden.gis.fusion.data;
 
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 
+/**
+ * abstract data implementation
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
 public abstract class AbstractData implements IData {
 	
+	/**
+	 * data object
+	 */
 	private Object object;
+	
+	/**
+	 * data description
+	 */
 	private IDataDescription description;
 	
+	/**
+	 * constructor
+	 * @param object data object
+	 * @param description data description
+	 */
 	public AbstractData(Object object, IDataDescription description){
 		this.object = object;
 		this.description = description;
 	}
 	
+	/**
+	 * constructor
+	 * @param object data object
+	 */
 	public AbstractData(Object object){
 		this(object, null);
 	}

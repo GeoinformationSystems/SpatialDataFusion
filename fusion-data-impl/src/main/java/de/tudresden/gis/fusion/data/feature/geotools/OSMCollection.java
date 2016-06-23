@@ -33,15 +33,14 @@ import com.vividsolutions.jts.geom.Point;
 public class OSMCollection {
 
 	//OSM feature type definitions
-	private final static String NODE = "node";
-	private final static String RELATION = "relation";
-	private final static String WAY = "way";
-	private final String ATTRIBUTE = "tag";
+	private final String NODE = "node";
+	private final String RELATION = "relation";
+	private final String WAY = "way";
 	
+	private final String ATTRIBUTE = "tag";
 	private final String ATTRIBUTE_KEY = "k";
 	private final String ATTRIBUTE_VALUE = "v";
 	private final String COORD_X = "lon";
-	
 	private final String COORD_Y = "lat";
 	private final String NODEREF = "nd";
 	private final String NODEREF_ID = "ref";
@@ -65,7 +64,6 @@ public class OSMCollection {
 	 * constructor
 	 * @param is input stream
 	 * @throws XMLStreamException
-	 * @throws IOException 
 	 */
 	public OSMCollection(InputStream is) throws XMLStreamException {
 		this.parse(is);
@@ -74,7 +72,6 @@ public class OSMCollection {
 	/**
 	 * constructor
 	 * @param file OSM input file
-	 * @throws IOException
 	 * @throws XMLStreamException
 	 * @throws FileNotFoundException 
 	 */
@@ -92,15 +89,11 @@ public class OSMCollection {
 		this(url.openStream());
 	}
 	
-	
-
 	/**
 	 * return feature collection for nodes
 	 * @param is OSM input stream
 	 * @param osmType OSM type
 	 * @return OSM feature collection
-	 * @throws XMLStreamException 
-	 * @throws IOException 
 	 */
 	public SimpleFeatureCollection getWays() {
 		SimpleFeatureType ftype = buildFeatureType(getWayAttributes(), "OSM Ways", LineString.class, DefaultGeographicCRS.WGS84);
@@ -112,8 +105,6 @@ public class OSMCollection {
 	 * @param is OSM input stream
 	 * @param osmType OSM type
 	 * @return OSM feature collection
-	 * @throws XMLStreamException 
-	 * @throws IOException 
 	 */
 	public SimpleFeatureCollection getNodes() {
 		SimpleFeatureType ftype = buildFeatureType(getNodeAttributes(), "OSM Nodes", Point.class, DefaultGeographicCRS.WGS84);

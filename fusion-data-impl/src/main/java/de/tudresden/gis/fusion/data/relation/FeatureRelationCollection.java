@@ -7,51 +7,76 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import de.tudresden.gis.fusion.data.AbstractDataResource;
 import de.tudresden.gis.fusion.data.IDataCollection;
 import de.tudresden.gis.fusion.data.description.IDataDescription;
 import de.tudresden.gis.fusion.data.feature.IFeature;
 import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
-import de.tudresden.gis.fusion.data.rdf.IIdentifiableResource;
+import de.tudresden.gis.fusion.data.rdf.IGraph;
 import de.tudresden.gis.fusion.data.rdf.INode;
+import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.ISubject;
-import de.tudresden.gis.fusion.data.rdf.ISubjectCollection;
-import de.tudresden.gis.fusion.data.rdf.ITripleSet;
-import de.tudresden.gis.fusion.data.rdf.IdentifiableResource;
-import de.tudresden.gis.fusion.data.rdf.ObjectSet;
-import de.tudresden.gis.fusion.data.rdf.Resource;
+import de.tudresden.gis.fusion.data.rdf.Subject;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
 
-public class FeatureRelationCollection extends Resource implements ITripleSet,ISubjectCollection,IDataCollection<IFeatureRelation> {
+/**
+ * collection of feature relations
+ * @author Stefan Wiemann, TU Dresden
+ *
+ */
+public class FeatureRelationCollection extends AbstractDataResource implements ISubject,IGraph,IDataCollection<IFeatureRelation> {
 
+	/**
+	 * index count (for RDF encoding)
+	 */
 	int currentIndex = 1;
-	private ObjectSet objectSet;
-	private Collection<IFeatureRelation> relations;
 	
-	//indexes
+	/**
+	 * relation subject
+	 */
+	private Subject subject;
+	
+	/**
+	 * relation collection with index
+	 */
 	private HashMap<String,Collection<IFeatureRelation>> relationIndex;
 	
-	//predicates
-	private IIdentifiableResource RESOURCE_TYPE = RDFVocabulary.TYPE.asResource();
-	private IIdentifiableResource DESCRIPTION = RDFVocabulary.DC_DESCRIPTION.asResource();
-	
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 * @param relations input relations
+	 * @param description relation collection description
+	 */
 	public FeatureRelationCollection(String identifier, Collection<IFeatureRelation> relations, IDataDescription description) {
-		super(identifier);
-		objectSet = new ObjectSet();
+		super(identifier, relations, description);
+		subject = new Subject(identifier);
 		//set objects
-		objectSet.put(RESOURCE_TYPE, RDFVocabulary.BAG.asResource());
-		objectSet.put(DESCRIPTION, description);
+		subject.put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.BAG.getResource());
+		subject.put(RDFVocabulary.DC_DESCRIPTION.getResource(), description);
 		//insert member objects
-		for(IFeatureRelation relation : relations){
-			this.add(relation);
-		}
+		initIndex();
 	}
-	
+
+	/**
+	 * constructor
+	 * @param identifier resource identifier
+	 */
 	public FeatureRelationCollection(String identifier) {
 		this(identifier, new HashSet<IFeatureRelation>(), null);
 	}
 	
+	/**
+	 * empty constructor
+	 */
 	public FeatureRelationCollection() {
 		this(null);
+	}
+	
+	/**
+	 * add RDF member object
+	 */
+	private void addMember(IFeatureRelation relation) {
+		subject.put(RDFVocabulary.MEMBER.getResource(), relation);
 	}
 	
 	/**
@@ -59,19 +84,20 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	 * @param relation input relation
 	 */
 	private void addToIndex(IFeatureRelation relation){
-		
-		if(relationIndex == null)
-			relationIndex = new HashMap<String,Collection<IFeatureRelation>>();
-		
-		//add source
-		addToIndex(relation.getSource().identifier(), relation);
-		
-		//add target
-		addToIndex(relation.getTarget().identifier(), relation);
+		//add to collection
+		this.resolve().add(relation);
+		//add source to index
+		addToIndex(relation.getReference().getIdentifier(), relation);
+		//add target to index
+		addToIndex(relation.getTarget().getIdentifier(), relation);
 	}
 	
+	/**
+	 * add relation to key
+	 * @param key relation key
+	 * @param relation relation to associate with key 
+	 */
 	private void addToIndex(String key, IFeatureRelation relation) {
-
 		//add to key
 		if(relationIndex.containsKey(key))
 			relationIndex.get(key).add(relation);
@@ -84,47 +110,38 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	}
 	
 	/**
-	 * get current index for relation insert; index is increased by one
-	 * @return current index (number of relations in collection)
+	 * initialize collection index
 	 */
-	private IIdentifiableResource getIndexForInsert(){
-		return new IdentifiableResource(RDFVocabulary.RDF.asString() + "#_" + currentIndex++);
+	public void initIndex(){
+		relationIndex = new HashMap<String,Collection<IFeatureRelation>>();
+		addAll(resolve());
 	}
 	
 	/**
-	 * add relation to collection
-	 * @param relation input feature relation
+	 * add relation to index
+	 * @param relation input relation
 	 */
 	public void add(IFeatureRelation relation){
-		if(relations == null)
-			relations = new HashSet<IFeatureRelation>();
-		objectSet.put(getIndexForInsert(), relation);
-		relations.add(relation);
+		//add to member objects
+		addMember(relation);
+		//add to index
 		addToIndex(relation);
 	}
 	
-	public void addAll(IDataCollection<IFeatureRelation> relations){
+	/**
+	 * add relation collection to index
+	 * @param relations input relations
+	 */
+	public void addAll(Collection<IFeatureRelation> relations){
 		for(IFeatureRelation relation : relations){
-			this.add(relation);
+			add(relation);
 		}
 	}
-
+	
+	@SuppressWarnings("unchecked")
 	@Override
-	public Collection<IFeatureRelation> resolve() {
-		return relations;
-	}
-
-	@Override
-	public IDataDescription getDescription() {
-		return (IDataDescription) objectSet.get(DESCRIPTION);
-	}
-
-	/**
-	 * get collection size
-	 * @return collection size
-	 */
-	public int size() {
-		return objectSet.size();
+	public Collection<IFeatureRelation> resolve(){
+		return (Collection<IFeatureRelation>) super.resolve();
 	}
 
 	@Override
@@ -133,17 +150,17 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	}
 	
 	@Override
-	public Collection<IIdentifiableResource> getPredicates() {
-		return objectSet.keySet();
+	public Set<IResource> getPredicates() {
+		return subject.getPredicates();
 	}
 
 	@Override
-	public Set<INode> getObject(IIdentifiableResource predicate) {
-		return objectSet.get(predicate);
+	public Set<INode> getObjects(IResource predicate) {
+		return subject.getObjects(predicate);
 	}
 
 	@Override
-	public Collection<? extends ISubject> collection() {
+	public Collection<? extends ISubject> getSubjects() {
 		Collection<ISubject> subjects = new HashSet<ISubject>();
 		for(IFeatureRelation relation : resolve()){
 			if(relation instanceof ISubject)
@@ -162,10 +179,10 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	
 	private Collection<IFeature> getFeatures(boolean source) {
 		Map<String,IFeature> features = new HashMap<String,IFeature>();
-		for(IFeatureRelation relation : this.relations){
-			IFeature feature = source ? relation.getSource() : relation.getTarget();
-			if(!features.containsKey(feature.identifier()))
-				features.put(feature.identifier(), feature);
+		for(IFeatureRelation relation : resolve()){
+			IFeature feature = source ? relation.getReference() : relation.getTarget();
+			if(!features.containsKey(feature.getIdentifier()))
+				features.put(feature.getIdentifier(), feature);
 		}
 		return features.values();
 	}
@@ -176,16 +193,7 @@ public class FeatureRelationCollection extends Resource implements ITripleSet,IS
 	 * @return relations associated with input feature
 	 */
 	public Collection<IFeatureRelation> getRelations(IFeature feature) {
-
-		//get relations
-		return relationIndex.get(feature.identifier());
-		
-//		Collection<IFeatureRelation> relations = new HashSet<IFeatureRelation>();
-//		for(IFeatureRelation relation : this.relations){
-//			if(relation.getSource().asString() == feature.asString() || relation.getTarget().asString() == feature.asString())
-//				relations.add(relation);
-//		}
-//		return relations;
+		return relationIndex.get(feature.getIdentifier());
 	}
 	
 }
