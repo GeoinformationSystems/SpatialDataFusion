@@ -5,12 +5,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.TreeSet;
 
-import javax.vecmath.Vector3d;
-
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.math.Vector3D;
 
 import de.tudresden.gis.fusion.data.IDataCollection;
 import de.tudresden.gis.fusion.data.MeasurementRange;
@@ -126,10 +125,10 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	 */
 	private double getAngle(LineString lReference, LineString lTarget) {		
 		//get Vectors
-		Vector3d vReference = getVector(lReference);
-		Vector3d vTarget = getVector(lTarget);
+		Vector3D vReference = getVector(lReference);
+		Vector3D vTarget = getVector(lTarget);
 		//get angle [0,PI]
-		double angle = vReference.angle(vTarget);
+		double angle = getAngle(vReference, vTarget);
 		//get angle [0,PI/2]
 		if(angle > Math.PI/2)
 			angle = Math.PI - angle;
@@ -138,19 +137,32 @@ public class AngleDifference extends ARelationMeasurementOperation {
 	}
 	
 	/**
+	 * calculate angle between vectors
+	 * @param vReference reference vector
+	 * @param vTarget target vector
+	 * @return angle between reference and target vector
+	 */
+	private double getAngle(Vector3D vReference, Vector3D vTarget) {
+		double dot = vReference.dot(vTarget) / ( vReference.length()*vTarget.length() );
+		if(dot < -1.0) dot = -1.0;
+		if(dot >  1.0) dot =  1.0;
+		return Math.acos(dot);
+	}
+
+	/**
 	 * get vector of a linestring based on start and end point
 	 * @param linestring input linestring
 	 * @return vector vector from linestring
 	 */
-	private Vector3d getVector(LineString line) {
+	private Vector3D getVector(LineString line) {
 		Coordinate[] coords = line.getCoordinates();
 		Coordinate first = coords[0];
 		Coordinate last = coords[coords.length-1];
 		//return vector
 		if(!Double.isNaN(first.z) && !Double.isNaN(last.z))
-			return new Vector3d(last.x - first.x, last.y - first.y, last.z - first.z);
+			return new Vector3D(last.x - first.x, last.y - first.y, last.z - first.z);
 		else
-			return new Vector3d(last.x - first.x, last.y - first.y, 0d);
+			return new Vector3D(last.x - first.x, last.y - first.y, 0d);
 	}
 	
 	@Override

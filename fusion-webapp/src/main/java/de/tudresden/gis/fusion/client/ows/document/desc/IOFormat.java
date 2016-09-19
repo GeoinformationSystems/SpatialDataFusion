@@ -3,7 +3,7 @@ package de.tudresden.gis.fusion.client.ows.document.desc;
 import java.io.Serializable;
 
 /**
- * process io format
+ * WPS process IO format
  * @author Stefan Wiemann, TU Dresden
  *
  */

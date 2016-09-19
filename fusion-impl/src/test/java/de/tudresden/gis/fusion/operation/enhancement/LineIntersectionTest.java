@@ -11,13 +11,12 @@ import de.tudresden.gis.fusion.data.IData;
 import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.gis.fusion.data.literal.LongLiteral;
 import de.tudresden.gis.fusion.data.literal.URILiteral;
-import de.tudresden.gis.fusion.operation.ProcessException;
 import de.tudresden.gis.fusion.operation.io.OSMXMLParser;
 
 public class LineIntersectionTest {
 	
 	@Test
-	public void readOSM() throws ProcessException {
+	public void intersect() {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 		input.put("IN_RESOURCE", new URILiteral(new File("D:/Programmierung/Testdaten/osm", "osm.xml").toURI()));

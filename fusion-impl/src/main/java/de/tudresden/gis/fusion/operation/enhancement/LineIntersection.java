@@ -237,7 +237,7 @@ public class LineIntersection extends AOperationInstance {
 
 	@Override
 	public String getTextualProcessDescription() {
-		return "Intersects linear network to avoid tpological inconsistency";
+		return "Intersects linear network to avoid topological inconsistency";
 	}
 
 	@Override

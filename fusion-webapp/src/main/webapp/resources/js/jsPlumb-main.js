@@ -184,6 +184,9 @@ function f_addProcessInstance(description){
 function f_addLiteral() {
 	//get literal value
 	var literal = document.getElementById('form:p_fusion:p_literal').value;
+	//replace comma with point delimiter
+	literal = literal.replace(',','.')
+	//do nothing, if length = 0
 	if(literal.length == 0)
 		return;
 	//default format = xs:string

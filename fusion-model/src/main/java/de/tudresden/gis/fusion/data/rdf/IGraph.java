@@ -7,7 +7,7 @@ import java.util.Collection;
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public interface IGraph extends IResource {
+public interface IGraph extends IResource,ISubject {
 
 	/**
 	 * get subjects associated with the graph

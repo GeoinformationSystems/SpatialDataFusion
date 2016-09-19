@@ -9,7 +9,7 @@
   
   <properties>
   	<camunda.version>7.3.0</camunda.version>
-	<geotools.version>13.2</geotools.version>
+	<geotools.version>15.1</geotools.version>
   </properties>
   
   <repositories>
@@ -72,6 +72,16 @@
 		<groupId>org.geotools</groupId>
 		<artifactId>gt-geotiff</artifactId>
 		<version>${geotools.version}</version>
+	</dependency>
+	<dependency>
+	  <groupId>org.geotools</groupId>
+	  <artifactId>gt-geojson</artifactId>
+	  <version>${geotools.version}</version>
+	</dependency>
+	<dependency>
+	  <groupId>org.geotools</groupId>
+	  <artifactId>gt-geometry</artifactId>
+	  <version>${geotools.version}</version>
 	</dependency>
 	<dependency>
 		<groupId>org.apache.jena</groupId>
