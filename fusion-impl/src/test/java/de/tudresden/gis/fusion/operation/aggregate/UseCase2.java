@@ -43,11 +43,11 @@ public class UseCase2 {
 		
 		Map<String,IData> input = new HashMap<String,IData>();
 
-		input.put("IN_RESOURCE", new URILiteral(new File("D:/Programmierung/Testdaten/shape", "atkis_svs_wgs84.shp").toURI()));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI()));
 		Map<String,IData> output = parserShape.execute(input);		
 		GTFeatureCollection source = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_RESOURCE", new URILiteral(new File("D:/Programmierung/Testdaten/osm", "osm.xml").toURI()));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
 		output = parserOSM.execute(input);
 		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_WAYS");
 		

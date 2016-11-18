@@ -288,12 +288,26 @@ public class RDFTurtleEncoder {
 		if(resource.getIdentifier().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
 			return URI.create("a");
 		//default
-		URI relative = ((Resource) resource).relativizeURI(uri);
+		URI relative = relativizeURI(uri, resource.getURI());
 		if(resource.getURI().equals(relative) || relative.toString().matches(".*((\\/)|(.+#)).*"))
 			return resource.getURI();
 		else
 			return URI.create((prefix == null || prefix.length() == 0 ? "" : prefix + ":") + 
 					(relative.toString().startsWith("#") ? relative.toString().substring(1) : relative.toString()));
+	}
+	
+	/**
+	 * relativize URI
+	 * @param base path to omit from URI
+	 * @param uri input uri
+	 * @return relativized URI
+	 */
+	private static URI relativizeURI(URI base, URI uri){
+		if(uri == null)
+			return null;
+		if(base == null)
+			return uri;
+		return base.relativize(uri);
 	}
 
 	/**

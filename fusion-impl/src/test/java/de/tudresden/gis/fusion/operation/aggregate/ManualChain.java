@@ -30,11 +30,11 @@ public class ManualChain {
 		ShapefileParser parser = new ShapefileParser();
 		Map<String,IData> input = new HashMap<String,IData>();
 
-		input.put("IN_RESOURCE", new URILiteral(new File("D:/Programmierung/Testdaten/shape", "atkis_dd.shp").toURI()));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()));
 		Map<String,IData> output = parser.execute(input);		
 		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
-		input.put("IN_RESOURCE", new URILiteral(new File("D:/Programmierung/Testdaten/shape", "osm_dd.shp").toURI()));
+		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI()));
 		output = parser.execute(input);		
 		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_FEATURES");
 		
