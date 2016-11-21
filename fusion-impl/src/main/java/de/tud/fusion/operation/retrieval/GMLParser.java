@@ -343,14 +343,14 @@ public class GMLParser extends AbstractOperation {
 		inputConnectors.add(new InputConnector(
 				IN_RESOURCE, IN_RESOURCE, "Link to input GML",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, true),
+						new BindingConstraint(URILiteral.class),
 						new MandatoryConstraint()},
 				null,
 				null));
 		inputConnectors.add(new InputConnector(
 				IN_WITH_INDEX, IN_WITH_INDEX, "Flag: create spatial index",
 				new IDataConstraint[]{
-						new BindingConstraint(BooleanLiteral.class, true)},
+						new BindingConstraint(BooleanLiteral.class)},
 				null,
 				new BooleanLiteral(false)));	
 		//return
@@ -366,7 +366,7 @@ public class GMLParser extends AbstractOperation {
 		outputConnectors.add(new OutputConnector(
 				OUT_FEATURES, OUT_FEATURES, "Output feature collection",
 				new IDataConstraint[]{
-						new BindingConstraint(FeatureCollection.class, false),
+						new BindingConstraint(FeatureCollection.class),
 						new MandatoryConstraint()},
 				null));		
 		//return

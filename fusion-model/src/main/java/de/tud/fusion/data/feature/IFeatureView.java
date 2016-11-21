@@ -1,7 +1,7 @@
 package de.tud.fusion.data.feature;
 
 import de.tud.fusion.data.IData;
-import de.tudresden.gis.fusion.data.rdf.IResource;
+import de.tud.fusion.data.rdf.IResource;
 
 /**
  * view of a feature

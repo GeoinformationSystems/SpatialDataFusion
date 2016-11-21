@@ -15,16 +15,21 @@ import de.tud.fusion.operation.description.IDataConstraint;
 public class BindingConstraint implements IDataConstraint {
 	
 	private Set<Class<?>> supportedbindings;
-	private boolean isInput;
 	
 	/**
 	 * constructor
 	 * @param bindings supported bindings
-	 * @param isInput flag: true if input binding
 	 */
-	public BindingConstraint(Set<Class<?>> supportedbindings, boolean isInput){
+	public BindingConstraint(Set<Class<?>> supportedbindings){
 		this.supportedbindings = supportedbindings;
-		this.isInput = isInput;
+	}
+	
+	/**
+	 * constructor
+	 * @param bindings supported bindings
+	 */
+	public BindingConstraint(Class<?>[] supportedbindings){
+		this(Sets.newHashSet(supportedbindings));
 	}
 	
 	/**
@@ -32,17 +37,8 @@ public class BindingConstraint implements IDataConstraint {
 	 * @param bindings supported bindings
 	 * @param isInput flag: true if input binding
 	 */
-	public BindingConstraint(Class<?>[] supportedbindings, boolean isInput){
-		this(Sets.newHashSet(supportedbindings), isInput);
-	}
-	
-	/**
-	 * constructor
-	 * @param bindings supported bindings
-	 * @param isInput flag: true if input binding
-	 */
-	public BindingConstraint(Class<?> binding, boolean isInput){
-		this(Sets.newHashSet(binding), isInput);
+	public BindingConstraint(Class<?> binding){
+		this(Sets.newHashSet(binding));
 	}
 
 	@Override
@@ -57,9 +53,7 @@ public class BindingConstraint implements IDataConstraint {
 	 */
 	private boolean compliantWith(Class<?> targetClass){
 		for(Class<?> binding : supportedbindings){
-			if(isInput && binding.isAssignableFrom(targetClass))
-				return true;
-			else if(!isInput && targetClass.isAssignableFrom(binding))
+			if(binding.isAssignableFrom(targetClass))
 				return true;
 		}
 		return false;

@@ -33,7 +33,7 @@ public class Measurement<T extends Comparable<T>> extends Literal<T> implements 
 	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(IMeasurement target) {
-		if(!(target.getClass().isAssignableFrom(resolve().getClass())))
+		if(!(target.resolve().getClass().isAssignableFrom(resolve().getClass())))
 			throw new IllegalArgumentException("Cannot compare " + this.getType().getIdentifier() + " with " + target.getType().getIdentifier());
 		return resolve().compareTo((T) target.resolve());
 	}

@@ -229,7 +229,7 @@ public final static String PROCESS_ID = OSMXMLParser.class.getSimpleName();
 		inputConnectors.add(new InputConnector(
 				IN_RESOURCE, IN_RESOURCE, "Link to input XML",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, true),
+						new BindingConstraint(URILiteral.class),
 						new MandatoryConstraint()},
 				null,
 				null));	
@@ -246,7 +246,7 @@ public final static String PROCESS_ID = OSMXMLParser.class.getSimpleName();
 		outputConnectors.add(new OutputConnector(
 				OUT_FEATURES, OUT_FEATURES, "Output OSM feature collection",
 				new IDataConstraint[]{
-						new BindingConstraint(OSMFeatureCollection.class, false),
+						new BindingConstraint(OSMFeatureCollection.class),
 						new MandatoryConstraint()},
 				null));	
 		//return

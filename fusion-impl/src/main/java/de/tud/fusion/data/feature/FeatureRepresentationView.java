@@ -44,6 +44,13 @@ public class FeatureRepresentationView extends ResourceData implements IFeatureR
 	}
 	
 	@Override
+	public Feature resolve() {
+		if(super.resolve() == null)
+			return null;
+		return (Feature) super.resolve();
+	}
+	
+	@Override
 	public Object getProperty(String identifier) {
 		if(resolve() instanceof Feature)
 			return ((Feature) resolve()).getProperty(identifier);

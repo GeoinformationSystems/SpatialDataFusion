@@ -5,36 +5,23 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
-
-import de.tudresden.gis.fusion.data.AbstractDataResource;
-import de.tudresden.gis.fusion.data.IDataCollection;
-import de.tudresden.gis.fusion.data.description.IDataDescription;
-import de.tudresden.gis.fusion.data.feature.IFeature;
-import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
-import de.tudresden.gis.fusion.data.rdf.IGraph;
-import de.tudresden.gis.fusion.data.rdf.INode;
-import de.tudresden.gis.fusion.data.rdf.IResource;
-import de.tudresden.gis.fusion.data.rdf.ISubject;
-import de.tudresden.gis.fusion.data.rdf.Subject;
-import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
+import de.tud.fusion.data.IDataCollection;
+import de.tud.fusion.data.description.IDataDescription;
+import de.tud.fusion.data.feature.IFeature;
+import de.tud.fusion.data.rdf.Graph;
+import de.tud.fusion.data.rdf.RDFVocabulary;
 
 /**
  * collection of feature relations
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public class FeatureRelationCollection extends AbstractDataResource implements IGraph,IDataCollection<IFeatureRelation> {
+public class FeatureRelationCollection extends Graph implements IDataCollection<IFeatureRelation> {
 
 	/**
 	 * index count (for RDF encoding)
 	 */
 	int currentIndex = 1;
-	
-	/**
-	 * relation subject
-	 */
-	private Subject subject;
 	
 	/**
 	 * relation collection with index
@@ -49,10 +36,9 @@ public class FeatureRelationCollection extends AbstractDataResource implements I
 	 */
 	public FeatureRelationCollection(String identifier, Collection<IFeatureRelation> relations, IDataDescription description) {
 		super(identifier, relations, description);
-		subject = new Subject(identifier);
 		//set objects
-		subject.put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.BAG.getResource());
-		subject.put(RDFVocabulary.DC_DESCRIPTION.getResource(), description);
+		put(RDFVocabulary.TYPE.getResource(), RDFVocabulary.BAG.getResource());
+		put(RDFVocabulary.DC_DESCRIPTION.getResource(), description);
 		//insert member objects
 		initIndex();
 	}
@@ -76,7 +62,7 @@ public class FeatureRelationCollection extends AbstractDataResource implements I
 	 * add RDF member object
 	 */
 	private void addMember(IFeatureRelation relation) {
-		subject.put(RDFVocabulary.MEMBER.getResource(), relation);
+		put(RDFVocabulary.MEMBER.getResource(), relation);
 	}
 	
 	/**
@@ -149,34 +135,27 @@ public class FeatureRelationCollection extends AbstractDataResource implements I
 		return resolve().iterator();
 	}
 	
-	@Override
-	public Set<IResource> getPredicates() {
-		return subject.getPredicates();
-	}
-
-	@Override
-	public Set<INode> getObjects(IResource predicate) {
-		return subject.getObjects(predicate);
-	}
-
-	@Override
-	public Collection<? extends ISubject> getSubjects() {
-		Collection<ISubject> subjects = new HashSet<ISubject>();
-		for(IFeatureRelation relation : resolve()){
-			if(relation instanceof ISubject)
-				subjects.add((ISubject) relation);
-		}
-		return subjects;
-	}
-	
+	/**
+	 * get all features listed as source features in the relations
+	 * @return source features
+	 */
 	public Collection<IFeature> getSourceFeatures(){
 		return getFeatures(true);
 	}
 	
+	/**
+	 * get all features listed as target features in the relations
+	 * @return source features
+	 */
 	public Collection<IFeature> getTargetFeatures(){
 		return getFeatures(false);
 	}
 	
+	/**
+	 * get all features at one side of the relations
+	 * @param source flag: select source features
+	 * @return
+	 */
 	private Collection<IFeature> getFeatures(boolean source) {
 		Map<String,IFeature> features = new HashMap<String,IFeature>();
 		for(IFeatureRelation relation : resolve()){

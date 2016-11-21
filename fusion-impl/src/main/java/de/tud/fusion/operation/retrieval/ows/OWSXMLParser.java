@@ -101,7 +101,7 @@ public abstract class OWSXMLParser extends AbstractOperation {
 		inputConnectors.add(new InputConnector(
 				IN_RESOURCE, IN_RESOURCE, "Link to OWS XML document",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, true),
+						new BindingConstraint(URILiteral.class),
 						new MandatoryConstraint()},
 				null,
 				null));	

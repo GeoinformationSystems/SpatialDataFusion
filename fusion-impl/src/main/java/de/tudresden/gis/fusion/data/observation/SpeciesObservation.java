@@ -8,10 +8,10 @@ import de.tudresden.gis.fusion.data.feature.IFeatureEntity;
 import de.tudresden.gis.fusion.data.feature.IFeatureRepresentation;
 import de.tudresden.gis.fusion.data.feature.IFeatureType;
 import de.tudresden.gis.fusion.data.feature.IObservation;
-import de.tudresden.gis.fusion.data.feature.relation.IFeatureRelation;
 import de.tudresden.gis.fusion.data.literal.TemporalMeasurement;
 import de.tudresden.gis.fusion.data.rdf.IResource;
 import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
+import de.tudresden.gis.fusion.data.relation.IFeatureRelation;
 
 /**
  * observation of a species

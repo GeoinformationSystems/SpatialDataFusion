@@ -14,10 +14,10 @@ public abstract class AbstractFeature extends Subject implements IFeature {
 	private final IResource PREDICATE_TYPE = RDFVocabulary.TYPE.getResource();
 	private final IResource TYPE_FEATURE = RDFVocabulary.FEATURE.getResource();
 	
-	private IFeatureConceptView concept;
-	private IFeatureTypeView type;
-	private IFeatureEntityView entity;
-	private IFeatureRepresentationView representation;
+	private FeatureConceptView concept;
+	private FeatureTypeView type;
+	private FeatureEntityView entity;
+	private FeatureRepresentationView representation;
 	private Set<IFeatureRelation> relations;
 	
 	/**
@@ -36,28 +36,28 @@ public abstract class AbstractFeature extends Subject implements IFeature {
 	}
 
 	@Override
-	public IFeatureConceptView getConcept() {
+	public FeatureConceptView getConcept() {
 		if(concept == null)
 			concept = initConcept();
 		return concept;
 	}
 
 	@Override
-	public IFeatureTypeView getType() {
+	public FeatureTypeView getType() {
 		if(type == null)
 			type = initType();
 		return type;
 	}
 
 	@Override
-	public IFeatureEntityView getEntity() {
+	public FeatureEntityView getEntity() {
 		if(entity == null)
 			entity = initEntity();
 		return entity;
 	}
 
 	@Override
-	public IFeatureRepresentationView getRepresentation() {
+	public FeatureRepresentationView getRepresentation() {
 		if(representation == null)
 			representation = initRepresentation();
 		return representation;
@@ -82,24 +82,24 @@ public abstract class AbstractFeature extends Subject implements IFeature {
 	 * initialize feature concept
 	 * @return feature concept
 	 */
-	public abstract IFeatureConceptView initConcept();
+	public abstract FeatureConceptView initConcept();
 	
 	/**
 	 * initialize feature type
 	 * @return feature type
 	 */
-	public abstract IFeatureTypeView initType();
+	public abstract FeatureTypeView initType();
 	
 	/**
 	 * initialize feature entity
 	 * @return feature entity
 	 */
-	public abstract IFeatureEntityView initEntity();
+	public abstract FeatureEntityView initEntity();
 	
 	/**
 	 * initialize feature representation
 	 * @return feature representation
 	 */
-	public abstract IFeatureRepresentationView initRepresentation();
+	public abstract FeatureRepresentationView initRepresentation();
 
 }

@@ -11,13 +11,10 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import de.tud.fusion.data.description.IDataDescription;
 import de.tud.fusion.data.feature.AbstractFeature;
+import de.tud.fusion.data.feature.FeatureConceptView;
 import de.tud.fusion.data.feature.FeatureEntityView;
 import de.tud.fusion.data.feature.FeatureRepresentationView;
 import de.tud.fusion.data.feature.FeatureTypeView;
-import de.tud.fusion.data.feature.IFeatureConceptView;
-import de.tud.fusion.data.feature.IFeatureEntityView;
-import de.tud.fusion.data.feature.IFeatureRepresentationView;
-import de.tud.fusion.data.feature.IFeatureTypeView;
 import de.tud.fusion.data.relation.IFeatureRelation;
 
 /**
@@ -51,7 +48,7 @@ public abstract class OSMFeature extends AbstractFeature {
 	}
 	
 	@Override
-	public IFeatureRepresentationView initRepresentation() {
+	public FeatureRepresentationView initRepresentation() {
 		SimpleFeatureType type = (SimpleFeatureType) getType().resolve();
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(type);
 		for(Map.Entry<String,Object> property : resolve().getProperties().entrySet()){
@@ -65,12 +62,12 @@ public abstract class OSMFeature extends AbstractFeature {
 	}
 
 	@Override
-	public IFeatureEntityView initEntity() {
+	public FeatureEntityView initEntity() {
 		return new FeatureEntityView(resolve().getIdentifier(), resolve().getIdentifier(), null);
 	}
 
 	@Override
-	public IFeatureTypeView initType() {
+	public FeatureTypeView initType() {
 		SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
 		builder.setName("OSMFeatureType");
 		builder.setSRS("EPSG:4326"); //default CRS for OSM
@@ -85,7 +82,7 @@ public abstract class OSMFeature extends AbstractFeature {
 	}
 
 	@Override
-	public IFeatureConceptView initConcept() {
+	public FeatureConceptView initConcept() {
 		// TODO Auto-generated method stub
 		return null;
 	}

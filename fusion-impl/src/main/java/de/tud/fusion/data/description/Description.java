@@ -1,14 +1,15 @@
 package de.tud.fusion.data.description;
 
-import de.tud.fusion.data.IIdentifiableObject;
-import de.tud.fusion.data.IdentifiableObject;
+import java.net.URI;
+
+import de.tud.fusion.data.rdf.Resource;
 
 /**
  * Description implementation
  * @author Stefan Wiemann, TU Dresden
  *
  */
-public class Description extends IdentifiableObject implements IDescription,IIdentifiableObject {
+public class Description extends Resource implements IDescription {
 
 	/**
 	 * data title & description
@@ -35,6 +36,16 @@ public class Description extends IdentifiableObject implements IDescription,IIde
 	@Override
 	public String getDescription() {
 		return description;
+	}
+
+	@Override
+	public URI getURI() {
+		return null;
+	}
+
+	@Override
+	public boolean isBlank() {
+		return false;
 	}
 
 	

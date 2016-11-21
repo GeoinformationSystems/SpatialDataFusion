@@ -118,16 +118,21 @@ public class IOConnector extends Description implements IIOConnector {
 	}
 	
 	@Override
+	public boolean isConnected(){
+		return getData() == null;
+	}
+	
+	@Override
 	public void validate() {
 		//check data constraints
 		for(IDataConstraint dataConstraint : dataConstraints){
 			if(!dataConstraint.compliantWith(getData()))
-				throw new IllegalArgumentException("Data object does not comply with data constraints");
+				throw new IllegalArgumentException("Data object does not comply with data constraint: " + dataConstraint.getClass());
 		}
 		//check description constraint
 		for(IDescriptionConstraint descriptionConstraint : descriptionConstraints){
 			if(!descriptionConstraint.compliantWith(getData().getDescription()))
-				throw new IllegalArgumentException("Data description does not comply with data description constraints");
+				throw new IllegalArgumentException("Data description does not comply with data description constraint: " + descriptionConstraint.getClass());
 		}
 	}
 

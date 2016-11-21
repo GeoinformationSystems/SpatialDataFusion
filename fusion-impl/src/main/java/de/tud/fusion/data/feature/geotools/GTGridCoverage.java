@@ -13,11 +13,8 @@ import de.tud.fusion.data.feature.FeatureEntityView;
 import de.tud.fusion.data.feature.FeatureRepresentationView;
 import de.tud.fusion.data.feature.FeatureTypeView;
 import de.tud.fusion.data.feature.AbstractFeature;
+import de.tud.fusion.data.feature.FeatureConceptView;
 import de.tud.fusion.data.feature.IFeature;
-import de.tud.fusion.data.feature.IFeatureConceptView;
-import de.tud.fusion.data.feature.IFeatureEntityView;
-import de.tud.fusion.data.feature.IFeatureRepresentationView;
-import de.tud.fusion.data.feature.IFeatureTypeView;
 import de.tud.fusion.data.rdf.IResource;
 import de.tud.fusion.data.rdf.RDFVocabulary;
 import de.tud.fusion.data.relation.IFeatureRelation;
@@ -69,22 +66,22 @@ public class GTGridCoverage extends AbstractFeature implements IFeature {
 	}
 	
 	@Override
-	public IFeatureRepresentationView initRepresentation() {
+	public FeatureRepresentationView initRepresentation() {
 		return new FeatureRepresentationView(null, resolve(), null);
 	}
 
 	@Override
-	public IFeatureEntityView initEntity() {
+	public FeatureEntityView initEntity() {
 		return new FeatureEntityView(null, resolve().getName().toString(), null);
 	}
 
 	@Override
-	public IFeatureTypeView initType() {
+	public FeatureTypeView initType() {
 		return new FeatureTypeView(null, null, null);
 	}
 
 	@Override
-	public IFeatureConceptView initConcept() {
+	public FeatureConceptView initConcept() {
 		// TODO Auto-generated method stub
 		return null;
 	}

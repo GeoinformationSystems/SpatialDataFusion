@@ -57,7 +57,7 @@ public class IndexedFeatureCollection<T extends AbstractFeature> extends Feature
 	 * @return all intersecting features
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Feature> boundsIntersect(Feature feature){
+	public List<T> boundsIntersect(Feature feature){
 		return this.index.query(ReferencedEnvelope.reference(feature.getBounds()));
 	}
 	
@@ -68,7 +68,7 @@ public class IndexedFeatureCollection<T extends AbstractFeature> extends Feature
 	 * @return all intersecting features within tolerance
 	 */
 	@SuppressWarnings("unchecked")
-	public List<Feature> boundsIntersect(Feature feature, double buffer){
+	public List<T> boundsIntersect(Feature feature, double buffer){
 		Envelope envelope = ReferencedEnvelope.reference(feature.getBounds());
 		envelope.expandBy(buffer);
 		return this.index.query(envelope);

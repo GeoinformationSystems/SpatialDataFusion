@@ -19,8 +19,7 @@ public interface ISubject extends IResource {
 	 * get associated objects for specified predicate
 	 * @param predicate input predicate
 	 * @return object collection that is connected with predicate
-	 * @throws IllegalArgumentException if predicate is not valid for this subject
 	 */
-	public Set<INode> getObjects(IResource predicate) throws IllegalArgumentException;
+	public Set<INode> getObjects(IResource predicate);
 	
 }

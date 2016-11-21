@@ -52,7 +52,7 @@ public class WPSDescriptionParser extends OWSXMLParser {
 		outputConnectors.add(new OutputConnector(
 				OUT_DESCRIPTION, OUT_DESCRIPTION, "Output WPS process description",
 				new HashSet<IDataConstraint>(Arrays.asList(new IDataConstraint[]{
-						new BindingConstraint(WPSProcessDescription.class, false),
+						new BindingConstraint(WPSProcessDescription.class),
 						new MandatoryConstraint()})),
 				null));		
 		//return

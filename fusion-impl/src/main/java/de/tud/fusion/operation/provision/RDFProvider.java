@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import de.tud.fusion.data.IData;
+import de.tud.fusion.data.literal.BooleanLiteral;
 import de.tud.fusion.data.literal.StringLiteral;
 import de.tud.fusion.data.literal.URILiteral;
 import de.tud.fusion.data.rdf.IGraph;
@@ -35,20 +36,22 @@ import de.tud.fusion.operation.description.InputConnector;
 import de.tud.fusion.operation.description.OutputConnector;
 import de.tud.fusion.operation.retrieval.GMLParser;
 
-public class RDFTurtleProvider extends AbstractOperation {
+public class RDFProvider extends AbstractOperation {
 
 	public final static String PROCESS_ID = GMLParser.class.getSimpleName();
 	
 	private final String IN_RDF = "IN_RDF";
 	private final String IN_URI_BASE = "IN_URI_BASE";
 	private final String IN_URI_PREFIXES = "IN_URI_PREFIXES";
+	private final String IN_TRIPLE_STORE = "IN_TRIPLE_STORE";
+	private final String IN_CLEAR_STORE = "IN_CLEAR_STORE";
 	
 	private final String OUT_RESOURCE = "OUT_RESOURCE";
 		
 	private Set<IInputConnector> inputConnectors;
 	private Set<IOutputConnector> outputConnectors;
 	
-	public RDFTurtleProvider() {
+	public RDFProvider() {
 		super(PROCESS_ID);
 	}
 	
@@ -58,16 +61,29 @@ public class RDFTurtleProvider extends AbstractOperation {
 		IInputConnector rdfConnector = getInputConnector(IN_RDF);
 		IInputConnector baseConnector = getInputConnector(IN_URI_BASE);
 		IInputConnector prefixConnector = getInputConnector(IN_URI_PREFIXES);
+		IInputConnector storeConnector = getInputConnector(IN_TRIPLE_STORE);
+		IInputConnector clearConnector = getInputConnector(IN_CLEAR_STORE);
 		//get data
 		ISubject rdfData = (ISubject) ((IData) rdfConnector.getData()).resolve();
 		URI base = ((URILiteral) baseConnector.getData()).resolve();
 		Map<URI,String> prefixes = parsePrefixes((StringLiteral) prefixConnector.getData());
-		//generate RDF
+		//init result
 		URILiteral rdfResource;
-		try {
-			rdfResource = generateRDFTurtle(rdfData, base, prefixes);
-		} catch (IOException e) {
-			throw new RuntimeException("Could not write RDF file", e);
+		//check for triple store URI
+		if(storeConnector.isConnected()){
+			try {
+				rdfResource = writeRDFToStore(rdfData, base, prefixes);
+			} catch (IOException e) {
+				throw new RuntimeException("Could not access or write to triple store", e);
+			}
+		}
+		//else: provide RDF file
+		else {
+			try {
+				rdfResource = generateRDFFile(rdfData, base, prefixes);
+			} catch (IOException e) {
+				throw new RuntimeException("Could not write RDF file", e);
+			}
 		}
 		//set output connector
 		setOutputConnector(OUT_RESOURCE, rdfResource);
@@ -88,6 +104,10 @@ public class RDFTurtleProvider extends AbstractOperation {
 		}
 		return prefixes;
 	}
+	
+	private URILiteral writeRDFToStore(ISubject rdf, URI base, Map<URI,String> prefixes) throws IOException {
+		
+	}
 
 	/**
 	 * generate RDF file
@@ -97,11 +117,11 @@ public class RDFTurtleProvider extends AbstractOperation {
 	 * @return URL literal instance pointing to file
 	 * @throws IOException
 	 */
-	private URILiteral generateRDFTurtle(ISubject rdfData, URI base, Map<URI, String> prefixes) throws IOException {
+	private URILiteral generateRDFFile(ISubject rdfData, URI base, Map<URI, String> prefixes) throws IOException {
 		//init file
 		File file = File.createTempFile("relations_" + UUID.randomUUID(), ".rdf");
 		//write RDF turtles
-		writeTriples(rdfData, base, prefixes, file);
+		writeTriplesToFile(rdfData, base, prefixes, file);
 		//return
 		return new URILiteral(file.toURI());
 	}
@@ -114,7 +134,7 @@ public class RDFTurtleProvider extends AbstractOperation {
 	 * @param file output file
 	 * @throws IOException 
 	 */
-	private void writeTriples(ISubject rdfData, URI base, Map<URI, String> prefixes, File file) throws IOException {
+	private void writeTriplesToFile(ISubject rdfData, URI base, Map<URI, String> prefixes, File file) throws IOException {
 		//create file writer
 		BufferedWriter writer = null;
 		try {
@@ -443,22 +463,34 @@ public class RDFTurtleProvider extends AbstractOperation {
 				IN_RDF, IN_RDF, "Input RDF triples",
 				new IDataConstraint[]{
 						new MandatoryConstraint(),
-						new BindingConstraint(new Class<?>[]{ISubject.class,IData.class}, true)},
+						new BindingConstraint(new Class<?>[]{ISubject.class,IData.class})},
 				null,
 				null));
 		inputConnectors.add(new InputConnector(
 				IN_URI_BASE, IN_URI_BASE, "RDF Base URI",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, true)},
+						new BindingConstraint(URILiteral.class)},
 				null,
 				null));
 		inputConnectors.add(new InputConnector(
 				IN_URI_PREFIXES, IN_URI_PREFIXES, "RDF Prefixes (schema,prefix;schema,prefix...)",
 				new IDataConstraint[]{
-						new BindingConstraint(StringLiteral.class, true),
+						new BindingConstraint(StringLiteral.class),
 						new PatternConstraint("^(" + URILiteral.getURIRegex() + ",([a-z]+);)+$")},
 				null,
 				null));
+		inputConnectors.add(new InputConnector(
+				IN_TRIPLE_STORE, IN_TRIPLE_STORE, "Triple Store URI",
+				new IDataConstraint[]{
+						new BindingConstraint(URILiteral.class)},
+				null,
+				null));
+		inputConnectors.add(new InputConnector(
+				IN_CLEAR_STORE, IN_CLEAR_STORE, "Flag: Clear triple store",
+				new IDataConstraint[]{
+						new BindingConstraint(BooleanLiteral.class)},
+				null,
+				new BooleanLiteral(false)));
 		//return
 		return inputConnectors;
 	}
@@ -470,9 +502,9 @@ public class RDFTurtleProvider extends AbstractOperation {
 		//generate descriptions
 		outputConnectors = new HashSet<IOutputConnector>();
 		outputConnectors.add(new OutputConnector(
-				OUT_RESOURCE, OUT_RESOURCE, "Link to RDF encoded file",
+				OUT_RESOURCE, OUT_RESOURCE, "Link to RDF encoded file or SPARQL Endpoint",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, false),
+						new BindingConstraint(URILiteral.class),
 						new MandatoryConstraint()},
 				null));		
 		//return
@@ -481,12 +513,12 @@ public class RDFTurtleProvider extends AbstractOperation {
 
 	@Override
 	public String getProcessTitle() {
-		return "RDF Turtle generator";
+		return "Triple generator";
 	}
 
 	@Override
 	public String getProcessAbstract() {
-		return "Generator for W3C RDF Turtle format";
+		return "Generator for W3C RDF format";
 	}
 	
 }

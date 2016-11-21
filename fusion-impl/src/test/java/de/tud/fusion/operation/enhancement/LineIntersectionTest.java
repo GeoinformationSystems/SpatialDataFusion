@@ -53,7 +53,7 @@ public class LineIntersectionTest {
 		runtime.gc();
 		System.out.print("TEST: " + process.getDescription().getIdentifier() + "\n\t" +
 				"ways read from osm: " + ways.size() + "\n\t" +
-				"number of intersected ways: " + waysIntersect.size() + "\n\t" +
+				"number of ways after self-intersection: " + waysIntersect.size() + "\n\t" +
 				"process runtime (ms): " + ((LongLiteral) output.get("OUT_RUNTIME")).resolve() + "\n\t" +
 				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");	
 	}

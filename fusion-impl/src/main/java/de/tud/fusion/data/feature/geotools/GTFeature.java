@@ -11,10 +11,7 @@ import de.tud.fusion.data.feature.FeatureEntityView;
 import de.tud.fusion.data.feature.FeatureRepresentationView;
 import de.tud.fusion.data.feature.FeatureTypeView;
 import de.tud.fusion.data.feature.AbstractFeature;
-import de.tud.fusion.data.feature.IFeatureConceptView;
-import de.tud.fusion.data.feature.IFeatureEntityView;
-import de.tud.fusion.data.feature.IFeatureRepresentationView;
-import de.tud.fusion.data.feature.IFeatureTypeView;
+import de.tud.fusion.data.feature.FeatureConceptView;
 import de.tud.fusion.data.literal.WKTLiteral;
 import de.tud.fusion.data.rdf.IResource;
 import de.tud.fusion.data.rdf.RDFVocabulary;
@@ -84,22 +81,22 @@ public class GTFeature extends AbstractFeature {
 	}
 	
 	@Override
-	public IFeatureRepresentationView initRepresentation() {
+	public FeatureRepresentationView initRepresentation() {
 		return new FeatureRepresentationView(null, resolve(), null);
 	}
 
 	@Override
-	public IFeatureEntityView initEntity() {
+	public FeatureEntityView initEntity() {
 		return new FeatureEntityView(resolve().getID(), resolve().getID(), null);
 	}
 
 	@Override
-	public IFeatureTypeView initType() {
+	public FeatureTypeView initType() {
 		return new FeatureTypeView(resolve().getFeatureType().getTypeName(), resolve().getFeatureType(), null);
 	}
 
 	@Override
-	public IFeatureConceptView initConcept() {
+	public FeatureConceptView initConcept() {
 		// TODO Auto-generated method stub
 		return null;
 	}

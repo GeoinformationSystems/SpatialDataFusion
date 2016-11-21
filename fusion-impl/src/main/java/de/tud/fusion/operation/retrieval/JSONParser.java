@@ -27,11 +27,6 @@ public class JSONParser extends AbstractOperation {
 	
 	public final static String PROCESS_ID = JSONParser.class.getSimpleName();
 	
-	public final static String COLLECTION_ID = "features";
-	public final static String PARAM_TYPE = "type";
-	public final static String TYPE_FEATURE = "Feature";
-	public final static String TYPE_FEATURECOLLECTION = "FeatureCollection";
-	
 	private final String IN_RESOURCE = "IN_RESOURCE";
 	
 	private final String OUT_FEATURES = "OUT_FEATURES";
@@ -135,7 +130,7 @@ public class JSONParser extends AbstractOperation {
 		inputConnectors.add(new InputConnector(
 				IN_RESOURCE, IN_RESOURCE, "Link to input GeoJSON",
 				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class, true),
+						new BindingConstraint(URILiteral.class),
 						new MandatoryConstraint()},
 				null,
 				null));	
@@ -152,7 +147,7 @@ public class JSONParser extends AbstractOperation {
 		outputConnectors.add(new OutputConnector(
 				OUT_FEATURES, OUT_FEATURES, "Output feature collection",
 				new IDataConstraint[]{
-						new BindingConstraint(GTFeatureCollection.class, false),
+						new BindingConstraint(GTFeatureCollection.class),
 						new MandatoryConstraint()},
 				null));		
 		//return

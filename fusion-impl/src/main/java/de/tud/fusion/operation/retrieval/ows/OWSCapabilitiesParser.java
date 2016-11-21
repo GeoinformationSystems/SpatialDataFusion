@@ -66,7 +66,7 @@ public class OWSCapabilitiesParser extends OWSXMLParser {
 		outputConnectors.add(new OutputConnector(
 				OUT_CAPABILITIES, OUT_CAPABILITIES, "Output OWS capabilities",
 				new IDataConstraint[]{
-						new BindingConstraint(OWSCapabilities.class, false),
+						new BindingConstraint(OWSCapabilities.class),
 						new MandatoryConstraint()},
 				null));		
 		//return

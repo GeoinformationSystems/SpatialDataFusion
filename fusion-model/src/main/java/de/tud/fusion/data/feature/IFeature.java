@@ -3,8 +3,8 @@ package de.tud.fusion.data.feature;
 import java.util.Set;
 
 import de.tud.fusion.data.IData;
+import de.tud.fusion.data.rdf.IResource;
 import de.tud.fusion.data.relation.IFeatureRelation;
-import de.tudresden.gis.fusion.data.rdf.IResource;
 
 public interface IFeature extends IResource,IData {
 

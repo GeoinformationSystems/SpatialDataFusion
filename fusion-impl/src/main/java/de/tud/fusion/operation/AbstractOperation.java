@@ -87,13 +87,13 @@ public abstract class AbstractOperation extends IdentifiableObject implements IO
 				OUT_START, OUT_START, "Start time of the operation",
 				new IDataConstraint[]{
 						new MandatoryConstraint(),
-						new BindingConstraint(LongLiteral.class, false)},
+						new BindingConstraint(LongLiteral.class)},
 				null));
 		outputConnectors.add(new OutputConnector(
 				OUT_RUNTIME, OUT_RUNTIME, "Runtime of the operation",
 				new IDataConstraint[]{
 						new MandatoryConstraint(),
-						new BindingConstraint(LongLiteral.class, false)},
+						new BindingConstraint(LongLiteral.class)},
 				null));
 		return outputConnectors;
 	}

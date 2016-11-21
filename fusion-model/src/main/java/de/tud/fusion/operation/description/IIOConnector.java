@@ -33,6 +33,12 @@ public interface IIOConnector extends IIdentifiableObject,IDescription {
 	public IData getData();
 	
 	/**
+	 * check if a data object is connected to this connector
+	 * @return true, if a data object is connected
+	 */
+	public boolean isConnected();
+	
+	/**
 	 * validate IO connection
 	 */
 	public void validate();
