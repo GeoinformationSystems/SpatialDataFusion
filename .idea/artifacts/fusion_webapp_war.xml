@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="war" name="fusion-webapp:war">
-    <output-path>$PROJECT_DIR$/fusion-webapp/target</output-path>
-    <root id="archive" name="fusion-webapp-0.3.war">
-      <element id="artifact" artifact-name="fusion-webapp:war exploded" />
-    </root>
-  </artifact>
-</component>
