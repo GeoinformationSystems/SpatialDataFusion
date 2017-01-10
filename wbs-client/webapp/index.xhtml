@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+  <title>WBS Client</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <h:outputStylesheet name="css/client.css" />
+  <link rel="stylesheet" href="http://openlayers.org/en/v3.17.1/css/ol.css" type="text/css" />
+</h:head>
+
+<h:body>
+
+  <h:form id="form">
+    <p:growl autoUpdate="true"/>
+
+    <div id="map">
+
+      <div id="menu">
+        <div id="caption">WBS Client</div>
+        <p:commandButton styleClass="menuItem" value="Pattern" id="m_pattern" onclick="PF('d_pattern').show();" icon="ui-icon-pattern" />
+        <p:commandButton styleClass="menuItem" value="Process" id="m_process" onclick="PF('d_process').show();" icon="ui-icon-process" />
+        <p:commandButton styleClass="menuItem" value="Overlay" id="m_overlay" onclick="PF('d_overlay').show();" icon="ui-icon-overlay" />
+        <p:commandButton styleClass="menuItem" value="Basemap" id="m_basemap" onclick="PF('d_basemap').show();" icon="ui-icon-basemap" />
+      </div>
+
+      <p:dialog header="Basemaps" styleClass="dialog" widgetVar="d_basemap" position="right,top">
+        <p:accordionPanel multiple="true" activeIndex="null">
+          <p:tab title="Predefined Basemaps">
+            <p:selectManyCheckbox id="basemap" value="#{basemap.selection}" layout="pageDirection" columns="1">
+              <f:selectItems value="#{basemap.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}" />
+              <f:ajax />
+            </p:selectManyCheckbox>
+          </p:tab>
+          <p:tab title="Custom Basemap">
+            TBD
+          </p:tab>
+        </p:accordionPanel>
+      </p:dialog>
+      <p:dialog header="Overlays" styleClass="dialog" widgetVar="d_overlay" position="right,top">
+        <p:accordionPanel multiple="true" activeIndex="null">
+          <p:tab title="Predefined Overlays">
+            <p:selectManyCheckbox id="overlay" value="#{overlay.selection}" layout="pageDirection" columns="1">
+              <f:selectItems value="#{overlay.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}" />
+              <f:ajax />
+            </p:selectManyCheckbox>
+          </p:tab>
+          <p:tab title="Custom Overlays">
+            TBD
+          </p:tab>
+        </p:accordionPanel>
+      </p:dialog>
+      <p:dialog header="Processes" styleClass="dialog" widgetVar="d_process" position="right,top">
+        <p:accordionPanel multiple="true" activeIndex="null">
+          <p:tab title="Predefined Processes">
+            <p:selectOneRadio  id="process" value="#{process.selectedProcess}" layout="pageDirection" columns="1">
+              <f:selectItems value="#{process.processes}" var="p" itemLabel="#{selectedProcess}" itemValue="#{selectedProcess}" />
+            </p:selectOneRadio >
+            <p:remoteCommand name="f_initFeatures" actionListener="#{process.initFeatures}" />
+            <p:commandButton value="execute" icon="ui-icon-check" actionListener="#{process.executeProcess}" />
+          </p:tab>
+          <p:tab title="Custom Proceses">
+            TBD
+          </p:tab>
+        </p:accordionPanel>
+      </p:dialog>
+      <p:dialog header="Processing Patterns" styleClass="dialog" widgetVar="d_pattern" position="right,top">
+        <p:accordionPanel multiple="true" activeIndex="null">
+          <p:tab title="Predefined Patterns">
+              <p:selectOneRadio  id="pattern" value="#{pattern.selectedPattern}" layout="pageDirection" columns="1">
+                  <f:selectItems value="#{pattern.patterns}" var="p" itemLabel="#{selectedPattern}" itemValue="#{selectedPattern}" />
+              </p:selectOneRadio >
+              <p:commandButton value="execute" icon="ui-icon-check" actionListener="#{pattern.executePattern}" />
+          </p:tab>
+          <p:tab title="Custom Patterns">
+            TBD
+          </p:tab>
+        </p:accordionPanel>
+      </p:dialog>
+        <p:dialog header="Modal Dialog" widgetVar="dlg2" modal="true" height="100">
+            <h:outputText value="The process results are available at " />
+        </p:dialog>
+
+        <div id="coord" />
+      <div id="d_swipe"><input id="swipe" type="range" /></div>
+
+    </div>
+
+  </h:form>
+
+  <script src="http://openlayers.org/en/v3.17.1/build/ol.js" type="text/javascript"></script>
+  <h:outputScript name="js/olMap.js" />
+  <h:outputScript name="js/client.js" />
+
+</h:body>
+</html>

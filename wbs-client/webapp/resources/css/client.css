@@ -1,0 +1,28 @@
+/* basic styles */
+
+body { margin:0px; }
+#menu { z-index:100;position:absolute;top:0;left:0;background-color:white;opacity:0.9; }
+.menuItem { float:right;margin:12px 5px!important;z-index:100;}
+#caption { font-size:2.5em;color:#0B2A51;margin:3px 10px;float:left; }
+.dialog { opacity:0.9; }
+
+/* map */
+
+#map { position:fixed;left:0;top:0;bottom:0;right:0; }
+#swipe { width:97%; }
+#d_swipe { visibility:hidden;background-color:white;opacity:0.8;z-index:200;position:absolute;bottom:0;width:100%;text-align:center; }
+#coord { font-size:0.9em;background-color:white;opacity:0.8;z-index:100;position:absolute;bottom:0;left:0; }
+.ol-control button { background-color:rgba(11,42,81,.7)!important; }
+.ol-control button:hover { background-color:rgba(11,42,81,.9)!important; }
+.ol-zoom { top:3.5em!important; }
+
+/* primefaces */
+
+.ui-button { background-color:rgba(11,42,81,.7)!important;border:none!important; }
+.ui-button:hover { background-color:rgba(11,42,81,.9)!important;border:none!important; }
+
+/* icons */
+.ui-icon-basemap{ background-image:url("#{resource['images/basemap.png']}") !important; }
+.ui-icon-overlay{ background-image:url("#{resource['images/overlay.png']}") !important; }
+.ui-icon-process{ background-image:url("#{resource['images/process.png']}") !important; }
+.ui-icon-pattern{ background-image:url("#{resource['images/pattern.png']}") !important; }

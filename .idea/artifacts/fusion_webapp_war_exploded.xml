@@ -1,0 +1,25 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="fusion-webapp:war exploded">
+    <output-path>$PROJECT_DIR$/fusion-webapp/target/fusion-webapp-0.3</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="fusion-webapp" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: com.sun.faces:jsf-api:2.2.13" />
+          <element id="library" level="project" name="Maven: com.sun.faces:jsf-impl:2.2.13" />
+          <element id="library" level="project" name="Maven: javax.servlet:javax.servlet-api:3.1.0" />
+          <element id="library" level="project" name="Maven: javax.servlet.jsp.jstl:javax.servlet.jsp.jstl-api:1.2.1" />
+          <element id="library" level="project" name="Maven: org.primefaces:primefaces:6.0" />
+          <element id="library" level="project" name="Maven: org.camunda.bpm.model:camunda-bpmn-model:7.4.0-alpha3" />
+          <element id="library" level="project" name="Maven: org.camunda.bpm.model:camunda-xml-model:7.4.0-alpha3" />
+        </element>
+      </element>
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/fusion-webapp/target/fusion-webapp-0.3/META-INF/MANIFEST.MF" />
+      </element>
+      <element id="javaee-facet-resources" facet="fusion-webapp/web/Web" />
+    </root>
+  </artifact>
+</component>
