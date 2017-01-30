@@ -1,4 +1,4 @@
-package de.tudresden.geoinfo.client.controller.ows;
+package de.tudresden.geoinfo.client.handler;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.Identifier;
@@ -7,7 +7,7 @@ import de.tudresden.geoinfo.fusion.data.ows.OWSCapabilities;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.retrieval.ows.OWSCapabilitiesParser;
 
-import java.io.Serializable;
+import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +15,9 @@ import java.util.Map;
 /**
  * OWS Handler
  */
-public class OWSHandler implements Serializable {
+public class OWSHandler {
 
-    private static final long serialVersionUID = 1L;
-
-    private final String REQUEST_GETCAPABILITIES = "GetCapabilities";
+    private final String REQUEST_GETCAPABILITIES = "getCapabilities";
     private final String PARAM_SERVICE = "service";
     private final String PARAM_VERSION = "version";
     private final String PARAM_REQUEST = "request";
@@ -31,6 +29,14 @@ public class OWSHandler implements Serializable {
     private Map<String,String> parameters = new HashMap<>();
 
     /**
+     * constructor
+     * @param sBaseURL OWS base URL
+     */
+    public OWSHandler(String sBaseURL){
+        this.sBaseURL = sBaseURL;
+    }
+
+    /**
      * get OWS service URL as String
      * @return OWS service URL
      */
@@ -39,19 +45,11 @@ public class OWSHandler implements Serializable {
     }
 
     /**
-     * set OWS service URL
-     * @param sBaseURL service URL as String
-     */
-    public void setBaseURL(String sBaseURL) {
-        this.sBaseURL = sBaseURL;
-    }
-
-    /**
      * validate OWS base URL
      * @return false, if URL is null or empty
      */
-    public boolean validOWSBase() {
-        return (this.getBaseURL() != null && this.getBaseURL().length() != 0);
+    public boolean isValidURL() {
+        return (this.getBaseURL() != null && !this.getBaseURL().isEmpty());
     }
 
     /**
@@ -135,7 +133,7 @@ public class OWSHandler implements Serializable {
      * @return OWS request
      */
     public String getKVPRequest(String[] mandatoryKeys, String[] optionalKeys) {
-        if(!this.validOWSBase())
+        if(!this.isValidURL())
             throw new IllegalArgumentException("OWS base URL must not be null");
         StringBuilder sBuilder = new StringBuilder().append(this.getBaseURL() + "?");
         if(mandatoryKeys != null){
@@ -167,11 +165,13 @@ public class OWSHandler implements Serializable {
      * get OWS capabilities document from request
      * @return capabilites implementation
      */
-    public OWSCapabilities getCapabilities() {
+    public OWSCapabilities getCapabilities() throws IOException {
         Map<IIdentifier,IData> input = new HashMap<>();
         input.put(IN_RESOURCE, new URILiteral(URI.create(getGetCapabilitiesRequest())));
         OWSCapabilitiesParser parser = new OWSCapabilitiesParser();
         Map<IIdentifier,IData> output = parser.execute(input);
+        if(output == null || !output.containsKey(OUT_CAPABILITIES) || !(output.get(OUT_CAPABILITIES) instanceof OWSCapabilities))
+            throw new IOException("Could not parse OWS capabilities");
         return (OWSCapabilities) output.get(OUT_CAPABILITIES);
     }
 

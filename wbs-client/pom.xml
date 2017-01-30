@@ -3,7 +3,7 @@
     <parent>
         <groupId>de.tudresden.geoinfo</groupId>
         <artifactId>fusion-parent</artifactId>
-        <version>0.3</version>
+        <version>0.4-SNAPSHOT</version>
     </parent>
     <artifactId>wbs-client</artifactId>
     <packaging>war</packaging>
@@ -65,6 +65,11 @@
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
             <version>6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.primefaces.extensions</groupId>
+            <artifactId>primefaces-extensions</artifactId>
+            <version>6.0.0</version>
         </dependency>
         <dependency>
             <groupId>de.tudresden.geoinfo</groupId>

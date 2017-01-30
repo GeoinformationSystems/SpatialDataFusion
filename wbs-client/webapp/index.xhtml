@@ -4,97 +4,253 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://java.sun.com/jsf/html"
       xmlns:f="http://java.sun.com/jsf/core"
-      xmlns:p="http://primefaces.org/ui">
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:pe="http://primefaces.org/ui/extensions"
+      xmlns:fn="http://java.sun.com/jsp/jstl/functions">
 
 <h:head>
-  <title>WBS Client</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <h:outputStylesheet name="css/client.css" />
-  <link rel="stylesheet" href="http://openlayers.org/en/v3.17.1/css/ol.css" type="text/css" />
+    <title>WBS Client</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <h:outputStylesheet name="css/client.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol.css" type="text/css"/>
 </h:head>
 
 <h:body>
 
-  <h:form id="form">
-    <p:growl autoUpdate="true"/>
+    <h:form id="form">
+        <p:growl id="message" showDetail="true" />
 
-    <div id="map">
+        <!-- main menu -->
+        <div id="container_menu">
+            <div id="caption">WBS Web Client</div>
+            <p:commandLink id="m_pattern" styleClass="menuItem" oncomplete="PF('d_pattern').isVisible() ? PF('d_pattern').hide() : PF('d_pattern').show();">
+                <h:graphicImage name="images/pattern.png" width="32" height="32"/>
+            </p:commandLink>
+            <p:tooltip for="m_pattern" value="Geoprocessing patterns" position="bottom" />
+            <p:commandLink id="m_process" styleClass="menuItem" oncomplete="PF('d_process').isVisible() ? PF('d_process').hide() : PF('d_process').show();">
+                <h:graphicImage name="images/process.png" width="32" height="32"/>
+            </p:commandLink>
+            <p:tooltip for="m_process" value="Geoprocessing services" position="bottom" />
+            <p:commandLink id="m_layer" styleClass="menuItem" oncomplete="PF('d_layer').isVisible() ? PF('d_layer').hide() : PF('d_layer').show();">
+                <h:graphicImage name="images/layer.png" width="32" height="32"/>
+            </p:commandLink>
+            <p:tooltip for="m_layer" value="Map layers" position="bottom" />
+            <p:commandLink id="m_basemap" styleClass="menuItem" oncomplete="PF('d_basemap').isVisible() ? PF('d_basemap').hide() : PF('d_basemap').show();">
+                <h:graphicImage name="images/basemap.png" width="32" height="32"/>
+            </p:commandLink>
+            <p:tooltip for="m_basemap" value="Basemaps" position="bottom" />
+        </div>
 
-      <div id="menu">
-        <div id="caption">WBS Client</div>
-        <p:commandButton styleClass="menuItem" value="Pattern" id="m_pattern" onclick="PF('d_pattern').show();" icon="ui-icon-pattern" />
-        <p:commandButton styleClass="menuItem" value="Process" id="m_process" onclick="PF('d_process').show();" icon="ui-icon-process" />
-        <p:commandButton styleClass="menuItem" value="Overlay" id="m_overlay" onclick="PF('d_overlay').show();" icon="ui-icon-overlay" />
-        <p:commandButton styleClass="menuItem" value="Basemap" id="m_basemap" onclick="PF('d_basemap').show();" icon="ui-icon-basemap" />
-      </div>
+        <div id="container_map">
+            <div id="map" />
+        </div>
 
-      <p:dialog header="Basemaps" styleClass="dialog" widgetVar="d_basemap" position="right,top">
-        <p:accordionPanel multiple="true" activeIndex="null">
-          <p:tab title="Predefined Basemaps">
-            <p:selectManyCheckbox id="basemap" value="#{basemap.selection}" layout="pageDirection" columns="1">
-              <f:selectItems value="#{basemap.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}" />
-              <f:ajax />
+        <!-- basemap selection -->
+        <p:dialog id="d_basemaps" header="Basemaps" widgetVar="d_basemap" position="right,top" resizable="false">
+            <p:selectManyCheckbox id="basemaps" value="#{basemap.selection}" layout="pageDirection" columns="1">
+                <f:selectItems value="#{basemap.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}"/>
+                <f:ajax/>
             </p:selectManyCheckbox>
-          </p:tab>
-          <p:tab title="Custom Basemap">
-            TBD
-          </p:tab>
-        </p:accordionPanel>
-      </p:dialog>
-      <p:dialog header="Overlays" styleClass="dialog" widgetVar="d_overlay" position="right,top">
-        <p:accordionPanel multiple="true" activeIndex="null">
-          <p:tab title="Predefined Overlays">
-            <p:selectManyCheckbox id="overlay" value="#{overlay.selection}" layout="pageDirection" columns="1">
-              <f:selectItems value="#{overlay.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}" />
-              <f:ajax />
-            </p:selectManyCheckbox>
-          </p:tab>
-          <p:tab title="Custom Overlays">
-            TBD
-          </p:tab>
-        </p:accordionPanel>
-      </p:dialog>
-      <p:dialog header="Processes" styleClass="dialog" widgetVar="d_process" position="right,top">
-        <p:accordionPanel multiple="true" activeIndex="null">
-          <p:tab title="Predefined Processes">
-            <p:selectOneRadio  id="process" value="#{process.selectedProcess}" layout="pageDirection" columns="1">
-              <f:selectItems value="#{process.processes}" var="p" itemLabel="#{selectedProcess}" itemValue="#{selectedProcess}" />
-            </p:selectOneRadio >
-            <p:remoteCommand name="f_initFeatures" actionListener="#{process.initFeatures}" />
-            <p:commandButton value="execute" icon="ui-icon-check" actionListener="#{process.executeProcess}" />
-          </p:tab>
-          <p:tab title="Custom Proceses">
-            TBD
-          </p:tab>
-        </p:accordionPanel>
-      </p:dialog>
-      <p:dialog header="Processing Patterns" styleClass="dialog" widgetVar="d_pattern" position="right,top">
-        <p:accordionPanel multiple="true" activeIndex="null">
-          <p:tab title="Predefined Patterns">
-              <p:selectOneRadio  id="pattern" value="#{pattern.selectedPattern}" layout="pageDirection" columns="1">
-                  <f:selectItems value="#{pattern.patterns}" var="p" itemLabel="#{selectedPattern}" itemValue="#{selectedPattern}" />
-              </p:selectOneRadio >
-              <p:commandButton value="execute" icon="ui-icon-check" actionListener="#{pattern.executePattern}" />
-          </p:tab>
-          <p:tab title="Custom Patterns">
-            TBD
-          </p:tab>
-        </p:accordionPanel>
-      </p:dialog>
-        <p:dialog header="Modal Dialog" widgetVar="dlg2" modal="true" height="100">
-            <h:outputText value="The process results are available at " />
+            <p:commandLink id="add_basemap" oncomplete="PF('d_addBasemap').show();" >
+                <h:graphicImage name="images/add_basemap.png" width="32" height="32" style="margin:10px 4px;" />
+            </p:commandLink>
+            <p:tooltip for="add_basemap" value="Add basemap" position="bottom" />
         </p:dialog>
 
-        <div id="coord" />
-      <div id="d_swipe"><input id="swipe" type="range" /></div>
+        <!-- remote command: add basenmap -->
+        <pe:remoteCommand id="pf_registerBasemap" name="pf_registerBasemap" process="@this" update="basemaps,message" actionListener="#{basemap.registerWMSHandler}">
+            <pe:methodSignature parameters="java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean" />
+            <pe:methodParam name="key"/>
+            <pe:methodParam name="url" />
+            <pe:methodParam name="sLayer" />
+            <pe:methodParam name="selected" />
+        </pe:remoteCommand>
 
-    </div>
+        <!-- layer selection -->
+        <p:dialog id="d_layers" header="Overlays" widgetVar="d_layer" position="right,top" resizable="false">
+            <p:selectManyCheckbox id="layers" value="#{layer.selection}" layout="pageDirection" columns="1">
+                <f:selectItems value="#{layer.layers}" var="layer" itemLabel="#{layer}" itemValue="#{layer}"/>
+                <f:ajax/>
+            </p:selectManyCheckbox>
+            <p:commandLink id="add_layer" oncomplete="PF('d_addLayer').show();" >
+                <h:graphicImage name="images/add_layer.png" width="32" height="32" style="margin:10px 4px;" />
+            </p:commandLink>
+            <p:tooltip for="add_layer" value="Add layer" position="bottom" />
+        </p:dialog>
 
-  </h:form>
+        <!-- remote command: add layer -->
+        <pe:remoteCommand id="pf_registerLayer" name="pf_registerLayer" process="@this" update="layers,message" actionListener="#{layer.registerWFSHandler}">
+            <pe:methodSignature parameters="java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean" />
+            <pe:methodParam name="key"/>
+            <pe:methodParam name="url" />
+            <pe:methodParam name="sLayer" />
+            <pe:methodParam name="selected" />
+        </pe:remoteCommand>
 
-  <script src="http://openlayers.org/en/v3.17.1/build/ol.js" type="text/javascript"></script>
-  <h:outputScript name="js/olMap.js" />
-  <h:outputScript name="js/client.js" />
+        <!-- remote command: set currently selected features -->
+        <pe:remoteCommand id="pf_setSelectedFeatures" name="pf_setSelectedFeatures" process="@this" actionListener="#{layer.setSelectedFeatures}">
+            <pe:methodSignature parameters="java.lang.String" />
+            <pe:methodParam name="selectedFeatures"/>
+        </pe:remoteCommand>
+
+        <!-- processing service selection -->
+        <p:dialog id="d_processes" header="Processes" widgetVar="d_process" position="right,top" resizable="false">
+            <p:selectOneRadio id="processes" value="#{process.selection}" layout="pageDirection" columns="1">
+                <f:selectItems value="#{process.processes}" var="process" itemLabel="#{process}" itemValue="#{process}"/>
+                <p:ajax update="execute_process" event="valueChange" />
+            </p:selectOneRadio>
+            <p:commandLink id="add_process" oncomplete="PF('d_addProcess').show();" >
+                <h:graphicImage name="images/add_process.png" width="32" height="32" style="margin:10px 4px;" />
+            </p:commandLink>
+            <p:tooltip for="add_process" value="Add process" position="bottom" />
+            <p:commandLink id="execute_process" disabled="#{fn:length(process.selection) eq 0}" oncomplete="PF('d_executeProcess').show();">
+                <h:graphicImage name="images/execute_process.png" width="32" height="32" style="margin:10px 4px;float:right;" />
+                <f:actionListener binding="#{process.initJSPlumb()}" />
+            </p:commandLink>
+            <p:tooltip for="execute_process" value="Execute selected process" position="bottom" />
+        </p:dialog>
+
+        <!-- remote command: add processing service -->
+        <pe:remoteCommand id="pf_registerProcess" name="pf_registerProcess" process="@this" update="processes,message" actionListener="#{process.registerWPSHandler}">
+            <pe:methodSignature parameters="java.lang.String, java.lang.String, java.lang.String" />
+            <pe:methodParam name="key"/>
+            <pe:methodParam name="url" />
+            <pe:methodParam name="sProcess" />
+        </pe:remoteCommand>
+
+        <!-- pattern selection -->
+        <p:dialog id="d_patterns" header="Patterns" widgetVar="d_pattern" position="right,top" resizable="false">
+            <p:selectOneRadio id="patterns" value="#{pattern.selection}" layout="pageDirection" columns="1">
+                <f:selectItems value="#{pattern.patterns}" var="pattern" itemLabel="#{pattern}" itemValue="#{pattern}"/>
+            </p:selectOneRadio>
+            <p:commandLink id="add_pattern" oncomplete="PF('d_addPattern').show();" >
+                <h:graphicImage name="images/add_pattern.png" width="32" height="32" style="margin:10px 4px;" />
+            </p:commandLink>
+            <p:tooltip for="add_pattern" value="Add pattern" position="bottom" />
+            <p:commandLink id="execute_pattern" disabled="#{fn:length(pattern.selection) eq 0}">
+                <h:graphicImage name="images/execute_pattern.png" width="32" height="32" style="margin:10px 4px;float:right;" />
+            </p:commandLink>
+            <p:tooltip for="execute_pattern" value="Execute selected pattern" position="bottom" />
+        </p:dialog>
+
+        <!-- remote command: add pattern -->
+        <pe:remoteCommand id="pf_registerPattern" name="pf_registerPattern" process="@this" update="patterns,message" actionListener="#{pattern.registerGPPHandler}">
+            <pe:methodSignature parameters="java.lang.String, java.lang.String, java.lang.String" />
+            <pe:methodParam name="key"/>
+            <pe:methodParam name="url" />
+            <pe:methodParam name="sPattern" />
+        </pe:remoteCommand>
+
+        <!-- coordinate display -->
+        <div id="coord"/>
+
+        <!-- info display -->
+        <div id="info_hover"/>
+        <div id="info_select"/>
+
+        <!-- swipe control -->
+        <div id="d_swipe"><input id="swipe" type="range"/></div>
+
+    </h:form>
+
+    <!-- modal dialog: add custom basemap -->
+    <p:dialog header="Add custom WMS basemap" widgetVar="d_addBasemap" modal="true">
+        <h:form id="form_wms">
+            <h:panelGrid columns="3">
+                <p:inputText id="basemap_key" placeholder="Key (optional)" value="#{basemap.tmp_basemapKey}" style="width:100px;" />
+                <p:inputText id="basemap_url" placeholder="WMS endpoint URL" value="#{basemap.tmp_basemapUrl}" style="width:400px;" />
+                <p:commandButton id="basemap_getCapabilities" value="get capabilities" action="#{basemap.initHandler}" update=":form:message basemap_layer basemap_addLayer" icon="ui-icon-check" />
+                <p:tooltip for="basemap_getCapabilities" value="Retrieve WMS capabilities from server" position="bottom" />
+            </h:panelGrid>
+            <h:panelGrid columns="2">
+                <p:selectOneMenu id="basemap_layer" value="#{basemap.tmp_basemapSelected}" style="width:210px;" disabled="#{fn:length(basemap.tmp_layers) eq 0}">
+                    <f:selectItem itemLabel="Select layer name" itemValue="#{basemap.tmp_basemapSelected}" />
+                    <f:selectItems value="#{basemap.tmp_layers}" />
+                    <p:ajax update="basemap_addLayer" />
+                </p:selectOneMenu>
+                <p:commandButton id="basemap_addLayer" value="add layer" oncomplete="PF('d_addBasemap').hide();" update=":form:message :form:basemaps" icon="ui-icon-check" disabled="#{basemap.tmp_basemapSelected eq null}">
+                    <f:actionListener binding="#{basemap.addHandler()}" />
+                </p:commandButton>
+                <p:tooltip for="basemap_addLayer" value="Add WMS layer" position="bottom" />
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+
+    <!-- modal dialog: add custom layer -->
+    <p:dialog header="Add custom WFS layer" widgetVar="d_addLayer" modal="true">
+        <h:form id="form_wfs">
+            <h:panelGrid columns="3">
+                <p:inputText id="layer_key" placeholder="Key (optional)" value="#{layer.tmp_layerKey}" style="width:100px;" />
+                <p:inputText id="layer_url" placeholder="WFS endpoint URL" value="#{layer.tmp_layerUrl}" style="width:400px;" />
+                <p:commandButton id="layer_getCapabilities" value="get capabilities" action="#{layer.initHandler}" update=":form:message layer_layer layer_addLayer" icon="ui-icon-check" />
+                <p:tooltip for="layer_getCapabilities" value="Retrieve WFS capabilities from server" position="bottom" />
+            </h:panelGrid>
+            <h:panelGrid columns="2">
+                <p:selectOneMenu id="layer_layer" value="#{layer.tmp_layerSelected}" style="width:210px;" disabled="#{fn:length(layer.tmp_layers) eq 0}">
+                    <f:selectItem itemLabel="Select type name" itemValue="#{layer.tmp_layerSelected}" />
+                    <f:selectItems value="#{layer.tmp_layers}" />
+                    <p:ajax update="layer_addLayer" />
+                </p:selectOneMenu>
+                <p:commandButton id="layer_addLayer" title="Add WFS layer" value="add layer" oncomplete="PF('d_addlayer').hide();" update=":form:message :form:layers" icon="ui-icon-check" disabled="#{layer.tmp_layerSelected eq null}">
+                    <f:actionListener binding="#{layer.addHandler()}" />
+                </p:commandButton>
+                <p:tooltip for="layer_addLayer" value="Add WFS layer" position="bottom" />
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+
+    <!-- modal dialog: add custom processing service -->
+    <p:dialog header="Add custom WPS process" widgetVar="d_addProcess" modal="true">
+        <h:form id="form_wps">
+            <h:panelGrid columns="3">
+                <p:inputText id="process_key" placeholder="Key (optional)" value="#{process.tmp_processKey}" style="width:100px;" />
+                <p:inputText id="process_url" placeholder="WPS endpoint URL" value="#{process.tmp_processUrl}" style="width:400px;" />
+                <p:commandButton id="process_getCapabilities" value="get capabilities" action="#{process.initHandler}" update=":form:message process_process process_addProcess" icon="ui-icon-check" />
+                <p:tooltip for="process_getCapabilities" value="Retrieve WPS capabilities from server" position="bottom" />
+            </h:panelGrid>
+            <h:panelGrid columns="2">
+                <p:selectOneMenu id="process_process" value="#{process.tmp_processSelected}" style="width:210px;" disabled="#{fn:length(process.tmp_processes) eq 0}">
+                    <f:selectItem itemLabel="Select process name" itemValue="#{process.tmp_processSelected}" />
+                    <f:selectItems value="#{process.tmp_processes}" />
+                    <p:ajax update="process_addProcess" />
+                </p:selectOneMenu>
+                <p:commandButton id="process_addProcess" value="Add process" oncomplete="PF('d_addProcess').hide();" update=":form:message :form:processes" icon="ui-icon-check" disabled="#{process.tmp_processSelected eq null}">
+                    <f:actionListener binding="#{process.addHandler()}" />
+                </p:commandButton>
+                <p:tooltip for="process_addProcess" value="Add WPS process" position="bottom" />
+            </h:panelGrid>
+        </h:form>
+    </p:dialog>
+
+    <p:dialog header="Execute WPS process" widgetVar="d_executeProcess" modal="true" >
+        <p:ajax event="close" update=":form_wps_execute" listener="#{process.clearJSPlumb()}" />
+        <h:form id="form_wps_execute">
+            <h:panelGroup layout="block" style="width:800px;height:300px;">
+                <div id="plumb_single"></div>
+                <div style="float:right;max-width:19%;">
+                    <p:commandButton id="process_executeProcess" value="Execute process" oncomplete="PF('d_executeProcess').hide();" update=":form:message" icon="ui-icon-check">
+                        <f:actionListener binding="#{process.executeProcess()}" />
+                    </p:commandButton>
+                    <p:tooltip for="process_executeProcess" value="Execute WPS process" position="bottom" />
+                    <div id="plumb_single_desc">test</div>
+                </div>
+            </h:panelGroup>
+        </h:form>
+    </p:dialog>
+
+    <!-- modal dialog: add custom processing pattern -->
+    <p:dialog header="Add custom GP pattern" widgetVar="d_addPattern" modal="true">
+        <h:form id="form_gpp">
+
+        </h:form>
+    </p:dialog>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.2.9/jsplumb.min.js" type="text/javascript"></script>
+
+    <h:outputScript name="js/olMap.js"/>
+    <h:outputScript name="js/client.js"/>
+    <h:outputScript name="js/jsPlumb.js"/>
 
 </h:body>
 </html>

@@ -1,23 +1,92 @@
-//package de.tudresden.geoinfo.client.controller.ows;
+package de.tudresden.geoinfo.client.handler;
+
+import de.tudresden.geoinfo.fusion.data.ows.OWSCapabilities;
+import de.tudresden.geoinfo.fusion.data.ows.WFSCapabilities;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+
+public class WFSHandler extends OWSHandler {
+
+    private final String SERVICE = "WFS";
+    private final String DEFAULT_VERSION = "1.0.0";
+    private final String DEFAULT_FORMAT = "json";
+
+    private WFSCapabilities wfsCapabilities;
+
+    private final String PARAM_TYPENAME = "typename";
+	private final String PARAM_FORMAT = "outputformat";
+	private final String PARAM_SRSNAME = "srsname";
+	private final String PARAM_BBOX = "bbox";
+
+
+    public WFSHandler(String sBaseURL) throws IOException {
+        super(sBaseURL);
+        this.setService(SERVICE);
+        this.setVersion(DEFAULT_VERSION);
+        this.setParameter(PARAM_FORMAT,DEFAULT_FORMAT);
+        this.wfsCapabilities = getCapabilities();
+    }
+
+    /**
+     * get WFS capabilities document
+     * @return capabilites document
+     */
+    public WFSCapabilities getCapabilities() throws IOException {
+        OWSCapabilities capabilities = super.getCapabilities();
+        if(!(capabilities instanceof WFSCapabilities))
+            throw new IOException("Could not parse WFS capabilities");
+        return (WFSCapabilities) capabilities;
+    }
+
+    /**
+     * get all layers provided by this WFS instance
+     * @return WFS layers
+     */
+    public Set<String> getSupportedLayers(){
+        return wfsCapabilities != null ? wfsCapabilities.getWFSLayers() : Collections.emptySet();
+    }
+
+    /**
+     * check, if certain layer is provided
+     * @param sLayer input layer name
+     * @return true, if layer is provided by WMS
+     */
+    public boolean isSupportedLayer(String sLayer){
+        return this.getSupportedLayers().contains(sLayer);
+    }
+
+    /**
+     * get selected WFS layer
+     * @return selected WFS layer
+     */
+    public String getLayer() {
+        return this.getParameter(PARAM_TYPENAME);
+    }
+
+    /**
+     * select WFS layer
+     * @param sLayer WFS layer name
+     */
+    public void setLayer(String sLayer) {
+        if(!this.isSupportedLayer(sLayer))
+            throw new IllegalArgumentException("Layer " + sLayer + " is not supported");
+        this.setParameter(PARAM_TYPENAME, sLayer);
+    }
+
+}
+
 //
-//import javax.annotation.PostConstruct;
-//import javax.faces.application.FacesMessage;
-//import java.io.IOException;
-//import java.util.HashMap;
-//import java.util.Map;
-//import java.util.Set;
-//
-//public class WMSHandler extends OWSHandler {
+//public class WFSHandler extends OWSHandler {
 //
 //	private static final long serialVersionUID = 1L;
 //
-//	private final String SERVICE = "WMS";
+//	private final String SERVICE = "WFS";
 //
-//	private final String REQUEST_GETMAP = "getMap";
-//
-//	private final String PARAM_FORMAT = "format";
-//	private final String PARAM_SRSNAME = "srsname";
-//	private final String PARAM_BBOX = "bbox";
+//	private final String REQUEST_DESCRIBEFEATURETYPE = "describeFeatureType";
+//	private final String REQUEST_GETFEATURE = "getFeature";
+
 //
 //	//flag: force WGS84 as default crs
 //	private final String DEFAULT_CRS_WGS84 = "EPSG:4326";
@@ -46,32 +115,38 @@
 ////		this.setOutputFormat(DEFAULT_OUTPUTFORMAT);
 //	}
 //
-//	/**
+//	*/
+/**
 //	 * get describeFeatureType request for selected typename
 //	 * @return describeFeatureType request
 //	 * @throws IOException
-//	 */
+//	 *//*
+
 //	public String getDescribeFeatureTypeRequest() throws IOException {
 //		if(this.getWFSBaseIsInvalid()) return null;
 //		this.setRequest(REQUEST_DESCRIBEFEATURETYPE);
 //		return getKVPRequest(new String[]{PARAM_SERVICE,PARAM_REQUEST,PARAM_VERSION,PARAM_TYPENAME}, new String[]{});
 //	}
 //
-//	/**
+//	*/
+/**
 //	 * get describeFeatureType request for sleected typename
 //	 * @return describeFeatureType request
 //	 * @throws IOException
-//	 */
+//	 *//*
+
 //	public String getGetFeatureRequest() throws IOException {
 //		if(this.getWFSBaseIsInvalid()) return null;
 //		this.setRequest(REQUEST_GETFEATURE);
 //		return getKVPRequest(new String[]{PARAM_SERVICE,PARAM_REQUEST,PARAM_VERSION,PARAM_TYPENAME}, new String[]{PARAM_OUTPUTFORMAT,PARAM_SRSNAME,PARAM_BBOX});
 //	}
 //
-//	/**
+//	*/
+/**
 //	 * check if WFS base is valid
 //	 * @return true, if base is valid
-//	 */
+//	 *//*
+
 //	public boolean getWFSBaseIsInvalid() {
 //		if(!this.validOWSBase()) return true;
 //		if(this.getTypename() == null || this.getTypename().length() == 0) return true;
@@ -147,11 +222,13 @@
 //	public String getBBox() { return this.getParameter(PARAM_BBOX); }
 //	public void setBBox(String value) { this.setParameter(PARAM_BBOX, value); }
 //
-//	/**
+//	*/
+/**
 //	 * get WFS layer as IOProcess for chaining purposes
 //	 * @return io process
 //	 * @throws IOException
-//	 */
+//	 *//*
+
 //	public IOProcess getIOProcess() throws IOException{
 //		IOFormat defaultFormat = new IOFormat("text/xml", "http://schemas.opengis.net/gml/3.2.1/base/feature.xsd", "");
 //		Set<IOFormat> supportedFormats = new HashSet<IOFormat>();
@@ -177,3 +254,4 @@
 //	}
 //
 //}
+*/
