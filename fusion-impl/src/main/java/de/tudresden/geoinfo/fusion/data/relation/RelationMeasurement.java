@@ -1,67 +1,56 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
-import de.tudresden.geoinfo.fusion.data.IMeasurementData;
-import de.tudresden.geoinfo.fusion.data.Subject;
+import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
+import de.tudresden.geoinfo.fusion.data.Measurement;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Description;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Predicates;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForMeasurement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * relation measurement implementation
  */
-public class RelationMeasurement<D extends IResource, R extends IResource> extends Subject implements IRelationMeasurement {
-	
-	//predicates
-	private static IResource PREDICATE_TYPE = Predicates.TYPE.getResource();
-	private static IResource DOMAIN = Predicates.HAS_DOMAIN.getResource();
-	private static IResource RANGE = Predicates.HAS_RANGE.getResource();
-    private static IResource MEASUREMENT = Objects.RELATION_MEASUREMENT.getResource();
-	private static IResource VALUE = Predicates.VALUE.getResource();
-	private static IResource OPERATION = Description.OPERATION.getResource();
-	
-	/**
-	 * constructor
-	 * @param identifier resource identifier
-	 * @param value measurement value
-	 */
-	public RelationMeasurement(IIdentifier identifier, D domain, R range, IMeasurementData value) {
-		super(identifier, value, value.getMetadata());
-		//set domain, range and resource type
-        put(DOMAIN, domain);
-        put(RANGE, range);
-		put(PREDICATE_TYPE, MEASUREMENT);
-		//set objects
-		put(VALUE, value);
-		put(OPERATION, value.getMetadata().getMeasurementOperation());
-	}
+public class RelationMeasurement<T extends Comparable<T>> extends Measurement<T> implements IRelationMeasurement<T> {
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public D getDomain() {
-        return (D) getObject(DOMAIN);
+    private static final IResource TYPE = Objects.RELATION_MEASUREMENT.getResource();
+    private IResource domain, range;
+
+    /**
+     * constructor
+     *
+     * @param domain measurement domain
+     * @param range  measurement range
+     */
+    public RelationMeasurement(@Nullable IIdentifier identifier, @NotNull IResource domain, @NotNull IResource range, @NotNull T value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<T> measurementRange, @NotNull IResource uom) {
+        super(identifier, value, metadata, TYPE, measurementOperation, measurementRange, uom);
+        this.domain = domain;
+        this.range = range;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public R getRange() {
-        return (R) getObject(RANGE);
+    /**
+     * constructor
+     *
+     * @param domain measurement domain
+     * @param range  measurement range
+     */
+    public RelationMeasurement(@Nullable IIdentifier identifier, @NotNull IResource domain, @NotNull IResource range, @NotNull T value, @NotNull String title, @Nullable String description, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<T> measurementRange, @NotNull IResource uom) {
+        super(identifier, value, title, description, TYPE, measurementOperation, measurementRange, uom);
+        this.domain = domain;
+        this.range = range;
     }
 
-	@Override
-	public IMeasurementData resolve() {
-		return (IMeasurementData) super.resolve();
-	}
+    @NotNull
+    @Override
+    public IResource getDomain() {
+        return this.domain;
+    }
 
-	@Override
-	public IMetadataForMeasurement getMetadata() {
-		return resolve().getMetadata();
-	}
+    @NotNull
+    @Override
+    public IResource getRange() {
+        return this.range;
+    }
 
-	@Override
-	public IMeasurementData getMeasurement() {
-		return resolve();
-	}
 }

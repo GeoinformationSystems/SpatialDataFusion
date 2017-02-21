@@ -1,14 +1,16 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeature;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -20,93 +22,105 @@ import java.util.List;
 
 /**
  * GeoTools feature collection implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
 public class GTFeatureCollection extends AbstractFeatureCollection<GTVectorFeature> {
 
     private ReferencedEnvelope envelope;
-	
-	/**
-	 * constructor
-     * @param identifier resource identifier
-     * @param featureCollection GeoTools GTVectorFeature collection
-     * @param description collection description
+
+    /**
+     * constructor
+     *
+     * @param identifier        collection identifier
+     * @param featureCollection GT feature collection
      */
-	public GTFeatureCollection(IIdentifier identifier, Collection<GTVectorFeature> featureCollection, IMetadataForData description){
-		super(identifier, featureCollection, description);
-	}
-	
-	/**
-	 * constructor
-	 * @param identifier resource identifier
-	 * @param featureCollection GeoTools feature collection
-	 * @param description collection description
-	 */
-	public GTFeatureCollection(IIdentifier identifier, SimpleFeatureCollection featureCollection, IMetadataForData description){
-		this(identifier, getGTCollection(identifier, featureCollection), description);
-	}
-
-	/**
-	 * get GeoTools AbstractFeatureCollection
-	 * @return GeoTools AbstractFeatureCollection
-	 */
-	public SimpleFeatureCollection collection() {
-		List<SimpleFeature> featureList = new ArrayList<>();
-		for(AbstractFeature feature : resolve()){
-			featureList.add((SimpleFeature) feature.resolve());
-		}
-		return DataUtilities.collection(featureList);
-	}
-
-	@Override
-	public Envelope getBounds() {
-        for(GTVectorFeature feature : resolve()){
-            if(envelope == null) {
-                envelope = new ReferencedEnvelope((Envelope) feature.getRepresentation().getBounds());
-                continue;
-            }
-            expandEnvelope(feature);
-        }
-        return envelope;
-	}
-
-	@Override
-    public void add(GTVectorFeature feature) {
-	    super.add(feature);
-	    if(envelope != null)
-            expandEnvelope(feature);
+    public GTFeatureCollection(@Nullable IIdentifier identifier, @NotNull Collection<GTVectorFeature> featureCollection, @Nullable IMetadata metadata) {
+        super(identifier, featureCollection, metadata);
     }
 
     /**
-     * expand envelope with feature envelope
-     * @param feature input feature
+     * constructor
+     *
+     * @param identifier        resource identifier
+     * @param featureCollection GeoTools feature collection
      */
-    private void expandEnvelope(GTVectorFeature feature){
-	    this.envelope.expandToInclude(new ReferencedEnvelope((Envelope) feature.getRepresentation().getBounds()));
+    public GTFeatureCollection(@Nullable IIdentifier identifier, @NotNull SimpleFeatureCollection featureCollection, @Nullable IMetadata metadata) {
+        this(identifier, getGTCollection(identifier, featureCollection), metadata);
     }
-
-	@Override
-	public CoordinateReferenceSystem getReferenceSystem() {
-		//return crs of first object in collection
-		return (CoordinateReferenceSystem) resolve().iterator().next().getRepresentation().getReferenceSystem();
-	}
 
     /**
      * create collection from GeoTools feature collection
+     *
      * @param featureCollection input collection
      * @return collection of GTVectorFeature implementations
      */
-    public static Collection<GTVectorFeature> getGTCollection(IIdentifier collectionId, SimpleFeatureCollection featureCollection) {
+    @NotNull
+    public static Collection<GTVectorFeature> getGTCollection(@Nullable IIdentifier collectionId, @NotNull SimpleFeatureCollection featureCollection) {
         Collection<GTVectorFeature> collection = new HashSet<>();
-        try (SimpleFeatureIterator iterator = featureCollection.features()){
-            while(iterator.hasNext()){
+        try (SimpleFeatureIterator iterator = featureCollection.features()) {
+            while (iterator.hasNext()) {
                 SimpleFeature feature = iterator.next();
-                IIdentifier featureID = collectionId == null ? new Identifier(feature.getIdentifier().getID()) : new Identifier((collectionId + "#" + feature.getIdentifier().getID()));
-                collection.add(new GTVectorFeature(featureID, feature, null, null));
+                IIdentifier featureID = collectionId == null ? new Identifier(feature.getID()) : new Identifier((collectionId + "#" + feature.getID()));
+                collection.add(new GTVectorFeature(featureID, feature, null));
             }
         }
         return collection;
+    }
+
+    /**
+     * get GeoTools FeatureCollection
+     *
+     * @return GeoTools FeatureCollection
+     */
+    @NotNull
+    public SimpleFeatureCollection collection() {
+        List<SimpleFeature> featureList = new ArrayList<>();
+        for (AbstractFeature feature : resolve()) {
+            featureList.add((SimpleFeature) feature.resolve());
+        }
+        return DataUtilities.collection(featureList);
+    }
+
+    @Override
+    public Envelope getBounds() {
+        if (this.envelope == null) {
+            for (GTVectorFeature feature : resolve()) {
+                if (feature.getRepresentation() == null || feature.getRepresentation().getBounds() == null)
+                    continue;
+                if (this.envelope == null) {
+                    this.envelope = new ReferencedEnvelope(feature.getRepresentation().getBounds());
+                    continue;
+                }
+                expandEnvelope(feature.getRepresentationView().getBounds());
+            }
+        }
+        return envelope;
+    }
+
+    @Override
+    public void add(@NotNull GTVectorFeature feature) {
+        super.add(feature);
+        if (feature.getRepresentation() != null && envelope != null)
+            expandEnvelope(feature.getRepresentation().getBounds());
+    }
+
+    /**
+     * expand envelope with input envelope
+     *
+     * @param envelope input envelope
+     */
+    private void expandEnvelope(Envelope envelope) {
+        if (envelope != null)
+            this.envelope.expandToInclude(new ReferencedEnvelope(envelope));
+    }
+
+    @Override
+    public CoordinateReferenceSystem getReferenceSystem() {
+        //return first crs in collection
+        for (GTVectorFeature feature : this.resolve()) {
+            if (feature.getRepresentation() != null && feature.getRepresentation().getReferenceSystem() != null)
+                return feature.getRepresentation().getReferenceSystem();
+        }
+        return null;
     }
 
 }

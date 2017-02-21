@@ -3,28 +3,61 @@ package de.tudresden.geoinfo.fusion.data.feature.osm;
 import com.vividsolutions.jts.geom.Geometry;
 import de.tudresden.geoinfo.fusion.data.feature.IFeature;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
 import org.geotools.geometry.jts.GeometryBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
 public class OSMNode extends OSMVectorFeature {
-	
-	public static final String OSM_PROPERTY_LAT = "lat";
+
+    public static final String OSM_PROPERTY_LAT = "lat";
     public static final String OSM_PROPERTY_LON = "lon";
-	
-	/**
-	 * constructor
-	 * @param propertySet OSM property set
-	 * @param metadata OSM object description
-	 * @param relations feature relations
-	 */
-	public OSMNode(OSMPropertySet propertySet, IMetadataForData metadata, Set<IRelation<? extends IFeature>> relations){
-		super(propertySet, getNodeGeometry(propertySet), metadata, relations);
-	}
+
+    /**
+     * constructor
+     *
+     * @param propertySet OSM property set
+     * @param relations   feature relations
+     */
+    public OSMNode(@NotNull OSMPropertySet propertySet, @Nullable Set<IRelation<? extends IFeature>> relations) {
+        super(propertySet, getNodeGeometry(propertySet), null, relations);
+    }
+
+    /**
+     * get node geometry
+     *
+     * @param propertySet OSM property set
+     * @return feature geometry
+     */
+    @NotNull
+    private static Geometry getNodeGeometry(@NotNull OSMPropertySet propertySet) {
+        if (!propertySet.containsKey(OSM_PROPERTY_LAT) || !propertySet.containsKey(OSM_PROPERTY_LON))
+            throw new IllegalArgumentException("OSM Feature is not a valid OSM node");
+        return new GeometryBuilder().point(getLon(propertySet), getLat(propertySet));
+    }
+
+    /**
+     * get node latitude
+     *
+     * @return latitude
+     */
+    private static double getLat(@NotNull OSMPropertySet propertySet) {
+        return (Double) propertySet.getProperty(OSM_PROPERTY_LAT);
+    }
+
+    /**
+     * get node longitude
+     *
+     * @return longitude
+     */
+    private static double getLon(@NotNull OSMPropertySet propertySet) {
+        return (Double) propertySet.getProperty(OSM_PROPERTY_LON);
+    }
 
     /**
      * get latitude
+     *
      * @return latitude
      */
     public double getLat() {
@@ -33,6 +66,7 @@ public class OSMNode extends OSMVectorFeature {
 
     /**
      * get longitude
+     *
      * @return longitude
      */
     public double getLon() {
@@ -40,37 +74,8 @@ public class OSMNode extends OSMVectorFeature {
     }
 
     @Override
-    public boolean equals(Object node){
-        if(!(node instanceof OSMNode))
-            return false;
-        return ((OSMNode) node).getLat() == this.getLat() && ((OSMNode) node).getLon() == this.getLon();
+    public boolean equals(@NotNull Object node) {
+        return node instanceof OSMNode && ((OSMNode) node).getLat() == this.getLat() && ((OSMNode) node).getLon() == this.getLon();
     }
 
-	/**
-	 * get node geometry
-	 * @param propertySet OSM property set
-	 * @return feature geometry
-	 */
-	private static Geometry getNodeGeometry(OSMPropertySet propertySet) {
-        if(!propertySet.containsKey(OSM_PROPERTY_LAT) || !propertySet.containsKey(OSM_PROPERTY_LON))
-            throw new IllegalArgumentException("OSM Feature is not a valid OSM node");
-		return new GeometryBuilder().point(getLon(propertySet), getLat(propertySet));
-	}
-
-    /**
-     * get node latitude
-     * @return latitude
-     */
-    static double getLat(OSMPropertySet propertySet) {
-        return (Double) propertySet.getProperty(OSM_PROPERTY_LAT);
-    }
-
-    /**
-     * get node longitude
-     * @return longitude
-     */
-    static double getLon(OSMPropertySet propertySet) {
-        return (Double) propertySet.getProperty(OSM_PROPERTY_LON);
-    }
-	
 }

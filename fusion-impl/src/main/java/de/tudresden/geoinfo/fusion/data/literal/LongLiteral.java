@@ -1,82 +1,105 @@
 package de.tudresden.geoinfo.fusion.data.literal;
 
-import de.tudresden.geoinfo.fusion.data.LiteralData;
-import de.tudresden.geoinfo.fusion.data.MeasurementData;
+import de.tudresden.geoinfo.fusion.data.*;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
-import de.tudresden.geoinfo.fusion.metadata.IMeasurementRange;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForMeasurement;
-import de.tudresden.geoinfo.fusion.metadata.MeasurementRange;
+import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
  * Boolean literal implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
-public class LongLiteral extends LiteralData<Long> {
+public class LongLiteral extends Measurement<Long> {
 
-	private static IResource TYPE = Objects.LONG.getResource();
+    private static IResource TYPE = Objects.LONG.getResource();
 
-	/**
-	 * constructor
-	 * @param value literal object
-	 * @param metadata literal description
-	 */
-	public LongLiteral(long value, IMetadataForData metadata) {
-		super(value, TYPE, metadata);
-	}
-	
-	/**
-	 * constructor
-	 * @param value boolean literal value
-	 */
-	public LongLiteral(long value){
-		this(value, null);
-	}
+    /**
+     * constructor
+     *
+     * @param identifier           data identifier
+     * @param value                long value
+     * @param measurementOperation associated measurement operation
+     * @param measurementRange     associated measurement range
+     * @param uom                  associated unit of measurement
+     */
+    public LongLiteral(@Nullable IIdentifier identifier, long value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<Long> measurementRange, @NotNull IResource uom) {
+        super(identifier, value, metadata, TYPE, measurementOperation, measurementRange, uom);
+    }
 
-	@Override
-	public IResource getType() {
-		return TYPE;
-	}
+    /**
+     * constructor
+     *
+     * @param identifier           data identifier
+     * @param value                long value
+     * @param measurementOperation associated measurement operation
+     * @param measurementRange     associated measurement range
+     * @param uom                  associated unit of measurement
+     */
+    public LongLiteral(@Nullable IIdentifier identifier, @NotNull String title, @Nullable String description, long value, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<Long> measurementRange, @NotNull IResource uom) {
+        super(identifier, value, new Metadata(title, description), TYPE, measurementOperation, measurementRange, uom);
+    }
 
-	/**
-	 * get maximum range for this literal type
-	 * @return maximum range
-	 */
-	public static IMeasurementRange<Long> getMaxRange(){
-		return getRange(Long.MIN_VALUE, Long.MAX_VALUE);
-	}
+    /**
+     * constructor
+     *
+     * @param identifier data identifier
+     * @param value      long value
+     */
+    public LongLiteral(@Nullable IIdentifier identifier, long value) {
+        this(identifier, value, null, null, LongLiteral.getMaxRange(), Units.UNKNOWN.getResource());
+    }
 
-	/**
-	 * get positive range for this literal type
-	 * @return maximum range
-	 */
-	public static IMeasurementRange<Long> getPositiveRange(){
-		return getRange(0, Long.MAX_VALUE);
-	}
+    /**
+     * constructor, creates random identifier
+     *
+     * @param value long value
+     */
+    public LongLiteral(long value) {
+        this(null, value);
+    }
 
-	/**
-	 * get maximum range for this literal type
-	 * @return maximum range
-	 */
-	public static IMeasurementRange<Long> getRange(long min, long max){
-		SortedSet<Long> range = new TreeSet<>();
-		range.add(min);
-		range.add(max);
-		return new MeasurementRange<>(range, true);
-	}
+    /**
+     * get maximum range for this literal type
+     *
+     * @return maximum range
+     */
+    @NotNull
+    public static IMeasurementRange<Long> getMaxRange() {
+        return getRange(Long.MIN_VALUE, Long.MAX_VALUE);
+    }
 
-	/**
-	 * get measurement instance from integer value
-	 * @param value integer value
-	 * @return measurement instance
-	 */
-	public static MeasurementData<Long> getMeasurement(long value, IMetadataForMeasurement metadata){
-		return new MeasurementData<>(value, TYPE, metadata);
-	}
-	
+    /**
+     * get positive range for this literal type
+     *
+     * @return maximum range
+     */
+    @NotNull
+    public static IMeasurementRange<Long> getPositiveRange() {
+        return getRange(0, Long.MAX_VALUE);
+    }
+
+    /**
+     * get maximum range for this literal type
+     *
+     * @return maximum range
+     */
+    @NotNull
+    public static IMeasurementRange<Long> getRange(long min, long max) {
+        SortedSet<Long> range = new TreeSet<>();
+        range.add(min);
+        range.add(max);
+        return new MeasurementRange<>(range, true);
+    }
+
+    @NotNull
+    @Override
+    public IResource getLiteralType() {
+        return TYPE;
+    }
+
 }

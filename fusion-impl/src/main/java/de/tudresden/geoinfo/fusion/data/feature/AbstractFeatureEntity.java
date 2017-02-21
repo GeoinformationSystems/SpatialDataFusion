@@ -1,58 +1,62 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.Subject;
+import de.tudresden.geoinfo.fusion.data.Data;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 /**
  * feature entity implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
-public abstract class AbstractFeatureEntity extends Subject implements IFeatureEntity {
+public abstract class AbstractFeatureEntity extends Data implements IFeatureEntity {
 
-	private IFeatureConcept concept;
-	private Collection<IFeatureRepresentation> representations;
-	
-	/**
-	 * constructor
-	 * @param identifier entity identifier
-	 */
-	public AbstractFeatureEntity(IIdentifier identifier, Object entity, IMetadataForData description) {
-		super(identifier, entity, description);
-		if(identifier == null)
-			throw new IllegalArgumentException("Entity identifier must not be null");
-	}
-	
-	@Override
-	public IFeatureConcept getRelatedConcept() {
-		return concept;
-	}
-	
-	@Override
-	public Collection<IFeatureRepresentation> getRelatedRepresentations() {
-		return representations;
-	}
-	
-	/**
-	 * set associated feature concept
-	 * @param concept associated concept
-	 */
-	public void setRelatedConcept(IFeatureConcept concept){
-		this.concept = concept;
-	}
-	
-	/**
-	 * adds an associated feature representation
-	 * @param representation associated representation
-	 */
-	public void addRelatedRepresentation(IFeatureRepresentation representation){
-		if(representations == null)
-			representations = new HashSet<>();
-		representations.add(representation);
-	}
+    private IFeatureConcept concept;
+    private Collection<IFeatureRepresentation> representations;
+
+    /**
+     * constructor
+     *
+     * @param identifier entity identifier
+     * @param entity     entity object
+     */
+    public AbstractFeatureEntity(@NotNull IIdentifier identifier, @NotNull Object entity, @Nullable IMetadata metadata) {
+        super(identifier, entity, metadata);
+    }
+
+    @NotNull
+    @Override
+    public IFeatureConcept getRelatedConcept() {
+        return concept;
+    }
+
+    /**
+     * set associated feature concept
+     *
+     * @param concept associated concept
+     */
+    public void setRelatedConcept(@NotNull IFeatureConcept concept) {
+        this.concept = concept;
+    }
+
+    @NotNull
+    @Override
+    public Collection<IFeatureRepresentation> getRelatedRepresentations() {
+        return representations;
+    }
+
+    /**
+     * adds an associated feature representation
+     *
+     * @param representation associated representation
+     */
+    public void addRelatedRepresentation(@NotNull IFeatureRepresentation representation) {
+        if (representations == null)
+            representations = new HashSet<>();
+        representations.add(representation);
+    }
 
 }

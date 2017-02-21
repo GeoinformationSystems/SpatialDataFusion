@@ -1,43 +1,55 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.ISubject;
+import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
 /**
  * feature implementation
  */
-public interface IFeature extends ISubject {
+public interface IFeature extends IData {
 
-	/**
-	 * get concept of this feature
-	 * @return feature concept
-	 */
+    /**
+     * get concept of this feature
+     *
+     * @return feature concept
+     */
+    @Nullable
     IFeatureConcept getConcept();
-	
-	/**
-	 * get type of this feature
-	 * @return feature type
-	 */
+
+    /**
+     * get type of this feature
+     *
+     * @return feature type
+     */
+    @Nullable
     IFeatureType getType();
-	
-	/**
-	 * get entity of this feature
-	 * @return feature entity
-	 */
+
+    /**
+     * get entity of this feature
+     *
+     * @return feature entity
+     */
+    @Nullable
     IFeatureEntity getEntity();
-	
-	/**
-	 * get representation of this feature
-	 * @return feature representation
-	 */
+
+    /**
+     * get representation of this feature
+     *
+     * @return feature representation
+     */
+    @Nullable
     IFeatureRepresentation getRepresentation();
-	
-	/**
-	 * get all relations attached to this feature
-	 * @return all feature relations
-	 */
+
+    /**
+     * get all relations attached to this feature
+     *
+     * @return all feature relations
+     */
+    @NotNull
     Set<IRelation<? extends IFeature>> getRelations();
-	
+
 }

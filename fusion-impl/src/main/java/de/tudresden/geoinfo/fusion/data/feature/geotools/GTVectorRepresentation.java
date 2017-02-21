@@ -1,13 +1,12 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
 import com.vividsolutions.jts.geom.Geometry;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureRepresentation;
 import de.tudresden.geoinfo.fusion.data.literal.WKTLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Predicates;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -17,38 +16,24 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  */
 public class GTVectorRepresentation extends AbstractFeatureRepresentation {
 
-    private static IResource PREDICATE_TYPE = Predicates.TYPE.getResource();
-    private static IResource TYPE_REPRESENTATION = Objects.FEATURE_REPRESENTATION.getResource();
-    private static IResource TYPE_COVERAGE = Objects.FEATURE.getResource();
-    private static IResource PREDICATE_WKT = Predicates.asWKT.getResource();
-
     /**
      * constructor
-     * @param identifier    feature identifier
-     * @param representation feature representation
-     * @param description    feature description
+     *
+     * @param identifier     representation identifier
+     * @param representation simple feature
      */
-    public GTVectorRepresentation(IIdentifier identifier, SimpleFeature representation, IMetadataForData description) {
-        super(identifier, representation, description);
-        initSubject();
+    public GTVectorRepresentation(@Nullable IIdentifier identifier, @NotNull SimpleFeature representation, @Nullable IMetadata metadata) {
+        super(identifier, representation, metadata);
     }
 
-    /**
-     * initialize coverage subject
-     */
-    private void initSubject() {
-        //set resource type
-        put(PREDICATE_TYPE, TYPE_REPRESENTATION);
-        put(PREDICATE_TYPE, TYPE_COVERAGE);
-    }
-
+    @NotNull
     @Override
     public SimpleFeature resolve() {
         return (SimpleFeature) super.resolve();
     }
 
     @Override
-    public Object getProperty(IIdentifier identifier) {
+    public Object getProperty(@NotNull IIdentifier identifier) {
         return null;
     }
 
@@ -69,24 +54,12 @@ public class GTVectorRepresentation extends AbstractFeatureRepresentation {
 
     /**
      * get WKT description of the feature geometry
+     *
      * @return WKT geometry of the feature
      */
+    @Nullable
     public WKTLiteral getWKTGeometry() {
-        return new WKTLiteral(getDefaultGeometry().toText());
-    }
-
-    /**
-     * add geometry as WKT to RDF representation (caution: large geometries are likely to cause memory issues)
-     */
-    public void showWKTGeometry(){
-        put(PREDICATE_WKT, getWKTGeometry());
-    }
-
-    /**
-     * hide geometry as WKT in RDF representation
-     */
-    public void hideWKTGeometry(){
-        remove(PREDICATE_WKT);
+        return this.getDefaultGeometry() != null ? new WKTLiteral(getDefaultGeometry().toText()) : null;
     }
 
 }

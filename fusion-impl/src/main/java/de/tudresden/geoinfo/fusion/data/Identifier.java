@@ -1,8 +1,11 @@
 package de.tudresden.geoinfo.fusion.data;
 
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.UUID;
 
 /**
@@ -10,67 +13,65 @@ import java.util.UUID;
  */
 public class Identifier implements IIdentifier {
 
-    private final String identifier;
+    private String sIdentifier;
     private transient URI uri;
 
     /**
      * constructor
-     * @param identifier identifier
+     *
+     * @param sIdentifier identifier
      */
-    public Identifier(String identifier){
-        if(identifier == null)
-            throw new IllegalArgumentException("identifier must not be null");
-        this.identifier = identifier;
+    public Identifier(@NotNull String sIdentifier) {
+        this.sIdentifier = sIdentifier;
     }
 
     /**
      * constructor
-     * @param uri identifier
+     *
+     * @param uri uri
      */
-    public Identifier(URI uri){
+    public Identifier(@NotNull URI uri) {
         this(uri.toString());
+        this.uri = uri;
     }
 
     /**
-     * empty constructor, generates random identifier
+     * constructor
+     *
+     * @param url url
      */
-    public Identifier(){
+    public Identifier(@NotNull URL url) throws URISyntaxException {
+        this(url.toURI());
+    }
+
+    /**
+     * empty constructor, creates random identifiers
+     */
+    public Identifier() {
         this(UUID.randomUUID().toString());
     }
 
-    @Override
-    public URI toURI() {
-        if(uri == null)
-            uri = URI.create(this.identifier);
-        return uri;
-    }
-
+    @NotNull
     @Override
     public String toString() {
-        return this.identifier;
-    }
-
-    @Override
-    public boolean equals(Object identifier){
-        if(identifier instanceof Identifier)
-            return this.identifier.equals(identifier.toString());
-        return false;
+        return this.sIdentifier;
     }
 
     @Override
     public int hashCode() {
-        return identifier.hashCode();
+        return this.sIdentifier.hashCode();
     }
 
-    /**
-     * relativize resource URI
-     * @param uriBase URI base (is omitted from result)
-     * @return URI relative to uriBase
-     */
-    public URI relativizeURI(URI uriBase){
-        if(uriBase == null)
-            return toURI();
-        return uriBase.relativize(toURI());
+    @NotNull
+    @Override
+    public URI getURI() {
+        if (this.uri == null)
+            this.uri = URI.create(this.sIdentifier);
+        return this.uri;
     }
 
+    @Override
+    public boolean equals(@NotNull IIdentifier identifier) {
+        return this.sIdentifier.equals(identifier.toString());
+    }
 }

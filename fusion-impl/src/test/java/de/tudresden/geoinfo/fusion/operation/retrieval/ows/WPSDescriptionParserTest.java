@@ -1,10 +1,9 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
-import de.tudresden.geoinfo.fusion.data.ows.WPSProcessDescription;
+import de.tudresden.geoinfo.fusion.data.ows.WPSProcessDescriptions;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
@@ -15,31 +14,36 @@ import java.util.Map;
 
 public class WPSDescriptionParserTest {
 
-	private final static IIdentifier IN_RESOURCE = new Identifier("IN_RESOURCE");
-	private final static IIdentifier OUT_DESCRIPTION = new Identifier("OUT_DESCRIPTION");
-	private final static IIdentifier OUT_RUNTIME = new Identifier("OUT_RUNTIME");
+    private final static String IN_RESOURCE = "IN_RESOURCE";
 
-	@Test
-	public void readWPSDescription() {
+    private final static String OUT_DESCRIPTION = "OUT_DESCRIPTION";
+    private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
-		Map<IIdentifier,IData> input = new HashMap<>();
-		input.put(IN_RESOURCE, new URILiteral(URI.create("http://cobweb.gis.geo.tu-dresden.de:8080/wps_conflation/WebProcessingService?Request=describeprocess&Service=WPS&version=1.0.0&identifier=de.tudresden.gis.fusion.algorithm.BoundingBoxDistance")));
+    @Test
+    public void readWPSDescription() {
 
-		WPSDescriptionParser parser = new WPSDescriptionParser();
-		Map<IIdentifier,IData> output = parser.execute(input);
+        WPSDescriptionParser parser = new WPSDescriptionParser();
+        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();
+        IIdentifier ID_OUT_DESCRIPTION = parser.getOutputConnector(OUT_DESCRIPTION).getIdentifier();
+        IIdentifier ID_OUT_RUNTIME = parser.getOutputConnector(OUT_RUNTIME).getIdentifier();
 
-		Assert.assertNotNull(output);
-		Assert.assertTrue(output.containsKey(OUT_DESCRIPTION));
-		Assert.assertTrue(output.get(OUT_DESCRIPTION) instanceof WPSProcessDescription);
+        Map<IIdentifier, IData> input = new HashMap<>();
+        input.put(ID_IN_RESOURCE, new URILiteral(URI.create("http://geoprocessing.demo.52north.org/latest-wps/WebProcessingService?Request=DescribeProcess&Service=WPS&version=1.0.0&identifier=neighborhooddiversity")));
 
-		WPSProcessDescription description = (WPSProcessDescription) output.get(OUT_DESCRIPTION);
-		Assert.assertTrue(description.getProcessIdentifier().size() == 1);
+        Map<IIdentifier, IData> output = parser.execute(input);
 
-		Runtime runtime = Runtime.getRuntime();
-		runtime.gc();
-		System.out.print("TEST: " + parser.getIdentifier() + "\n\t" +
-				"process runtime (ms): " + ((LongLiteral) output.get(OUT_RUNTIME)).resolve() + "\n\t" +
-				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
-	}
+        Assert.assertNotNull(output);
+        Assert.assertTrue(output.containsKey(ID_OUT_DESCRIPTION));
+        Assert.assertTrue(output.get(ID_OUT_DESCRIPTION) instanceof WPSProcessDescriptions);
+
+        WPSProcessDescriptions description = (WPSProcessDescriptions) output.get(ID_OUT_DESCRIPTION);
+        Assert.assertTrue(description.getProcessIdentifier().size() == 1);
+
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        System.out.print("TEST: " + parser.getIdentifier() + "\n\t" +
+                "process runtime (ms): " + ((LongLiteral) output.get(ID_OUT_RUNTIME)).resolve() + "\n\t" +
+                "memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
+    }
 
 }

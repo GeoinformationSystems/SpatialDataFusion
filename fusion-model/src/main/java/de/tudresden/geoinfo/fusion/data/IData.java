@@ -1,22 +1,27 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Basic data object
  */
 public interface IData {
 
-	/**
-	 * resolve data object or value
-	 * @return Java object represented by this resource
-	 */
+    /**
+     * resolve data object or value
+     *
+     * @return Java object represented by this resource
+     */
+    @NotNull
     Object resolve();
-	
-	/**
-	 * get description of this object or value
-	 * @return resource description
-	 */
-    IMetadataForData getMetadata();
-	
+
+    /**
+     * get metadata for the data element
+     *
+     * @return metadata element
+     */
+    @Nullable
+    IMetadata getMetadata();
+
 }

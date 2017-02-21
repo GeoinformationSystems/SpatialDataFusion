@@ -1,35 +1,53 @@
 package de.tudresden.geoinfo.fusion.operation.constraint;
 
-import de.tudresden.geoinfo.fusion.metadata.IMetadata;
-import de.tudresden.geoinfo.fusion.metadata.IOFormat;
-import de.tudresden.geoinfo.fusion.metadata.MetadataForIOFormat;
-import de.tudresden.geoinfo.fusion.operation.IMetadataConstraint;
+import de.tudresden.geoinfo.fusion.data.ows.WPSIOFormat;
+import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 /**
  * IO format constraint
  */
-public class IOFormatConstraint implements IMetadataConstraint {
+public class IOFormatConstraint implements IConnectionConstraint {
 
-    private Set<IOFormat> supportedFormats;
+    private Set<WPSIOFormat> supportedFormats;
 
-    public IOFormatConstraint(Set<IOFormat> supportedFormats) {
+    /**
+     * constructor
+     *
+     * @param supportedFormats supported formats
+     */
+    public IOFormatConstraint(@NotNull Set<WPSIOFormat> supportedFormats) {
         this.supportedFormats = supportedFormats;
     }
 
-    private boolean compliantWith(IOFormat format) {
+    @Override
+    public boolean compliantWith(@NotNull IWorkflowConnector connector) {
+        for (IConnectionConstraint constraint : connector.getConnectionConstraints()) {
+            if (constraint instanceof IOFormatConstraint) {
+                for (WPSIOFormat format : ((IOFormatConstraint) constraint).getSupportedFormats()) {
+                    if (this.compliantWith(format))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean compliantWith(@NotNull WPSIOFormat format) {
         return supportedFormats.contains(format);
     }
 
-    @Override
-    public boolean compliantWith(IMetadata metadata) {
-        if(metadata instanceof MetadataForIOFormat)
-            for(IOFormat format : ((MetadataForIOFormat) metadata).getSupportedFormats()){
-                if(this.compliantWith(format))
-                    return true;
-            }
-        return false;
+    /**
+     * get supported formats
+     *
+     * @return supported formats
+     */
+    @NotNull
+    public Set<WPSIOFormat> getSupportedFormats() {
+        return this.supportedFormats;
     }
 
 }

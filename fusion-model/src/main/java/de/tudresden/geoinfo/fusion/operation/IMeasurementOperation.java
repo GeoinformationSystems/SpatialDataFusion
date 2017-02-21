@@ -1,19 +1,19 @@
 package de.tudresden.geoinfo.fusion.operation;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForMeasurementOperation;
+import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Basic measurement operation object
- * @author Stefan Wiemann, TU Dresden
- *
+ * Basic operation object
  */
-public interface IMeasurementOperation extends IResource {
+public interface IMeasurementOperation<T extends Comparable<T>> extends IOperation {
 
-	/**
-	 * returns operation metadata
-	 * @return operation metadata
-	 */
-	IMetadataForMeasurementOperation getMetadata();
-	
+    /**
+     * get range for the measurement operation
+     *
+     * @return measurement range
+     */
+    @NotNull
+    IMeasurementRange<T> getMeasurementRange();
+
 }

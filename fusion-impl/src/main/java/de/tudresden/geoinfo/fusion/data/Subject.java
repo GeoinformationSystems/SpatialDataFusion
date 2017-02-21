@@ -3,133 +3,133 @@ package de.tudresden.geoinfo.fusion.data;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.INode;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import de.tudresden.geoinfo.fusion.data.rdf.ISubject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
  * RDF subject implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
 public class Subject extends Resource implements ISubject {
-	
-	private Object subject;
-	private IMetadataForData metadata;
-	private HashMap<IResource,Set<INode>> objectSet;
 
-	/**
-	 * constructor
-	 * @param identifier resource identifier
-	 * @param subject RDF subject
-	 * @param metadata object description
-	 */
-	public Subject(IIdentifier identifier, Object subject, IMetadataForData metadata){
-		super(identifier);
-		this.subject = subject;
-		this.metadata = metadata;
-		initObjectSet();
-	}
+    private HashMap<IResource, Set<INode>> objectSet;
 
     /**
-     * initialize object set
+     * constructor, calls initializeObjectSet() to initialize associated object set
+     *
+     * @param identifier resource identifier
      */
-	private void initObjectSet(){
-	    this.objectSet = new HashMap<>();
+    public Subject(@Nullable IIdentifier identifier) {
+        super(identifier);
+        resetObjectSet();
     }
 
-	@Override
-	public Object resolve() {
-		return subject;
-	}
+    /**
+     * initialize object set associated to subject
+     *
+     * @return associated object set
+     */
+    @NotNull
+    protected HashMap<IResource, Set<INode>> initializeObjectSet() {
+        return new HashMap<>();
+    }
 
     /**
-     * set subject
-     * @param subject subject
+     * get object set associated to subject
+     *
+     * @return object set
      */
-	protected void setSubject(Object subject) {
-		this.subject = subject;
-	}
+    @NotNull
+    private HashMap<IResource, Set<INode>> getObjectSet() {
+        return this.objectSet;
+    }
 
-	@Override
-	public IMetadataForData getMetadata() {
-		return metadata;
-	}
+    /**
+     * reset object set (reset objectSet with value returned by initializeObjectSet())
+     */
+    protected void resetObjectSet() {
+        this.objectSet = initializeObjectSet();
+    }
 
-	@Override
-	public Set<IResource> getPredicates() {
-		return objectSet.keySet();
-	}
+    @NotNull
+    @Override
+    public Set<IResource> getPredicates() {
+        return this.getObjectSet().keySet();
+    }
 
-	@Override
-	public Set<INode> getObjects(IResource predicate) {
-		return objectSet.get(predicate);
-	}
-	
-	/**
-	 * get single object from object set
-	 * @param predicate input predicate
-	 * @return single object
-	 * @throws IllegalArgumentException if multiple objects exist for predicate
-	 */
-	public INode getObject(IResource predicate) throws IllegalArgumentException {
-		if(!objectSet.containsKey(predicate))
-			return null;
-		Set<INode> nodeSet = objectSet.get(predicate);
-		if(nodeSet.size() != 1)
-			throw new IllegalArgumentException("predicate is related to multiple objects");
-		return nodeSet.iterator().next();
-	}
-	
-	/**
-	 * put single INode object to object map
-	 * @param predicate input predicate
-	 * @param object input object
-	 */
-	protected void put(IResource predicate, INode object){
-		if(predicate == null || object == null)
-			return;
-		//add to collection, if predicate is already set
-		if(objectSet.containsKey(predicate))
-			objectSet.get(predicate).add(object);
-		//create predicate with object
-		else {
-			Set<INode> set = new HashSet<>(Collections.singletonList(object));
-			objectSet.put(predicate, set);
-		}
-	}
-	
-	/**
-	 * put node set into object map
-	 * @param predicate input predicate
-	 * @param objectSet input node set
-	 */
-	protected void put(IResource predicate, Collection<? extends INode> objectSet) {
-		if(objectSet == null || objectSet.isEmpty())
-			return;
-		for(INode object : objectSet){
-			this.put(predicate, object);
-		}
-	}
-	
-	/**
-	 * drop predicate and associated objects from object set
-	 * @param predicate input predicate to be removed
-	 */
-	protected void remove(IResource predicate){
-		objectSet.remove(predicate);
-	}
-	
-	/**
-	 * get total number of objects related to subject
-	 * @return number of objects
-	 */
-	public int getNumberOfObjects(){
-		int i = 0;
-		for(Set<INode> set : objectSet.values()){
-			i += set.size();
-		}
-		return i;
-	}
+    @Nullable
+    @Override
+    public Set<INode> getObjects(@NotNull IResource predicate) {
+        return this.getObjectSet().get(predicate);
+    }
+
+    /**
+     * get single object from object set
+     * if multiple objects exist, only the first object is returned
+     *
+     * @param predicate input predicate
+     * @return single object
+     */
+    @Nullable
+    public INode getObject(@NotNull IResource predicate) {
+        if (!this.getObjectSet().containsKey(predicate))
+            return null;
+        Set<INode> nodeSet = this.getObjectSet().get(predicate);
+        return nodeSet.isEmpty() ? null : nodeSet.iterator().next();
+    }
+
+    /**
+     * put single INode object to object map
+     *
+     * @param predicate input predicate
+     * @param object    input object
+     */
+    protected void put(@NotNull IResource predicate, @NotNull INode object) {
+        if (this.getObjectSet().containsKey(predicate))
+            this.getObjectSet().get(predicate).add(object);
+        else {
+            Set<INode> set = new HashSet<>(Collections.singletonList(object));
+            this.getObjectSet().put(predicate, set);
+        }
+    }
+
+    /**
+     * put node set into object map
+     *
+     * @param predicate input predicate
+     * @param objectSet input node set
+     */
+    protected void put(@NotNull IResource predicate, @NotNull Collection<INode> objectSet) {
+        if (objectSet.isEmpty())
+            return;
+        for (INode object : objectSet) {
+            this.put(predicate, object);
+        }
+    }
+
+    /**
+     * drop predicate and associated objects from object set
+     *
+     * @param predicate input predicate to be removed
+     * @return object set removed from the subject or null, if predicate is not linked to subject
+     */
+    protected Collection<INode> remove(@NotNull IResource predicate) {
+        return this.getObjectSet().remove(predicate);
+    }
+
+    /**
+     * get total number of objects related to subject
+     *
+     * @return number of objects
+     */
+    public int getNumberOfObjects() {
+        int i = 0;
+        for (Set<INode> set : this.getObjectSet().values()) {
+            i += set.size();
+        }
+        return i;
+    }
 
 }

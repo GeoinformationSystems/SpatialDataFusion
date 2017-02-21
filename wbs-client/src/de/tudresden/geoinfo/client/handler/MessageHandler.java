@@ -13,13 +13,14 @@ public class MessageHandler implements Serializable {
 
     /**
      * append message to faces context
+     *
      * @param severity message severity level
-     * @param summary message string
-     * @param detail detailed message string
+     * @param summary  message string
+     * @param detail   detailed message string
      */
-    public static void sendMessage(FacesMessage.Severity severity, String summary, String detail){
+    public static void sendMessage(FacesMessage.Severity severity, String summary, String detail) {
         FacesContext context = FacesContext.getCurrentInstance();
-        context.addMessage(null, new FacesMessage(severity, summary, detail) );
+        context.addMessage(null, new FacesMessage(severity, summary, detail));
     }
 
 }

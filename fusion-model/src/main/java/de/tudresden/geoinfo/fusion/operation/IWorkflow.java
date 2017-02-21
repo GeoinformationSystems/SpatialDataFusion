@@ -1,18 +1,20 @@
 package de.tudresden.geoinfo.fusion.operation;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 
 /**
  * Operation workflow
- * @author Stefan Wiemann, TU Dresden
- *
  */
-public interface IWorkflow extends IWorkflowOperation {
+public interface IWorkflow extends IWorkflowNode {
 
-	/**
-	 * get operations in the workflow
-	 * @return all operations in the workflow
-	 */
-    Collection<IWorkflowOperation> getWorkflowOperations();
-	
+    /**
+     * get elements in the workflow
+     *
+     * @return all elements in the workflow
+     */
+    @NotNull
+    Collection<IWorkflowNode> getWorkflowNodes();
+
 }

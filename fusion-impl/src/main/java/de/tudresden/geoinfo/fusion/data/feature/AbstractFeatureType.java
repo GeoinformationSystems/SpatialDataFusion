@@ -1,62 +1,62 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.Subject;
+import de.tudresden.geoinfo.fusion.data.Data;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 /**
  * feature type implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
-public abstract class AbstractFeatureType extends Subject implements IFeatureType {
+public abstract class AbstractFeatureType extends Data implements IFeatureType {
 
-	private IFeatureConcept concept;
-	private Collection<IFeatureRepresentation> representations;
-	
-	/**
+    private IFeatureConcept concept;
+    private Collection<IFeatureRepresentation> representations;
+
+    /**
      * constructor
-     * @param identifier resource identifier
-     * @param type feature type object
+     *
+     * @param identifier type identifier
+     * @param type       type object
      */
-    public AbstractFeatureType(IIdentifier identifier, Object type, IMetadataForData description){
-        super(identifier, type, description);
+    public AbstractFeatureType(@Nullable IIdentifier identifier, @NotNull Object type, @Nullable IMetadata metadata) {
+        super(identifier, type, metadata);
     }
-	
-	@Override
-	public IFeatureConcept getRelatedConcept() {
-		return concept;
-	}
-	
-	@Override
-	public Collection<IFeatureRepresentation> getRelatedRepresentations() {
-		return representations;
-	}
 
-	/**
-	 * set feature concept
-	 * @param concept associated concept
-	 */
-	public void setRelatedConcept(IFeatureConcept concept){
-		this.concept = concept;
-	}
-	
-	/**
-	 * adds a feature representation
-	 * @param representation associated representation
-	 */
-	public void addRelatedRepresentation(IFeatureRepresentation representation){
-		if(representations == null)
-			representations = new HashSet<>();
-		representations.add(representation);
-	}
-	
-	@Override
-	public boolean equals(Object type){
-		return type instanceof AbstractFeatureType && this.resolve().equals(((AbstractFeatureType) type).resolve());
-	}
+    @NotNull
+    @Override
+    public IFeatureConcept getRelatedConcept() {
+        return concept;
+    }
+
+    /**
+     * set feature concept
+     *
+     * @param concept associated concept
+     */
+    public void setRelatedConcept(@NotNull IFeatureConcept concept) {
+        this.concept = concept;
+    }
+
+    @NotNull
+    @Override
+    public Collection<IFeatureRepresentation> getRelatedRepresentations() {
+        return representations;
+    }
+
+    /**
+     * adds a feature representation
+     *
+     * @param representation associated representation
+     */
+    public void addRelatedRepresentation(@NotNull IFeatureRepresentation representation) {
+        if (representations == null)
+            representations = new HashSet<>();
+        representations.add(representation);
+    }
 
 }

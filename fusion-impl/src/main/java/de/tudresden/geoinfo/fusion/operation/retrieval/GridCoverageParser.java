@@ -3,9 +3,9 @@ package de.tudresden.geoinfo.fusion.operation.retrieval;
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
 import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.MetadataForConnector;
-import de.tudresden.geoinfo.fusion.operation.*;
+import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
+import de.tudresden.geoinfo.fusion.operation.IInputConnector;
+import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
 
@@ -15,100 +15,84 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class GridCoverageParser extends AbstractOperation {
 
-	private static final IIdentifier PROCESS = new Identifier(GridCoverageParser.class.getSimpleName());
+    private static final String PROCESS_TITLE = GridCoverageParser.class.getSimpleName();
+    private static final String PROCESS_DESCRIPTION = "Parser for Grid Coverage formats";
 
-	private final static IIdentifier IN_RESOURCE = new Identifier("IN_RESOURCE");
+    private final static String IN_RESOURCE_TITLE = "IN_RESOURCE";
+    private final static String IN_RESOURCE_DESCRIPTION = "Coverage resource";
 
-	private final static IIdentifier OUT_COVERAGE = new Identifier("OUT_COVERAGE");
+    private final static String OUT_COVERAGE_TITLE = "OUT_COVERAGE";
+    private final static String OUT_COVERAGE_DESCRIPTION = "Parsed coverage";
 
-	/**
-	 * constructor
-	 */
-	public GridCoverageParser() {
-		super(PROCESS);
-	}
-	
-	@Override
-	public void execute() {
-		//get input connectors
-		IInputConnector resourceConnector = getInputConnector(IN_RESOURCE);
-		//get data
-		URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
-		//parse coverage
-		GTGridFeature coverage;
-		try {
-			coverage = parseCoverage(resourceURI.toURL());
-		} catch (IOException e) {
-			throw new RuntimeException("Could not parse coverage", e);
-		}
-		//set output connector
-		connectOutput(OUT_COVERAGE, coverage);
-	}
+    /**
+     * constructor
+     */
+    public GridCoverageParser() {
+        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    }
 
-	/**
-	 * parse coverage
-	 * @param resourceURL coverage URL
-	 * @return coverage
-	 * @throws IOException if reading of the coverage fails
-	 */
-	private GTGridFeature parseCoverage(URL resourceURL) throws IOException {
-		InputStream stream;
-		File tmpCoverage;
-		tmpCoverage = File.createTempFile("coverage" + UUID.randomUUID(), ".tmp");
-		stream = resourceURL.openStream();
-		FileOutputStream outputStream = new FileOutputStream(tmpCoverage);
-		byte buf[] = new byte[4096];
-		int len;
-		while ((len = stream.read(buf)) > 0) {
-			outputStream.write(buf, 0, len);
-		}
-		outputStream.flush();
-		outputStream.close();
-		stream.close();
-		return new GTGridFeature(new Identifier(resourceURL.toString()), tmpCoverage, null, null);
-	}
+    @Override
+    public void execute() {
+        //get input connectors
+        IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
+        //get data
+        URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
+        //parse coverage
+        GTGridFeature coverage;
+        try {
+            coverage = parseCoverage(resourceURI.toURL());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not parse coverage", e);
+        }
+        //set output connector
+        connectOutput(OUT_COVERAGE_TITLE, coverage);
+    }
 
-	@Override
-	public Map<IIdentifier,IInputConnector> initInputConnectors() {
-		Map<IIdentifier,IInputConnector> inputConnectors = new HashMap<>();
-		inputConnectors.put(IN_RESOURCE, new InputConnector(
-				IN_RESOURCE,
-				new MetadataForConnector(IN_RESOURCE.toString(), "Link to input coverage"),
-				new IDataConstraint[]{
-						new BindingConstraint(URILiteral.class),
-						new MandatoryConstraint()},
-				null,
-				null));
-		return inputConnectors;
-	}
+    /**
+     * parse coverage
+     *
+     * @param resourceURL coverage URL
+     * @return coverage
+     * @throws IOException if reading of the coverage fails
+     */
+    private GTGridFeature parseCoverage(URL resourceURL) throws IOException {
+        InputStream stream;
+        File tmpCoverage;
+        tmpCoverage = File.createTempFile("coverage" + UUID.randomUUID(), ".tmp");
+        stream = resourceURL.openStream();
+        FileOutputStream outputStream = new FileOutputStream(tmpCoverage);
+        byte buf[] = new byte[4096];
+        int len;
+        while ((len = stream.read(buf)) > 0) {
+            outputStream.write(buf, 0, len);
+        }
+        outputStream.flush();
+        outputStream.close();
+        stream.close();
+        return new GTGridFeature(new Identifier(resourceURL.toString()), tmpCoverage, null);
+    }
 
-	@Override
-	public Map<IIdentifier,IOutputConnector> initOutputConnectors() {
-		Map<IIdentifier,IOutputConnector> outputConnectors = new HashMap<>();
-		outputConnectors.put(OUT_COVERAGE, new OutputConnector(
-                OUT_COVERAGE,
-				new MetadataForConnector(OUT_COVERAGE.toString(), "Output coverage"),
-				new IDataConstraint[]{
-						new BindingConstraint(GTGridFeature.class),
-						new MandatoryConstraint()},
-				null));
-		return outputConnectors;
-	}
+    @Override
+    public void initializeInputConnectors() {
+        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+                new IRuntimeConstraint[]{
+                        new BindingConstraint(URILiteral.class),
+                        new MandatoryConstraint()},
+                null,
+                null);
+    }
 
-	@Override
-	public String getProcessTitle() {
-		return "Coverage Parser";
-	}
-
-	@Override
-	public String getProcessAbstract() {
-		return "Parser for Coverage format";
-	}
+    @Override
+    public void initializeOutputConnectors() {
+        addOutputConnector(OUT_COVERAGE_TITLE, OUT_COVERAGE_DESCRIPTION,
+                new IRuntimeConstraint[]{
+                        new BindingConstraint(GTGridFeature.class),
+                        new MandatoryConstraint()},
+                null);
+    }
 
 }

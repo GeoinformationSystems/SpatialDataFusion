@@ -2,9 +2,11 @@ package de.tudresden.geoinfo.client.beans;
 
 import de.tudresden.geoinfo.client.handler.WPSHandler;
 
+import javax.annotation.PostConstruct;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -13,11 +15,16 @@ import java.util.Set;
 @SessionScoped
 public class Pattern implements Serializable {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-    private Map<String,WPSHandler> gppHandler;
+    private Map<String, WPSHandler> gppHandler;
     private Set<String> patterns;
     private String selection;
+
+    @PostConstruct
+    public void init() {
+        this.gppHandler = new HashMap<>();
+    }
 
     public Set<String> getPatterns() {
         return patterns;
@@ -28,7 +35,7 @@ public class Pattern implements Serializable {
     }
 
     public void addPattern(String pattern) {
-        if(this.patterns == null)
+        if (this.patterns == null)
             this.patterns = new HashSet<>();
         this.patterns.add(pattern);
     }

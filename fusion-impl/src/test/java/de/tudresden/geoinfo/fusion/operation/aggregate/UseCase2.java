@@ -16,7 +16,7 @@
 //import de.tudresden.gis.fusion.data.literal.LongLiteral;
 //import de.tudresden.gis.fusion.data.literal.StringLiteral;
 //import de.tudresden.gis.fusion.data.literal.URILiteral;
-//import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
+//import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
 //import de.tudresden.gis.fusion.operation.AOperationInstance;
 //import de.tudresden.gis.fusion.operation.enhancement.LineIntersection;
 //import de.tudresden.gis.fusion.operation.enhancement.MultiToSinglepart;
@@ -24,7 +24,7 @@
 //import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
 //import de.tudresden.gis.fusion.operation.io.ShapefileParser;
 //import de.tudresden.gis.fusion.operation.mapping.BestCorrespondenceMapping;
-//import de.tudresden.gis.fusion.operation.measurement.BoundingBoxDistance;
+//import de.tudresden.gis.fusion.operation.measurement.BoundingBoxOverlap;
 //import de.tudresden.gis.fusion.operation.measurement.DamerauLevenshteinDistance;
 //import de.tudresden.gis.fusion.operation.measurement.HausdorffDistance;
 //
@@ -37,7 +37,7 @@
 //
 //		ShapefileParser parserShape = new ShapefileParser();
 //		OSMXMLParser parserOSM = new OSMXMLParser();
-//		FeatureRelationCollection relations;
+//		BinaryFeatureRelationCollection relations;
 //
 //		Map<String,IData> input = new HashMap<String,IData>();
 //
@@ -65,12 +65,12 @@
 //
 //		//bbox measurement
 //		input.clear();
-//		BoundingBoxDistance process_bbox = new BoundingBoxDistance();
+//		BoundingBoxOverlap process_bbox = new BoundingBoxOverlap();
 //		input.put("IN_SOURCE", source);
 //		input.put("IN_TARGET", target);
 //		input.put("IN_THRESHOLD", new DecimalLiteral(0.0005));
 //		output = process_bbox.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_bbox, relations.resolve().size() + " relations");
 //
 //		//angle difference
@@ -82,7 +82,7 @@
 //		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
 //		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
 //		output = process_angle.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_angle, relations.resolve().size() + " relations");
 //
 //		//hausdorff distance
@@ -93,7 +93,7 @@
 //		input.put("IN_RELATIONS", relations);
 //		input.put("IN_THRESHOLD", new DecimalLiteral(0.0005));
 //		output = process_hd.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_hd, relations.resolve().size() + " relations");
 //
 //		//road names
@@ -106,7 +106,7 @@
 //		input.put("IN_RELATIONS", relations);
 //		input.put("IN_THRESHOLD", new IntegerLiteral(5));
 //		output = process_dld.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_dld, relations.resolve().size() + " relations");
 //
 //		//best correspondences
@@ -115,7 +115,7 @@
 //		input.put("IN_RELATIONS", relations);
 ////		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
 //		output = process_bcm.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_bcm, relations.resolve().size() + " relations");
 //
 //		//Output
@@ -157,7 +157,7 @@
 //					+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 //					+ "http://www.w3.org/2001/XMLSchema#;xsd;"));
 //			output = generator.execute(input);
-//			result = ((URILiteral) output.get("OUT_RESOURCE")).getValue();
+//			result = ((URILiteral) output.get("OUT_RESOURCE")).getLiteral();
 //		}
 //
 //		Runtime runtime = Runtime.getRuntime();

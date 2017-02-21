@@ -6,13 +6,13 @@
 //import de.tudresden.gis.fusion.data.feature.IFeature;
 //import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 //import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
-//import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
+//import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
 //import de.tudresden.gis.fusion.data.relation.IFeatureRelation;
 //import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 //import de.tudresden.gis.fusion.operation.AOperationInstance;
 //import de.tudresden.gis.fusion.operation.ProcessException;
 //import de.tudresden.gis.fusion.operation.constraint.ContraintFactory;
-//import de.tudresden.gis.fusion.operation.constraint.IDataConstraint;
+//import de.tudresden.gis.fusion.operation.constraint.IRuntimeConstraint;
 //import de.tudresden.gis.fusion.operation.constraint.IProcessConstraint;
 //import de.tudresden.gis.fusion.operation.description.IInputDescription;
 //import de.tudresden.gis.fusion.operation.description.IOutputDescription;
@@ -41,7 +41,7 @@
 //	public void execute() throws ProcessException {
 //
 //		//get input
-//		FeatureRelationCollection relations = (FeatureRelationCollection) getInput(IN_RELATIONS);
+//		BinaryFeatureRelationCollection relations = (BinaryFeatureRelationCollection) getInput(IN_RELATIONS);
 //		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
 //
 //		//add best correspondence relations
@@ -55,9 +55,9 @@
 //		setOutput(OUT_RELATIONS, relations);
 //	}
 //
-//	private FeatureRelationCollection filterRelations(FeatureRelationCollection relations) {
+//	private BinaryFeatureRelationCollection filterRelations(BinaryFeatureRelationCollection relations) {
 //
-//		FeatureRelationCollection nRelations = new FeatureRelationCollection();
+//		BinaryFeatureRelationCollection nRelations = new BinaryFeatureRelationCollection();
 //		for(IFeatureRelation relation : relations){
 //			nRelations.add(relation);
 //		}
@@ -69,7 +69,7 @@
 //	 * adds best correspondences
 //	 * @param relations input relations
 //	 */
-//	private void addBestCorrespondences(FeatureRelationCollection relations) {
+//	private void addBestCorrespondences(BinaryFeatureRelationCollection relations) {
 //
 //		//get unique reference feature ids
 //		Collection<IFeature> sourceColl = relations.getSourceFeatures();
@@ -174,12 +174,12 @@
 //		if(inputDescriptions == null){
 //			inputDescriptions = new HashSet<IInputDescription>();
 //			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "Input relations with measurements)",
-//					new IDataConstraint[]{
+//					new IRuntimeConstraint[]{
 //							ContraintFactory.getMandatoryConstraint(IN_RELATIONS),
-//							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryFeatureRelationCollection.class})
 //					}));
 //			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that are not best correspondences are dropped",
-//					new IDataConstraint[]{
+//					new IRuntimeConstraint[]{
 //							ContraintFactory.getBindingConstraint(new Class<?>[]{BooleanLiteral.class})
 //					},
 //					new BooleanLiteral(false)));
@@ -193,9 +193,9 @@
 //			outputDescriptions = new HashSet<IOutputDescription>();
 //			outputDescriptions.add(new OutputDescription(
 //					OUT_RELATIONS, OUT_RELATIONS, "Output relations with correspondence mapping",
-//					new IDataConstraint[]{
+//					new IRuntimeConstraint[]{
 //							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
-//							ContraintFactory.getBindingConstraint(new Class<?>[]{FeatureRelationCollection.class})
+//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryFeatureRelationCollection.class})
 //					}));
 //		}
 //		return outputDescriptions;

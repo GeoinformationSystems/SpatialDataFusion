@@ -1,7 +1,6 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
@@ -15,37 +14,41 @@ import java.util.Map;
 
 public class GridCoverageParserTest {
 
-    private final static IIdentifier IN_RESOURCE = new Identifier("IN_RESOURCE");
+    private final static String IN_RESOURCE = "IN_RESOURCE";
 
-    private final static IIdentifier OUT_COVERAGE = new Identifier("OUT_COVERAGE");
-    private final static IIdentifier OUT_RUNTIME = new Identifier("OUT_RUNTIME");
+    private final static String OUT_COVERAGE = "OUT_COVERAGE";
+    private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
-	@Test
-	public void readGeoTIFF() {
-		readCoverage(new URILiteral(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI()));
-	}
+    @Test
+    public void readGeoTIFF() {
+        readCoverage(new URILiteral(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI()));
+    }
 
-	private void readCoverage(URILiteral resource) {
+    private void readCoverage(URILiteral resource) {
 
-		Map<IIdentifier,IData> input = new HashMap<>();
-		input.put(IN_RESOURCE, resource);
+        GridCoverageParser parser = new GridCoverageParser();
+        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();
+        IIdentifier ID_OUT_COVERAGE = parser.getOutputConnector(OUT_COVERAGE).getIdentifier();
+        IIdentifier ID_OUT_RUNTIME = parser.getOutputConnector(OUT_RUNTIME).getIdentifier();
 
-		GridCoverageParser parser = new GridCoverageParser();
-		Map<IIdentifier,IData> output = parser.execute(input);
+        Map<IIdentifier, IData> input = new HashMap<>();
+        input.put(ID_IN_RESOURCE, resource);
 
-		Assert.assertNotNull(output);
-		Assert.assertTrue(output.containsKey(OUT_COVERAGE));
-		Assert.assertTrue(output.get(OUT_COVERAGE) instanceof GTGridFeature);
+        Map<IIdentifier, IData> output = parser.execute(input);
 
-		GTGridFeature grid = (GTGridFeature) output.get(OUT_COVERAGE);
+        Assert.assertNotNull(output);
+        Assert.assertTrue(output.containsKey(ID_OUT_COVERAGE));
+        Assert.assertTrue(output.get(ID_OUT_COVERAGE) instanceof GTGridFeature);
 
-		Runtime runtime = Runtime.getRuntime();
-		runtime.gc();
-		System.out.print("TEST: " + parser.getIdentifier() + "\n\t" +
-				"bounds: " + grid.getRepresentation().getBounds() + "\n\t" +
-				"feature crs: " + (grid.resolve().getCoordinateReferenceSystem() != null ? grid.resolve().getCoordinateReferenceSystem().getName() : "not set") + "\n\t" +
-				"process runtime (ms): " + ((LongLiteral) output.get(OUT_RUNTIME)).resolve() + "\n\t" +
-				"memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
-	}
+        GTGridFeature grid = (GTGridFeature) output.get(ID_OUT_COVERAGE);
+
+        Runtime runtime = Runtime.getRuntime();
+        runtime.gc();
+        System.out.print("TEST: " + parser.getIdentifier() + "\n\t" +
+                "bounds: " + grid.getRepresentation().getBounds() + "\n\t" +
+                "feature crs: " + (grid.resolve().getCoordinateReferenceSystem() != null ? grid.resolve().getCoordinateReferenceSystem().getName() : "not set") + "\n\t" +
+                "process runtime (ms): " + ((LongLiteral) output.get(ID_OUT_RUNTIME)).resolve() + "\n\t" +
+                "memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
+    }
 
 }

@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.Resource;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 
 public enum Predicates implements IRDFVocabulary {
 
@@ -32,7 +35,7 @@ public enum Predicates implements IRDFVocabulary {
     FEATURE_VIEW("http://tu-dresden.de/uw/geo/gis/fusion/relation#featureView"),
 
     /**
-     * MeasurementData
+     * Measurement
      */
 
     MEASUREMENT_VALUE_RANGE("http://tu-dresden.de/uw/geo/gis/fusion#hasRange"),
@@ -50,20 +53,20 @@ public enum Predicates implements IRDFVocabulary {
     HAS_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#range"),
     ROLE_OF_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfDomain"),
     ROLE_OF_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfRange"),
-    RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),
-
-    ;
+    RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),;
 
     private IResource resource;
 
     /**
      * constructor
+     *
      * @param identifier resource identifier
      */
-    Predicates(String identifier){
-        this.resource = new Resource(new Identifier(identifier));
+    Predicates(String identifier) {
+        this.resource = new Resource(new Identifier(URI.create(identifier)));
     }
 
+    @NotNull
     @Override
     public IResource getResource() {
         return resource;

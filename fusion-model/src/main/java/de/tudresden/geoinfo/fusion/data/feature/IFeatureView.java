@@ -1,10 +1,10 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.ISubject;
+import de.tudresden.geoinfo.fusion.data.IData;
 
 /**
  * view on a feature
  */
-public interface IFeatureView extends ISubject {
+interface IFeatureView extends IData {
 
 }

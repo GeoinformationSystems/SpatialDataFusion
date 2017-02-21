@@ -14,7 +14,7 @@ var basemap_default = "OpenStreetMap";
  * default map reference system
  * @type {ol.proj.Projection}
  */
-var basemap_default_crs = new ol.proj.Projection({ code: 'EPSG:3857', units: 'm', axisOrientation: 'neu' });
+var basemap_default_crs = new ol.proj.Projection({code: 'EPSG:3857', units: 'm', axisOrientation: 'neu'});
 
 /**
  * map div
@@ -42,7 +42,7 @@ var div_info = "info";
  * @param sLayer WMS layer name
  * @param selected flag: select layer
  */
-f_registerWMSBasemap = function(olMap, key, url, sLayer, selected){
+f_registerWMSBasemap = function (olMap, key, url, sLayer, selected) {
     f_registerJSBasemap(olMap, key, f_getWMSLayer(url, sLayer));
     f_registerJSFBasemap(key, url, sLayer, selected);
 };
@@ -54,7 +54,7 @@ f_registerWMSBasemap = function(olMap, key, url, sLayer, selected){
  * @param url WMS base URL
  * @param sLayer WMS layer name
  */
-f_registerWMSBasemapFromJSF = function(olMap, key, url, sLayer){
+f_registerWMSBasemapFromJSF = function (olMap, key, url, sLayer) {
     f_registerJSBasemap(olMap, key, f_getWMSLayer(url, sLayer));
 };
 
@@ -64,7 +64,7 @@ f_registerWMSBasemapFromJSF = function(olMap, key, url, sLayer){
  * @param key OSM layer key
  * @param selected flag: select layer
  */
-f_registerOSMBasemap = function(olMap, key, selected){
+f_registerOSMBasemap = function (olMap, key, selected) {
     f_registerJSBasemap(olMap, key, f_getOSMLayer());
     f_registerJSFBasemap(key, null, null, selected);
 };
@@ -75,7 +75,7 @@ f_registerOSMBasemap = function(olMap, key, selected){
  * @param key basemap layer key
  * @param olLayer OpenLayers layer object
  */
-f_registerJSBasemap = function(olMap, key, olLayer){
+f_registerJSBasemap = function (olMap, key, olLayer) {
     olMap.addBasemap(key, olLayer);
 };
 
@@ -86,7 +86,7 @@ f_registerJSBasemap = function(olMap, key, olLayer){
  * @param sLayer layer name
  * @param selected flag: select layer
  */
-f_registerJSFBasemap = function(key, url, sLayer, selected){
+f_registerJSFBasemap = function (key, url, sLayer, selected) {
     pf_registerBasemap(key, url, sLayer, selected);
 };
 
@@ -98,7 +98,7 @@ f_registerJSFBasemap = function(key, url, sLayer, selected){
  * @param typename WFS layer name
  * @param selected flag: select layer
  */
-f_registerWFSLayer = function(olMap, key, baseURL, typename, selected, style){
+f_registerWFSLayer = function (olMap, key, baseURL, typename, selected, style) {
     f_registerJSLayer(olMap, key, f_getWFSLayer(baseURL, typename, style));
     f_registerJSFLayer(key, baseURL, typename, selected);
 };
@@ -110,7 +110,7 @@ f_registerWFSLayer = function(olMap, key, baseURL, typename, selected, style){
  * @param baseURL WFS base URL
  * @param typename WFS layer name
  */
-f_registerWFSLayerFromJSF = function(olMap, key, baseURL, typename, style){
+f_registerWFSLayerFromJSF = function (olMap, key, baseURL, typename, style) {
     f_registerJSLayer(olMap, key, f_getWFSLayer(baseURL, typename, style));
 };
 
@@ -120,7 +120,7 @@ f_registerWFSLayerFromJSF = function(olMap, key, baseURL, typename, style){
  * @param key basemap layer key
  * @param olLayer OpenLayers layer object
  */
-f_registerJSLayer = function(olMap, key, olLayer){
+f_registerJSLayer = function (olMap, key, olLayer) {
     olMap.addVectorLayer(key, olLayer);
 };
 
@@ -131,12 +131,12 @@ f_registerJSLayer = function(olMap, key, olLayer){
  * @param typename layer name
  * @param selected flag: select layer
  */
-f_registerJSFLayer = function(key, baseURL, typename, selected){
+f_registerJSFLayer = function (key, baseURL, typename, selected) {
     pf_registerLayer(key, baseURL, typename, selected);
 };
 
 /**
- * OL map handler
+ * global OL map handler
  * @type {olMap}
  */
 var olMap = new olMap(div_map, basemap_default_crs, 12, [13.73, 51.05], div_coord);
@@ -151,9 +151,26 @@ f_registerWMSBasemap(olMap, "WFD Quality Classification", "http://localhost:8081
 olMap.initMap(basemap_default);
 
 //register vector layers
-f_registerWFSLayer(olMap, "River Network", "http://localhost:8081/geoserver/gi/wfs", "gi:sn_river_network", false, new ol.style.Style({stroke: new ol.style.Stroke({color:'#0000DD', width:2 })}))
-f_registerWFSLayer(olMap, "Designated Flood Plains", "http://localhost:8081/geoserver/gi/wfs", "gi:ueg", false, new ol.style.Style({stroke: new ol.style.Stroke({color:'#0000DD',width:2}), fill: new ol.style.Fill({color:'rgba(16,170,220,0.6)'})}))
-f_registerWFSLayer(olMap, "COBWEB Observations", "http://localhost:8081/geoserver/gi/wfs", "gi:cobweb", false, new ol.style.Style({image: new ol.style.Circle({stroke: new ol.style.Stroke({color:'#118C00',width:1}), fill: new ol.style.Fill({color: '#118C00'}), radius: 3})}))
+f_registerWFSLayer(olMap, "River Network", "http://localhost:8081/geoserver/gi/wfs", "gi:sn_river_network", false, new ol.style.Style({
+    stroke: new ol.style.Stroke({
+        color: '#0000DD',
+        width: 2
+    })
+}))
+f_registerWFSLayer(olMap, "Designated Flood Plains", "http://localhost:8081/geoserver/gi/wfs", "gi:ueg", false, new ol.style.Style({
+    stroke: new ol.style.Stroke({
+        color: '#0000DD',
+        width: 1
+    }), fill: new ol.style.Fill({color: 'rgba(16,170,220,0.6)'})
+}))
+f_registerWFSLayer(olMap, "COBWEB Observations", "http://localhost:8081/geoserver/gi/wfs", "gi:cobweb", false, new ol.style.Style({
+    image: new ol.style.Circle({
+        stroke: new ol.style.Stroke({
+            color: '#118C00',
+            width: 1
+        }), fill: new ol.style.Fill({color: '#118C00'}), radius: 3
+    })
+}))
 
 //register interactions
 olMap.f_registerInteractions();

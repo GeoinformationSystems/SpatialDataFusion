@@ -1,16 +1,28 @@
 package de.tudresden.geoinfo.fusion.data.rdf;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.net.URI;
 
 /**
- * RDF identifier
+ * resource identifier
  */
 public interface IIdentifier {
 
     /**
-     * get URI representation for this identifier
-     * @return URI representation
+     * get global identifier
+     *
+     * @return global identifier
      */
-    URI toURI();
+    @NotNull
+    URI getURI();
+
+    /**
+     * check identifier for equality
+     *
+     * @param identifier input identifier
+     * @return true, if identifiers are equal
+     */
+    boolean equals(@NotNull IIdentifier identifier);
 
 }

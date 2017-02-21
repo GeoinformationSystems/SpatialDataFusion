@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.Resource;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 
 public enum Description implements IRDFVocabulary {
 
@@ -35,20 +38,20 @@ public enum Description implements IRDFVocabulary {
     RANGE_IS_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#isContinuous"),
     MEASUREMENT_UOM("http://tu-dresden.de/uw/geo/gis/fusion/relation#uom"),
     MEASUREMENT_PROCESS("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurementProcess"),
-    OPERATION("http://tu-dresden.de/uw/geo/gis/fusion/relation#operation"),
-
-    ;
+    OPERATION("http://tu-dresden.de/uw/geo/gis/fusion/relation#operation"),;
 
     private IResource resource;
 
     /**
      * constructor
+     *
      * @param identifier resource identifier
      */
-    Description(String identifier){
-        this.resource = new Resource(new Identifier(identifier));
+    Description(String identifier) {
+        this.resource = new Resource(new Identifier(URI.create(identifier)));
     }
 
+    @NotNull
     @Override
     public IResource getResource() {
         return resource;

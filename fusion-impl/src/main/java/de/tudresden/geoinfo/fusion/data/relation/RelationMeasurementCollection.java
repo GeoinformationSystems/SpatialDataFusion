@@ -1,125 +1,104 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
 import com.google.common.collect.Sets;
-import de.tudresden.geoinfo.fusion.data.Graph;
-import de.tudresden.geoinfo.fusion.data.feature.IFeature;
+import de.tudresden.geoinfo.fusion.data.DataCollection;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Predicates;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * collection of relation measurements
  */
-public class RelationMeasurementCollection extends Graph<IRelationMeasurement> {
+public class RelationMeasurementCollection extends DataCollection<IRelationMeasurement> {
 
-	/**
-	 * feature identifier with associated relations
-	 */
-	private HashMap<IIdentifier,Set<IRelationMeasurement>> measurementIndex;
+    /**
+     * feature identifier with associated relations
+     */
+    private HashMap<IIdentifier, Set<IRelationMeasurement>> measurementIndex;
 
-	/**
-	 * constructor
-	 * @param identifier resource identifier
-	 * @param measurements input measurements
-	 * @param metadata relation collection metadata
-	 */
-	public RelationMeasurementCollection(IIdentifier identifier, Collection<IRelationMeasurement> measurements, IMetadataForData metadata) {
-		super(identifier, measurements, metadata);
-		//insert member objects
-		initIndex();
-	}
+    /**
+     * constructor
+     *
+     * @param identifier   resource identifier
+     * @param measurements input measurements
+     */
+    public RelationMeasurementCollection(@Nullable IIdentifier identifier, @Nullable Collection<IRelationMeasurement> measurements, @Nullable IMetadata metadata) {
+        super(identifier, measurements != null ? measurements : new HashSet<>(), metadata);
+        measurementIndex = new HashMap<>();
+        for (IRelationMeasurement measurement : this.resolve()) {
+            this.addToIndex(measurement);
+        }
+    }
 
-	/**
-	 * constructor
-	 * @param identifier resource identifier
-	 * @param metadata relation collection metadata
-	 */
-	public RelationMeasurementCollection(IIdentifier identifier, IMetadataForData metadata) {
-		this(identifier, new HashSet<>(), metadata);
-	}
-	
-	/**
-	 * add RDF member object
-	 */
-	private void addMember(IRelationMeasurement measurement) {
-		put(Predicates.MEMBER.getResource(), measurement);
-	}
-	
-	/**
-	 * add relation to index
-	 * @param measurement input relation
-	 */
-	private void addToIndex(IRelationMeasurement measurement){
-		this.resolve().add(measurement);
+    /**
+     * constructor
+     *
+     * @param identifier resource identifier
+     */
+    public RelationMeasurementCollection(@Nullable IIdentifier identifier, @Nullable IMetadata metadata) {
+        this(identifier, new HashSet<>(), metadata);
+    }
+
+    /**
+     * add relation to index
+     *
+     * @param measurement input measurement
+     */
+    public void addToIndex(IRelationMeasurement measurement) {
         addToIndex(measurement.getDomain().getIdentifier(), measurement);
         addToIndex(measurement.getRange().getIdentifier(), measurement);
-	}
-	
-	/**
-	 * add relation to key
-	 * @param key relation key
-	 * @param measurement relation to associate with key
-	 */
-	private void addToIndex(IIdentifier key, IRelationMeasurement measurement) {
-		//add to key
-		if(measurementIndex.containsKey(key))
-			measurementIndex.get(key).add(measurement);
-		//create new key
-		else {
+    }
+
+    /**
+     * add relation to key
+     *
+     * @param key         relation key
+     * @param measurement relation to associate with key
+     */
+    public void addToIndex(@NotNull IIdentifier key, @NotNull IRelationMeasurement measurement) {
+        if (measurementIndex.containsKey(key))
+            measurementIndex.get(key).add(measurement);
+        else {
             Set<IRelationMeasurement> measurements = Sets.newHashSet(measurement);
-			measurementIndex.put(key, measurements);
-		}
-	}
-	
-	/**
-	 * initialize collection index
-	 */
-	public void initIndex(){
-		measurementIndex = new HashMap<>();
-		addAll(resolve());
-	}
-	
-	/**
-	 * add relation to index
-	 * @param measurement input relation
-	 */
-	public void add(IRelationMeasurement measurement){
-		//add to member collection
-		addMember(measurement);
-		//add to index
-		addToIndex(measurement);
-	}
-	
-	/**
-	 * add relation collection to index
-	 * @param measurements input relations
-	 */
-	public void addAll(Collection<IRelationMeasurement> measurements){
-		for(IRelationMeasurement measurement : measurements){
-			add(measurement);
-		}
-	}
+            measurementIndex.put(key, measurements);
+        }
+    }
 
-	@Override
-	public Collection<IRelationMeasurement> resolve(){
-		return super.resolve();
-	}
+    /**
+     * add measurement to measurements
+     *
+     * @param measurement input measurement
+     */
+    public void add(@NotNull IRelationMeasurement measurement) {
+        if (measurement instanceof RelationMeasurement)
+            this.resolve().add(measurement);
+    }
 
-	@Override
-	public Iterator<IRelationMeasurement> iterator() {
-		return resolve().iterator();
-	}
+    /**
+     * add relation collection to index
+     *
+     * @param measurements input relations
+     */
+    public void addAll(@NotNull Collection<IRelationMeasurement> measurements) {
+        for (IRelationMeasurement measurement : measurements) {
+            add(measurement);
+        }
+    }
 
-	
-	/**
-	 * get measurements associated with a feature
-	 * @param feature input feature
-	 * @return measurements associated with input feature
-	 */
-	public Set<IRelationMeasurement> getMeasurements(IFeature feature) {
-		return measurementIndex.get(feature.getIdentifier());
-	}
-	
+    /**
+     * get measurements associated with an identifier
+     *
+     * @param identifier input identifier
+     * @return measurements associated with input identifier
+     */
+    public Set<IRelationMeasurement> getMeasurements(IIdentifier identifier) {
+        return measurementIndex.get(identifier);
+    }
+
 }

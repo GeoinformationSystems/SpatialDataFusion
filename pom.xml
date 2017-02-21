@@ -1,56 +1,57 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>de.tudresden.geoinfo</groupId>
-  <artifactId>fusion-parent</artifactId>
-  <version>0.3</version>
-  <packaging>pom</packaging>
-  
-  <build>
-	 	<plugins>
-	 		<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
-				<configuration>
-				 	<source>1.8</source>
-				  	<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	
-   <modules>
-		<module>fusion-model</module>
-		<module>fusion-impl</module>
-	    <module>fusion-webapp</module>
-	    <module>wbs-client</module>
-   </modules>
-   
-   <dependencyManagement>
-	<dependencies>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-model</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-impl</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>fusion-webapp</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>wbs-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-	</dependencies>
-	</dependencyManagement>	
-	
-   
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.tudresden.geoinfo</groupId>
+    <artifactId>fusion-parent</artifactId>
+    <version>0.4-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <modules>
+        <module>fusion-model</module>
+        <module>fusion-impl</module>
+        <module>fusion-webapp</module>
+        <module>wbs-client</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>fusion-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>fusion-impl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>fusion-webapp</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>wbs-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
 </project>

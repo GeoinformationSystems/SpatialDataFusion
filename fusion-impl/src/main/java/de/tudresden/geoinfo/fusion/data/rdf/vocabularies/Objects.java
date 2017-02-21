@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.Resource;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 
 public enum Objects implements IRDFVocabulary {
 
@@ -32,6 +35,16 @@ public enum Objects implements IRDFVocabulary {
     GEOMETRY("http://www.opengis.net/ont/geosparql#Geometry"),
     WKT_LITERAL("http://www.opengis.net/ont/geosparql#wktLiteral"),
     GML_LITERAL("http://www.opengis.net/ont/geosparql#gmlLiteral"),
+
+    /**
+     * GeoJSON Vocabulary
+     */
+    FEATURE_COLLECTION("https://purl.org/geojson/vocab#FeatureCollection"),
+
+    /**
+     * SSN Vocabulary
+     */
+    OBSERVATION("http://purl.oclc.org/NET/ssnx/ssn#Observation"),
 
     /**
      * W3C Geo Lat/Lon
@@ -78,23 +91,26 @@ public enum Objects implements IRDFVocabulary {
      */
 
     RELATION("http://tu-dresden.de/uw/geo/gis/fusion#relation"),
+    RELATION_COLLECTION("http://tu-dresden.de/uw/geo/gis/fusion#relationCollection"),
     BINARY_RELATION("http://tu-dresden.de/uw/geo/gis/fusion#binaryRelation"),
+    MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion#measurement"),
     RELATION_MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion#relationMeasurement"),
+    RELATION_MEASUREMENT_COLLECTION("http://tu-dresden.de/uw/geo/gis/fusion#relationMeasurementCollection"),
     RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion#relationType"),
-    ROLE("http://tu-dresden.de/uw/geo/gis/fusion#role"),
-
-    ;
+    ROLE("http://tu-dresden.de/uw/geo/gis/fusion#role"),;
 
     private IResource resource;
 
     /**
      * constructor
+     *
      * @param identifier resource identifier
      */
-    Objects(String identifier){
-        this.resource = new Resource(new Identifier(identifier));
+    Objects(String identifier) {
+        this.resource = new Resource(new Identifier(URI.create(identifier)));
     }
 
+    @NotNull
     @Override
     public IResource getResource() {
         return resource;

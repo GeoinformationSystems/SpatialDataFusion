@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.Resource;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 
 public enum Relations implements IRDFVocabulary {
 
@@ -30,20 +33,20 @@ public enum Relations implements IRDFVocabulary {
      * mereological relationships
      */
     MEREOLOGY_HASPART("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#hasPart"),
-    MEREOLOGY_PARTOF("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#partOf"),
-
-    ;
+    MEREOLOGY_PARTOF("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#partOf"),;
 
     private IResource resource;
 
     /**
      * constructor
+     *
      * @param identifier resource identifier
      */
-    Relations(String identifier){
-        this.resource = new Resource(new Identifier(identifier));
+    Relations(String identifier) {
+        this.resource = new Resource(new Identifier(URI.create(identifier)));
     }
 
+    @NotNull
     @Override
     public IResource getResource() {
         return resource;

@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.Resource;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+
+import java.net.URI;
 
 public enum Units implements IRDFVocabulary {
 
@@ -30,20 +33,20 @@ public enum Units implements IRDFVocabulary {
 
     UNDEFINED("http://tu-dresden.de/uw/geo/gis/fusion/uom#undefined"),
     UNKNOWN("http://tu-dresden.de/uw/geo/gis/fusion/uom#unknown"),
-    MAP_UNITS("http://tu-dresden.de/uw/geo/gis/fusion/uom#mapUnits"),
-
-    ;
+    MAP_UNITS("http://tu-dresden.de/uw/geo/gis/fusion/uom#mapUnits"),;
 
     private IResource resource;
 
     /**
      * constructor
+     *
      * @param identifier resource identifier
      */
-    Units(String identifier){
-        this.resource = new Resource(new Identifier(identifier));
+    Units(String identifier) {
+        this.resource = new Resource(new Identifier(URI.create(identifier)));
     }
 
+    @NotNull
     @Override
     public IResource getResource() {
         return resource;

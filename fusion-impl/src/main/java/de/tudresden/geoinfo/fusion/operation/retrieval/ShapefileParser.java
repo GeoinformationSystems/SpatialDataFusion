@@ -7,8 +7,10 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollect
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.MetadataForConnector;
-import de.tudresden.geoinfo.fusion.operation.*;
+import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
+import de.tudresden.geoinfo.fusion.operation.IInputConnector;
+import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
+import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
 import org.geotools.data.DataUtilities;
@@ -20,107 +22,90 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ShapefileParser extends AbstractOperation {
 
-	private static final IIdentifier PROCESS = new Identifier(ShapefileParser.class.getSimpleName());
+    private static final String PROCESS_TITLE = ShapefileParser.class.getSimpleName();
+    private static final String PROCESS_DESCRIPTION = "Parser for Esri Shapefile format";
 
-	private final static IIdentifier IN_RESOURCE = new Identifier("IN_RESOURCE");
-	private final static IIdentifier IN_WITH_INDEX = new Identifier("IN_WITH_INDEX");
+    private final static String IN_RESOURCE_TITLE = "IN_RESOURCE";
+    private final static String IN_RESOURCE_DESCRIPTION = "Shapefile resource";
+    private final static String IN_WITH_INDEX_TITLE = "IN_WITH_INDEX";
+    private final static String IN_WITH_INDEX_DESCRIPTION = "Flag: create spatial index";
 
-	private final static IIdentifier OUT_FEATURES = new Identifier("OUT_FEATURES");
+    private final static String OUT_FEATURES_TITLE = "OUT_FEATURES";
+    private final static String OUT_FEATURES_DESCRIPTION = "Parsed feature collection";
 
-	/**
-	 * constructor
-	 */
-	public ShapefileParser() {
-		super(PROCESS);
-	}
-	
-	@Override
-	public void execute() {
-		//get input connectors
-		IInputConnector resourceConnector = getInputConnector(IN_RESOURCE);
-		IInputConnector indexConnector = getInputConnector(IN_WITH_INDEX);
-		//get data
-		URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
-		boolean withIndex = ((BooleanLiteral) indexConnector.getData()).resolve();
-		//parse features
-		AbstractFeatureCollection<?> features;
-		try {
-			features = parseShape(resourceURI.toURL(), withIndex);
-		} catch (IOException e) {
-			throw new RuntimeException("Could not parse Shapefile", e);
-		}
-		//set output connector
-		connectOutput(OUT_FEATURES, features);
-	}
+    /**
+     * constructor
+     */
+    public ShapefileParser() {
+        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    }
 
-	/**
-	 * parse shapefile
-	 * @param resourceURL shapefile URL
-	 * @param withIndex flag: return indexed collection
-	 * @return feature collection
-	 * @throws IOException
-	 */
-	private AbstractFeatureCollection<?> parseShape(URL resourceURL, boolean withIndex) throws IOException {
-		ShapefileDataStore store = new ShapefileDataStore(resourceURL);
-		store.setCharset(StandardCharsets.UTF_8);
+    @Override
+    public void execute() {
+        //get input connectors
+        IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
+        IInputConnector indexConnector = getInputConnector(IN_WITH_INDEX_TITLE);
+        //get data
+        URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
+        boolean withIndex = ((BooleanLiteral) indexConnector.getData()).resolve();
+        //parse features
+        AbstractFeatureCollection<?> features;
+        try {
+            features = parseShape(resourceURI.toURL(), withIndex);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not parse Shapefile", e);
+        }
+        //set output connector
+        connectOutput(OUT_FEATURES_TITLE, features);
+    }
+
+    /**
+     * parse shapefile
+     *
+     * @param resourceURL shapefile URL
+     * @param withIndex   flag: return indexed collection
+     * @return feature collection
+     * @throws IOException
+     */
+    private AbstractFeatureCollection<?> parseShape(URL resourceURL, boolean withIndex) throws IOException {
+        ShapefileDataStore store = new ShapefileDataStore(resourceURL);
+        store.setCharset(StandardCharsets.UTF_8);
         String name = store.getTypeNames()[0];
         SimpleFeatureSource source = store.getFeatureSource(name);
         SimpleFeatureCollection shapeFC = DataUtilities.collection(source.getFeatures().features());
         store.dispose();
-		IIdentifier identifier = new Identifier(resourceURL.toString());
-        if(withIndex)
-        	return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, shapeFC), null);
+        IIdentifier identifier = new Identifier(resourceURL.toString());
+        if (withIndex)
+            return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, shapeFC), null);
         else
-        	return new GTFeatureCollection(identifier, shapeFC, null);
-	}
+            return new GTFeatureCollection(identifier, shapeFC, null);
+    }
 
     @Override
-    public Map<IIdentifier,IInputConnector> initInputConnectors() {
-        Map<IIdentifier,IInputConnector> inputConnectors = new HashMap<>();
-        inputConnectors.put(IN_RESOURCE, new InputConnector(
-                IN_RESOURCE,
-                new MetadataForConnector(IN_RESOURCE.toString(), "Link to input Shapefile"),
-                new IDataConstraint[]{
+    public void initializeInputConnectors() {
+        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(URILiteral.class),
                         new MandatoryConstraint()},
                 null,
-                null));
-        inputConnectors.put(IN_WITH_INDEX, new InputConnector(
-                IN_WITH_INDEX,
-                new MetadataForConnector(IN_WITH_INDEX.toString(), "Flag: create spatial index"),
-                new IDataConstraint[]{
+                null);
+        addInputConnector(IN_WITH_INDEX_TITLE, IN_WITH_INDEX_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new BooleanLiteral(false)));
-        return inputConnectors;
+                new InputData(new BooleanLiteral(false)).getOutputConnector());
     }
 
     @Override
-    public Map<IIdentifier,IOutputConnector> initOutputConnectors() {
-        Map<IIdentifier,IOutputConnector> outputConnectors = new HashMap<>();
-        outputConnectors.put(OUT_FEATURES, new OutputConnector(
-                OUT_FEATURES,
-                new MetadataForConnector(OUT_FEATURES.toString(), "Output feature collection"),
-                new IDataConstraint[]{
+    public void initializeOutputConnectors() {
+        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryConstraint()},
-                null));
-        return outputConnectors;
+                null);
     }
-
-	@Override
-	public String getProcessTitle() {
-		return "Shapefile Parser";
-	}
-
-	@Override
-	public String getProcessAbstract() {
-		return "Parser for Shapefile format";
-	}
 
 }

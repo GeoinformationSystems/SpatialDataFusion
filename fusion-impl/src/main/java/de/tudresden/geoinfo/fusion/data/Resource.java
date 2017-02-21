@@ -2,59 +2,66 @@ package de.tudresden.geoinfo.fusion.data;
 
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * RDF resource implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
 public class Resource implements IResource {
-	
-	/**
-	 * resource uri
-	 */
-	private IIdentifier identifier;
+
+    private IIdentifier identifier;
+    private String title, description;
 
     /**
      * constructor
-     * @param identifier resource identifier uri
+     *
+     * @param identifier  resource identifier
+     * @param title       resource title
+     * @param description resource description
      */
-    public Resource(IIdentifier identifier){
-        this.identifier = identifier;
+    public Resource(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description) {
+        this.identifier = identifier != null ? identifier : new Identifier();
+        this.title = title != null ? title : this.identifier.toString();
+        this.description = description;
     }
 
     /**
      * constructor
-     * @param empty flag: create empty node, otherwise a random identifier is created
+     *
+     * @param identifier resource identifier
      */
-    public Resource(boolean empty){
-        this(empty ? null : new Identifier());
+    public Resource(@NotNull IIdentifier identifier) {
+        this(identifier, null, null);
     }
 
     /**
-     * empty constructor, creates empty node
+     * constructor
+     *
+     * @param title resource title
      */
-    public Resource(){
-        this(true);
+    public Resource(@NotNull String title) {
+        this(null, title, null);
     }
 
-	@Override
-	public IIdentifier getIdentifier() {
-		return identifier;
-	}
-
-	@Override
-    public boolean isBlank(){
-        return identifier == null;
+    @Override
+    public @NotNull IIdentifier getIdentifier() {
+        return identifier;
     }
 
-	@Override
-    public boolean equals(Object resource){
-	    //not equal if object is null or no Resource
-        if(resource == null || resource instanceof Resource)
-            return false;
-        //equal, if resource URI equals this.identifier
-        return((Resource) resource).getIdentifier().equals(identifier);
+    @Override
+    public @NotNull String getTitle() {
+        return title;
     }
-	
+
+    @Override
+    public @Nullable String getDescription() {
+        return description;
+    }
+
+    @Override
+    public boolean isBlank() {
+        return false;
+    }
+
 }

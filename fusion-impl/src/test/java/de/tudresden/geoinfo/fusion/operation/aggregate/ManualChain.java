@@ -15,11 +15,11 @@
 //import de.tudresden.gis.fusion.data.literal.LongLiteral;
 //import de.tudresden.gis.fusion.data.literal.StringLiteral;
 //import de.tudresden.gis.fusion.data.literal.URILiteral;
-//import de.tudresden.gis.fusion.data.relation.FeatureRelationCollection;
+//import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
 //import de.tudresden.gis.fusion.operation.AOperationInstance;
 //import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
 //import de.tudresden.gis.fusion.operation.io.ShapefileParser;
-//import de.tudresden.gis.fusion.operation.measurement.BoundingBoxDistance;
+//import de.tudresden.gis.fusion.operation.measurement.BoundingBoxOverlap;
 //
 //public class ManualChain {
 //
@@ -42,12 +42,12 @@
 //				"number of target features: " + target.size() + "\n\t");
 //
 //		//Process 1
-//		BoundingBoxDistance process1 = new BoundingBoxDistance();
+//		BoundingBoxOverlap process1 = new BoundingBoxOverlap();
 //		input.put("IN_SOURCE", reference);
 //		input.put("IN_TARGET", target);
 //		input.put("IN_THRESHOLD", new DecimalLiteral(50));
 //		output = process1.execute(input);
-//		FeatureRelationCollection relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		BinaryFeatureRelationCollection relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //
 //		systemOut(process1, relations.resolve().size() + " relations");
 //
@@ -60,7 +60,7 @@
 //		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
 //		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
 //		output = process2.execute(input);
-//		relations = (FeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //
 //		systemOut(process2, relations.resolve().size() + " relations");
 //
@@ -79,7 +79,7 @@
 //		output = generator.execute(input);
 //		URILiteral fileURI = (URILiteral) output.get("OUT_RESOURCE");
 //
-//		systemOut(generator, fileURI.getValue());
+//		systemOut(generator, fileURI.getLiteral());
 //
 //	}
 //

@@ -4,48 +4,59 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Operations;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
-import de.tudresden.geoinfo.fusion.metadata.IMeasurementRange;
-import de.tudresden.geoinfo.fusion.metadata.MetadataForConnector;
-import de.tudresden.geoinfo.fusion.operation.IDataConstraint;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
-import de.tudresden.geoinfo.fusion.operation.InputConnector;
+import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
+import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
- * bounding box distance
+ * Hausdorff distance
  */
 public class HausdorffDistance extends AbstractRelationMeasurement {
 
-    private static final IIdentifier PROCESS = new Identifier(HausdorffDistance.class.getSimpleName());
+    private static final String PROCESS_TITLE = HausdorffDistance.class.getSimpleName();
+    private static final String PROCESS_DESCRIPTION = "Determines feature relation based on Hausdorff distance";
 
-    private final static IIdentifier IN_THRESHOLD = new Identifier("IN_THRESHOLD");
-    private final static IIdentifier IN_BIDIRECTIONAL = new Identifier("IN_BIDIRECTIONAL");
-    private final static IIdentifier IN_POINTS_ONLY = new Identifier("IN_POINTS_ONLY");
-
-    private static final IResource MEASUREMENT_OPERATION = Operations.GEOMETRY_DISTANCE_HAUSDORFF.getResource();
-    private static final IResource MEASUREMENT_TYPE = Objects.DECIMAL.getResource();
+    private static final IMeasurementRange<Double> MEASUREMENT_RANGE = DecimalLiteral.getPositiveRange();
+    private static final String MEASUREMENT_TITLE = "Hausdorff distance";
+    private static final String MEASUREMENT_DESCRIPTION = "Hausdorff between geometries";
     private static final IResource MEASUREMENT_UNIT = Units.MAP_UNITS.getResource();
+
+    private static final String IN_THRESHOLD_TITLE = "IN_THRESHOLD";
+    private static final String IN_THRESHOLD_DESCRIPTION = "Distance threshold for creating a relation, in map units";
+    private static final String IN_BIDIRECTIONAL_TITLE = "IN_BIDIRECTIONAL";
+    private static final String IN_BIDIRECTIONAL_DESCRIPTION = "Flag: calculate bidirectional Hausdorff distance";
+    private static final String IN_POINTS_ONLY_TITLE = "IN_POINTS_ONLY";
+    private static final String IN_POINTS_ONLY_DESCRIPTION = "Flag: calculate Hausdorff distance for points only";
+
+
+    private double dThreshold;
+    private boolean bBidirectional;
+    private boolean bPointsOnly;
 
     /**
      * constructor
      */
     public HausdorffDistance() {
-        super(PROCESS);
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    }
+
+    @Override
+    public void execute() {
+        this.dThreshold = ((DecimalLiteral) getInputConnector(IN_THRESHOLD_TITLE).getData()).resolve();
+        this.bBidirectional = ((BooleanLiteral) getInputConnector(IN_BIDIRECTIONAL_TITLE).getData()).resolve();
+        this.bPointsOnly = ((BooleanLiteral) getInputConnector(IN_POINTS_ONLY_TITLE).getData()).resolve();
+        super.execute();
     }
 
     @Override
@@ -55,21 +66,16 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
         Geometry gRange = (Geometry) rangeFeature.getRepresentation().getDefaultGeometry();
         if (gDomain == null || gRange == null)
             return null;
-        double dThreshold = ((DecimalLiteral) getInputConnector(IN_THRESHOLD).getData()).resolve();
-
-        //get additional inputs
-        boolean bBidirectional = ((BooleanLiteral) getInputConnector(IN_BIDIRECTIONAL).getData()).resolve();
-        boolean bPointsOnly = ((BooleanLiteral) getInputConnector(IN_POINTS_ONLY).getData()).resolve();
 
         //check for overlap
         if (gDomain.intersects(gRange))
-            return new RelationMeasurement(null, domainFeature, rangeFeature, DecimalLiteral.getMeasurement(0, getMetadataForMeasurement()));
+            return new RelationMeasurement<>(null, domainFeature, rangeFeature, 0d, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT);
         else {
             //check distance
-            double dDistance = getDistance(gDomain, gRange, bPointsOnly, bBidirectional);
+            double dDistance = getHDDistance(gDomain, gRange);
             if (dDistance <= dThreshold)
-                return new RelationMeasurement(null, domainFeature, rangeFeature, DecimalLiteral.getMeasurement(dDistance, getMetadataForMeasurement()));
-            //return null if distance > threshold
+                return new RelationMeasurement<>(null, domainFeature, rangeFeature, dDistance, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT);
+                //return null if distance > threshold
             else
                 return null;
         }
@@ -77,39 +83,39 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
 
     /**
      * calculates hausdorff distance
+     *
      * @param gDomain reference geometry
-     * @param gRange target geometry
-     * @param bBidirectional bidirectional flag
-     * @param bPointsOnly points only flag
+     * @param gRange  target geometry
      * @return hausdorff distance
      * @throws IOException
      */
-    private double getDistance(Geometry gDomain, Geometry gRange, boolean bPointsOnly, boolean bBidirectional) {
-        if(bPointsOnly && bBidirectional)
-            return(Math.min(getDistance(gDomain.getCoordinates(), gRange.getCoordinates()), getDistance(gRange.getCoordinates(), gDomain.getCoordinates())));
-        else if(bBidirectional)
-            return(Math.min(getDistance(gDomain.getCoordinates(), gRange), getDistance(gRange.getCoordinates(), gDomain)));
-        else if(bPointsOnly)
-            return(getDistance(gDomain.getCoordinates(), gRange.getCoordinates()));
+    private double getHDDistance(Geometry gDomain, Geometry gRange) {
+        if (bPointsOnly && bBidirectional)
+            return (Math.min(getHDDistance(gDomain.getCoordinates(), gRange.getCoordinates()), getHDDistance(gRange.getCoordinates(), gDomain.getCoordinates())));
+        else if (bBidirectional)
+            return (Math.min(getHDDistance(gDomain.getCoordinates(), gRange), getHDDistance(gRange.getCoordinates(), gDomain)));
+        else if (bPointsOnly)
+            return (getHDDistance(gDomain.getCoordinates(), gRange.getCoordinates()));
         else
-            return(getDistance(gDomain.getCoordinates(), gRange));
+            return (getHDDistance(gDomain.getCoordinates(), gRange));
     }
 
     /**
      * calculates hausdorff distance (points only)
+     *
      * @param coords1 reference points
      * @param coords2 target points
      * @return hausdorff distance
      */
-    private double getDistance(Coordinate[] coords1, Coordinate[] coords2) {
+    private double getHDDistance(Coordinate[] coords1, Coordinate[] coords2) {
         double distMin = Double.MAX_VALUE;
         double maxDistMin = Double.MIN_VALUE;
-        for(Coordinate coord1 : coords1){
-            for(Coordinate coord2 : coords2){
+        for (Coordinate coord1 : coords1) {
+            for (Coordinate coord2 : coords2) {
                 double dist_tmp = coord1.distance(coord2);
-                if(dist_tmp < distMin) distMin = dist_tmp;
+                if (dist_tmp < distMin) distMin = dist_tmp;
             }
-            if(distMin > maxDistMin)
+            if (distMin > maxDistMin)
                 maxDistMin = distMin;
             distMin = 9999;
         }
@@ -118,94 +124,48 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
 
     /**
      * calculates hausdorff distance (distance point - geometry)
+     *
      * @param coords1 reference points
-     * @param target target geometry
+     * @param target  target geometry
      * @return hausdorff distance
      */
-    private double getDistance(Coordinate[] coords1, Geometry target) {
+    private double getHDDistance(Coordinate[] coords1, Geometry target) {
         //set default values
         double maxDistMin = Double.MIN_VALUE;
         //convert coordinates to points
         GeometryFactory gf = new GeometryFactory();
         Point[] points = new Point[coords1.length];
-        for(int i=0; i<coords1.length; i++){
+        for (int i = 0; i < coords1.length; i++) {
             points[i] = gf.createPoint(coords1[i]);
         }
         //loop through arrays and find Hausdorff Distance (maximal minimal-distance)
-        for(Point point : points){
+        for (Point point : points) {
             double distMin = point.distance(target);
-            if(distMin > maxDistMin)
+            if (distMin > maxDistMin)
                 maxDistMin = distMin;
         }
         return maxDistMin;
     }
 
     @Override
-    public String getProcessTitle() {
-        return "Hausdorff distance calculation";
-    }
-
-    @Override
-    public String getProcessAbstract() {
-        return "Calculates feature relation based on Hausdorff distance";
-    }
-
-    @Override
-    public Map<IIdentifier,IInputConnector> initInputConnectors() {
-        Map<IIdentifier, IInputConnector> inputConnectors = super.initInputConnectors();
-        inputConnectors.put(IN_BIDIRECTIONAL, new InputConnector(
-                IN_BIDIRECTIONAL,
-                new MetadataForConnector(IN_BIDIRECTIONAL.toString(), "If true, the minimum Hausdorff distance is determined bidirectionally"),
-                new IDataConstraint[]{
+    public void initializeInputConnectors() {
+        super.initializeInputConnectors();
+        addInputConnector(IN_BIDIRECTIONAL_TITLE, IN_BIDIRECTIONAL_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new BooleanLiteral(false)));
-        inputConnectors.put(IN_POINTS_ONLY, new InputConnector(
-                IN_POINTS_ONLY,
-                new MetadataForConnector(IN_POINTS_ONLY.toString(), "If true, the distance is calaculated for points only"),
-                new IDataConstraint[]{
+                new InputData(new BooleanLiteral(false)).getOutputConnector());
+        addInputConnector(IN_POINTS_ONLY_TITLE, IN_POINTS_ONLY_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new BooleanLiteral(false)));
-        inputConnectors.put(IN_THRESHOLD, new InputConnector(
-                IN_THRESHOLD,
-                new MetadataForConnector(IN_THRESHOLD.toString(), "MeasurementData threshold for creating a relation, in map units"),
-                new IDataConstraint[]{
+                new InputData(new BooleanLiteral(false)).getOutputConnector());
+        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+                new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class),
                         new MandatoryConstraint()},
                 null,
-                new DecimalLiteral(0)));
-        return inputConnectors;
-    }
-
-    @Override
-    protected String getMeasurementTitle() {
-        return "Hausdorff distance";
-    }
-
-    @Override
-    protected String getMeasurementDescription() {
-        return "Hausdorff distance between geometries";
-    }
-
-    @Override
-    protected IResource getMeasurementDataType() {
-        return MEASUREMENT_TYPE;
-    }
-
-    @Override
-    protected IResource getMeasurementOperation() {
-        return MEASUREMENT_OPERATION;
-    }
-
-    @Override
-    protected IMeasurementRange getMeasurementRange() {
-        return DecimalLiteral.getPositiveRange();
-    }
-
-    @Override
-    protected IResource getMeasurementUnit() {
-        return MEASUREMENT_UNIT;
+                new InputData(new DecimalLiteral(0)).getOutputConnector());
     }
 
 }

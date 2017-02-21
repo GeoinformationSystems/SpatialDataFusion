@@ -1,53 +1,57 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.Subject;
+import de.tudresden.geoinfo.fusion.data.Data;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.metadata.IMetadataForData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * feature representation implementation
- * @author Stefan Wiemann, TU Dresden
- *
  */
-public abstract class AbstractFeatureRepresentation extends Subject implements IFeatureRepresentation {
+public abstract class AbstractFeatureRepresentation extends Data implements IFeatureRepresentation {
 
-	private IFeatureType type;
-	private IFeatureEntity entity;
-	
-	/**
-	 * constructor
-	 * @param identifier feature identifier
-	 * @param representation feature representation
-	 * @param description feature description
-	 */
-	public AbstractFeatureRepresentation(IIdentifier identifier, Object representation, IMetadataForData description){
-		super(identifier, representation, description);
-	}
+    private IFeatureType type;
+    private IFeatureEntity entity;
 
-	@Override
-	public IFeatureType getRelatedType() {
-		return type;
-	}
+    /**
+     * constructor
+     *
+     * @param identifier     representation identifier
+     * @param representation representation object
+     */
+    public AbstractFeatureRepresentation(@Nullable IIdentifier identifier, @NotNull Object representation, @Nullable IMetadata metadata) {
+        super(identifier, representation, metadata);
+    }
 
-	@Override
-	public IFeatureEntity getRelatedEntity() {
-		return entity;
-	}
+    @NotNull
+    @Override
+    public IFeatureType getRelatedType() {
+        return type;
+    }
 
-	/**
-	 * set feature type
-	 * @param type associated type
-	 */
-	public void setRelatedType(IFeatureType type){
-		this.type = type;
-	}
-	
-	/**
-	 * set feature entity
-	 * @param entity associated entity
-	 */
-	public void setRelatedEntity(IFeatureEntity entity){
-		this.entity = entity;
-	}
+    /**
+     * set feature type
+     *
+     * @param type associated type
+     */
+    public void setRelatedType(@NotNull IFeatureType type) {
+        this.type = type;
+    }
+
+    @NotNull
+    @Override
+    public IFeatureEntity getRelatedEntity() {
+        return entity;
+    }
+
+    /**
+     * set feature entity
+     *
+     * @param entity associated entity
+     */
+    public void setRelatedEntity(@NotNull IFeatureEntity entity) {
+        this.entity = entity;
+    }
 
 }
