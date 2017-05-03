@@ -14,7 +14,7 @@
 //import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 //import de.tudresden.gis.fusion.data.literal.LongLiteral;
 //import de.tudresden.gis.fusion.data.literal.StringLiteral;
-//import de.tudresden.gis.fusion.data.literal.URILiteral;
+//import de.tudresden.gis.fusion.data.literal.URLLiteral;
 //import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
 //import de.tudresden.gis.fusion.operation.AOperationInstance;
 //import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
@@ -29,11 +29,11 @@
 //		ShapefileParser parser = new ShapefileParser();
 //		Map<String,IData> input = new HashMap<String,IData>();
 //
-//		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()));
+//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()));
 //		Map<String,IData> output = parser.execute(input);
 //		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
-//		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI()));
+//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI()));
 //		output = parser.execute(input);
 //		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
@@ -77,7 +77,7 @@
 //				+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 //				+ "http://www.w3.org/2001/XMLSchema#;xsd;"));
 //		output = generator.execute(input);
-//		URILiteral fileURI = (URILiteral) output.get("OUT_RESOURCE");
+//		URLLiteral fileURI = (URLLiteral) output.get("OUT_RESOURCE");
 //
 //		systemOut(generator, fileURI.getLiteral());
 //

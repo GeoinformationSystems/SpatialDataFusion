@@ -6,13 +6,13 @@ import de.tudresden.geoinfo.fusion.data.feature.osm.OSMFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.osm.OSMRelation;
 import de.tudresden.geoinfo.fusion.data.feature.osm.OSMVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,16 +25,16 @@ public class OSMXMLParserTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void readOSMFile() {
-        readOSM(new URILiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
+    public void readOSMFile() throws MalformedURLException {
+        readOSM(new URLLiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI().toURL()));
     }
 
     @Test
-    public void readOSM_Overpass() {
-        readOSM(new URILiteral(URI.create("http://overpass-api.de/api/interpreter?data=[out:xml];%28node%2851.02,13.72,51.03,13.73%29;%3C;%29;out%20meta;")));
+    public void readOSM_Overpass() throws MalformedURLException {
+        readOSM(new URLLiteral("http://overpass-api.de/api/interpreter?data=[out:xml];%28node%2851.02,13.72,51.03,13.73%29;%3C;%29;out%20meta;"));
     }
 
-    private void readOSM(URILiteral resource) {
+    private void readOSM(URLLiteral resource) {
 
         OSMXMLParser parser = new OSMXMLParser();
         IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();

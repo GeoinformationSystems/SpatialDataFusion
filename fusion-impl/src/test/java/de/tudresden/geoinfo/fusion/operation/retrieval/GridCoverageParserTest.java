@@ -3,12 +3,13 @@ package de.tudresden.geoinfo.fusion.operation.retrieval;
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,11 +21,11 @@ public class GridCoverageParserTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void readGeoTIFF() {
-        readCoverage(new URILiteral(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI()));
+    public void readGeoTIFF() throws MalformedURLException {
+        readCoverage(new URLLiteral(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI().toURL()));
     }
 
-    private void readCoverage(URILiteral resource) {
+    private void readCoverage(URLLiteral resource) {
 
         GridCoverageParser parser = new GridCoverageParser();
         IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();

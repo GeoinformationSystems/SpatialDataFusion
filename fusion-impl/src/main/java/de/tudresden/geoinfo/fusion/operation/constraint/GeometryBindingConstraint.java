@@ -48,10 +48,15 @@ public class GeometryBindingConstraint implements IRuntimeConstraint {
         if (target == null)
             return true;
         if (target instanceof IFeature) {
-            Object geometry = ((IFeature) target).getRepresentation().getDefaultGeometry();
-            for (Class<?> binding : geometryBindings) {
-                if (binding.isAssignableFrom(geometry.getClass()))
-                    return true;
+            IFeature feature = (IFeature) target;
+            if(feature.getRepresentation() != null) {
+                Object geometry = feature.getRepresentation().getDefaultGeometry();
+                if(geometry != null) {
+                    for (Class<?> binding : geometryBindings) {
+                        if (binding.isAssignableFrom(geometry.getClass()))
+                            return true;
+                    }
+                }
             }
         }
         return false;

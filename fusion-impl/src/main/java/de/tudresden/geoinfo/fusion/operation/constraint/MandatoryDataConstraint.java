@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Stefan Wiemann, TU Dresden
  */
-public class MandatoryConstraint implements IRuntimeConstraint {
+public class MandatoryDataConstraint implements IRuntimeConstraint {
 
     @Override
     public boolean compliantWith(@Nullable IData data) {

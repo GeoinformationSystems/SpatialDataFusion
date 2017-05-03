@@ -1,149 +1,64 @@
 package de.tudresden.geoinfo.client.beans;
 
+import de.tudresden.geoinfo.client.handler.AbstractOWSHandler;
 import de.tudresden.geoinfo.client.handler.MessageHandler;
 import de.tudresden.geoinfo.client.handler.WPSHandler;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
-import de.tudresden.geoinfo.fusion.operation.WPSProxyOperation;
+import de.tudresden.geoinfo.client.handler.WorkflowHandler;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowNode;
+import de.tudresden.geoinfo.fusion.operation.ows.WFSProxy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.primefaces.context.RequestContext;
-import org.primefaces.json.JSONArray;
 
-import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
+import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.SessionScoped;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-@ManagedBean
+@ManagedBean(name="process")
 @SessionScoped
-public class Process implements Serializable {
+public class Process extends AbstractOWSBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    private WorkflowHandler workflowHandler;
 
-    private Map<String, WPSHandler> gpHandler;
-    private String selection;
-    private String tmp_processKey;
-    private String tmp_processUrl;
-    private String tmp_processSelected;
-    private WPSHandler tmp_processHandler;
-    private JSONArray connections;
-
-    @PostConstruct
-    public void init() {
-        this.gpHandler = new HashMap<>();
+    @Override
+    boolean multiSelect() {
+        return false;
     }
 
-    public Set<String> getProcesses() {
-        return gpHandler.keySet();
+    @Override
+    WPSHandler initOWSHandler(String uid, String sBaseURL) throws IOException {
+        return new WPSHandler(uid, sBaseURL);
     }
 
-    public String getSelection() {
-        return selection;
+    @Override
+    public void registerOWSOffering(AbstractOWSHandler handler, String selectedOffering) {
+        //do nothing
     }
 
-    public void setSelection(String selection) {
-        this.selection = selection;
+    @Override
+    void update() {
+        //do nothing
     }
 
-    public WPSHandler getSelectionHandler() {
-        return this.gpHandler.get(this.getSelection());
+    @Override
+    public WPSHandler getHandler(@NotNull String uid) {
+        return (WPSHandler) super.getHandler(uid);
     }
 
-    public void registerWPSHandler(final String key, final String url, final String sProcess) {
-        if (url == null || url.isEmpty() || sProcess == null || sProcess.isEmpty())
-            return;
-        try {
-            WPSHandler handler = new WPSHandler(url);
-            handler.setProcess(sProcess);
-            this.addWPSHandler(key, handler);
-        } catch (Exception e) {
-            MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "WPS Handler Error", e.getLocalizedMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void addWPSHandler(String key, WPSHandler handler) {
-        this.gpHandler.put(key, handler);
-    }
-
-    public String getTmp_processKey() {
-        return this.tmp_processKey;
-    }
-
-    public void setTmp_processKey(String tmp_processKey) {
-        this.tmp_processKey = tmp_processKey;
-    }
-
-    public String getTmp_processUrl() {
-        return this.tmp_processUrl;
-    }
-
-    public void setTmp_processUrl(String tmp_processUrl) {
-        this.tmp_processUrl = tmp_processUrl;
-    }
-
-    public String getTmp_processSelected() {
-        return this.tmp_processSelected;
-    }
-
-    public void setTmp_processSelected(String tmp_processSelected) {
-        this.tmp_processSelected = tmp_processSelected;
-    }
-
-    public void setTmp_processHandler(WPSHandler tmp_processHandler) {
-        this.tmp_processHandler = tmp_processHandler;
-    }
-
-    public Set<String> getTmp_processes() {
-        return tmp_processHandler != null ? tmp_processHandler.getSupportedProcesses() : Collections.emptySet();
-    }
-
-    public void tmp_reset() {
-        this.setTmp_processKey(null);
-        this.setTmp_processSelected(null);
-        this.setTmp_processUrl(null);
-        this.setTmp_processHandler(null);
-    }
-
-    public void initHandler() {
-        //check entries
-        if (this.tmp_processUrl == null || this.tmp_processUrl.isEmpty()) {
-            MessageHandler.sendMessage(FacesMessage.SEVERITY_INFO, "No URL", "A WPS endpoint must be provided");
-            return;
-        }
-        //test valid url
-        if (!this.tmp_processUrl.matches(URILiteral.getURLRegex())) {
-            MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "No valid URL", "The WPS endpoint is not a valid URL");
-            return;
-        }
-        //try to create WPS handler
-        try {
-            setTmp_processHandler(new WPSHandler(tmp_processUrl));
-            MessageHandler.sendMessage(FacesMessage.SEVERITY_INFO, "Loaded capabilities", "Successfully loaded WPS capabilities");
-        } catch (IOException | RuntimeException e) {
-            MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "Parser Error", e.getLocalizedMessage());
-        }
-    }
-
-    public void addHandler() {
-        if (this.tmp_processKey == null || this.tmp_processKey.isEmpty())
-            this.tmp_processKey = tmp_processSelected;
-        try {
-            tmp_processHandler.setProcess(tmp_processSelected);
-            this.addWPSHandler(tmp_processKey, tmp_processHandler);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            this.tmp_reset();
-        }
+    public @Nullable WPSHandler getHandler() {
+        if(this.getSingleSelectedOffering() == null)
+            return null;
+        return this.getHandler(this.getSingleSelectedOffering());
     }
 
     public void initJSPlumb() {
-        WPSHandler handler = this.getSelectionHandler();
+        WPSHandler handler = this.getHandler();
         RequestContext.getCurrentInstance().execute("f_initSinglePlumb('" + handler.getJSONProcessDescription().toString() + "')");
     }
 
@@ -151,20 +66,53 @@ public class Process implements Serializable {
         RequestContext.getCurrentInstance().execute("f_clearSinglePlumb()");
     }
 
-    public JSONArray getConnections() {
-        return connections;
+    public void setWorkflow(final String jsonWorkflowDescription) {
+        if(this.workflowHandler == null)
+            this.workflowHandler = new WorkflowHandler();
+        this.workflowHandler.setWorkflowDescription(initWorkflowNodes(), jsonWorkflowDescription);
+        RequestContext.getCurrentInstance().execute("f_setValidationMessage(\"" + workflowHandler.getValidationMessage() + "\")");
     }
 
-    public void setConnections(final String sConnections) {
-        this.connections = new JSONArray(sConnections);
+    private Map<String,IWorkflowNode> initWorkflowNodes() {
+        Map<String,IWorkflowNode> nodes = new HashMap<>();
+        //add current WPS proxy
+        if(this.getHandler() != null)
+            nodes.put(this.getHandler().getProxy().getIdentifier().toString(), this.getHandler().getProxy());
+        //add selected WFS proxies
+        for(Map.Entry<String,WFSProxy> wfs : this.getWFSProxies().entrySet()){
+            nodes.put(wfs.getKey(), wfs.getValue());
+        }
+        return nodes;
+    }
+
+    private Map<String,WFSProxy> getWFSProxies() {
+        Layer layer = this.getLayer();
+        Map<String,WFSProxy> proxies = new HashMap<>();
+        for(AbstractOWSHandler handler : layer.getSelectedOWSHandler()){
+            proxies.put(handler.getIdentifier(), (WFSProxy) handler.getProxy());
+        }
+        return proxies;
+    }
+
+    @ManagedProperty(value="#{layer}")
+    private Layer layer;
+    public Layer getLayer() {
+        return this.layer;
+    }
+    public void setLayer(Layer layer)   {
+        this.layer = layer;
+    }
+
+    public boolean validWorkflow() {
+        return this.workflowHandler != null && this.workflowHandler.isValidDescription();
     }
 
     public void executeProcess() {
-        //init WPS proxy instance
-        WPSProxyOperation proxy = new WPSProxyOperation(getSelectionHandler().getProcessDescription());
-        //init WFS input handler
-        System.out.println(connections);
-        //check for appropriate output handler
+        if(!this.workflowHandler.isValidDescription()){
+            MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "Validation error", "WPS connections are not valid");
+            return;
+        }
+        //TODO trigger execution and return result to client
     }
 
 }

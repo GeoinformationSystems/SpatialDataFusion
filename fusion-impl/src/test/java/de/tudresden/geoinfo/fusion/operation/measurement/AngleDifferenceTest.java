@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class AngleDifferenceTest extends AbstractTest {
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
-    public void getAngleDifference() {
+    public void getAngleDifference() throws MalformedURLException {
         calculateDifference(
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
@@ -32,7 +33,7 @@ public class AngleDifferenceTest extends AbstractTest {
     }
 
     @Test
-    public void getAngleDifferenceWithCustomThreshold() {
+    public void getAngleDifferenceWithCustomThreshold() throws MalformedURLException {
         calculateDifference(
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),

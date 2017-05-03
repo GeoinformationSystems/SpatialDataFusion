@@ -2,11 +2,13 @@ package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
+import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.IOFormatConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import de.tudresden.geoinfo.fusion.operation.workflow.AbstractWorkflowNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,7 +91,7 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
 
     @NotNull
     @Override
-    public Map<IIdentifier, IData> execute(Map<IIdentifier, IData> inputs) {
+    public Map<IIdentifier, IData> execute(@NotNull Map<IIdentifier, IData> inputs) {
         //set inputs
         this.connectInputs(inputs);
         //execute
@@ -126,15 +128,19 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
         //add process start time
         this.addOutputConnector(OUT_START, "Start time of the operation",
                 new IRuntimeConstraint[]{
-                        new MandatoryConstraint(),
+                        new MandatoryDataConstraint(),
                         new BindingConstraint(LongLiteral.class)},
-                null);
+                new IConnectionConstraint[]{
+                        new IOFormatConstraint(new IOFormat(null, null, "xs:double"))
+                });
         //add process runtime
         this.addOutputConnector(OUT_RUNTIME, "Runtime of the operation",
                 new IRuntimeConstraint[]{
-                        new MandatoryConstraint(),
+                        new MandatoryDataConstraint(),
                         new BindingConstraint(LongLiteral.class)},
-                null);
+                new IConnectionConstraint[]{
+                        new IOFormatConstraint(new IOFormat(null, null, "xs:double"))
+                });
     }
 
     /**

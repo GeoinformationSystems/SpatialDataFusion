@@ -2,7 +2,7 @@
 //
 //import org.junit.Test;
 //
-//import URILiteral;
+//import URLLiteral;
 //
 //public class RDFTurtleProviderTest {
 //
@@ -10,7 +10,7 @@
 //	public void readGMLFile_V21() {
 //
 //		System.out.println("http://www.url/test,url;http://www.url/test,url;test,test;".matches("^(((https?):\\/\\/(-\\.)?([^\\s/?\\.#-]+\\.?)+(\\/[^\\s]*)?),([a-z]+);)+$"));
-//		System.out.println("http://www.url.de/test#test1,abc;http://www.url.de/test#test2,def;".matches("^(" + URILiteral.getURIRegex() + ",([a-z]+);)+$"));
+//		System.out.println("http://www.url.de/test#test1,abc;http://www.url.de/test#test2,def;".matches("^(" + URLLiteral.getURIRegex() + ",([a-z]+);)+$"));
 //
 //	}
 //

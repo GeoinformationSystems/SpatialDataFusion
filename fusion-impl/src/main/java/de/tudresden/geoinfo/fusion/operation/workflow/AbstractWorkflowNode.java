@@ -139,14 +139,56 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      * get input connector by title
      *
      * @param title connector title
+     * @param searchForIdentifier search for title and identifier, e.g. if an identifier is given as a String
      * @return corresponding input connector
      */
-    public IInputConnector getInputConnector(String title) {
+    public @NotNull IInputConnector getInputConnector(@NotNull String title, boolean searchForIdentifier) {
         for (IInputConnector connector : this.getInputConnectors()) {
             if (connector.getTitle().equals(title))
                 return connector;
+            else if (searchForIdentifier && connector.getIdentifier().toString().equals(title))
+                return connector;
         }
-        return null;
+        throw new IllegalArgumentException("Could not find input connector: " + title);
+    }
+
+    /**
+     * get output connector by title
+     *
+     * @param title connector title
+     * @return corresponding output connector
+     */
+    public @NotNull IInputConnector getInputConnector(@NotNull String title) {
+        return this.getInputConnector(title, true);
+    }
+
+    /**
+     * get input data from selected connector
+     * @param identifier connector identifier
+     * @return data associated with connector
+     */
+    public @Nullable IData getInputData(@NotNull IIdentifier identifier){
+        return getInputData(getInputConnector(identifier));
+    }
+
+    /**
+     * get input data from selected connector
+     * @param title connector title
+     * @return data associated with connector
+     */
+    public @Nullable IData getInputData(@NotNull String title){
+        return getInputData(getInputConnector(title));
+    }
+
+    /**
+     * get input data from connector
+     * @param connector input connector
+     * @return data associated with connector (can be null)
+     */
+    private @Nullable IData getInputData(@Nullable IInputConnector connector){
+        if(connector == null)
+            throw new IllegalArgumentException("Requested connector is not available");
+        return connector.getData();
     }
 
     /**
@@ -209,17 +251,30 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
     }
 
     /**
-     * get output connector by simple identifier
+     * get output connector by title
+     *
+     * @param title connector title
+     * @param searchForIdentifier search for title and identifier, e.g. if an identifier is given as a String
+     * @return corresponding output connector
+     */
+    public @NotNull IOutputConnector getOutputConnector(@NotNull String title, boolean searchForIdentifier) {
+        for (IOutputConnector connector : this.getOutputConnectors()) {
+            if (connector.getTitle().equals(title))
+                return connector;
+            else if (searchForIdentifier && connector.getIdentifier().toString().equals(title))
+                return connector;
+        }
+        throw new IllegalArgumentException("Could not find output connector: " + title);
+    }
+
+    /**
+     * get output connector by title
      *
      * @param title connector title
      * @return corresponding output connector
      */
-    public IOutputConnector getOutputConnector(String title) {
-        for (IOutputConnector connector : this.getOutputConnectors()) {
-            if (connector.getTitle().equals(title))
-                return connector;
-        }
-        return null;
+    public @NotNull IOutputConnector getOutputConnector(@NotNull String title) {
+        return this.getOutputConnector(title, true);
     }
 
     /**
@@ -262,13 +317,52 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
     }
 
     /**
+     * remove an output connector
+     * @param identifier connector identifier
+     * @return output connector that was removed from the node
+     */
+    public IOutputConnector removeOutputConnector(@NotNull IIdentifier identifier) {
+        return this.outputConnectors.remove(identifier);
+    }
+
+    /**
+     * get output data from selected connector
+     * @param identifier connector identifier
+     * @return data associated with connector
+     */
+    public @Nullable IData getOutputData(@NotNull IIdentifier identifier){
+        return getOutputData(getOutputConnector(identifier));
+    }
+
+    /**
+     * get output data from selected connector
+     * @param title connector title
+     * @return data associated with connector
+     */
+    public @Nullable IData getOutputData(@NotNull String title){
+        return getOutputData(getOutputConnector(title));
+    }
+
+    /**
+     * get output data from connector
+     * @param connector output connector
+     * @return data associated with connector (can be null)
+     */
+    private @Nullable IData getOutputData(@Nullable IOutputConnector connector){
+        if(connector == null)
+            throw new IllegalArgumentException("Requested connector is not available");
+        return connector.getData();
+    }
+
+    /**
      * set input connectors
      *
      * @param inputs process inputs
      */
-    public void connectInputs(Map<IIdentifier, IData> inputs) {
+    public void connectInputs(@NotNull Map<IIdentifier, IData> inputs) {
         for (Map.Entry<IIdentifier, IData> input : inputs.entrySet()) {
-            this.connectInput(input.getKey(), input.getValue());
+            if(input.getValue() != null)
+                this.connectInput(input.getKey(), input.getValue());
         }
     }
 

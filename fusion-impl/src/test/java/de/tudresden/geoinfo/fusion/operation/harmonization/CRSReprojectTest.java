@@ -3,14 +3,15 @@ package de.tudresden.geoinfo.fusion.operation.harmonization;
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.URI;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,30 +26,30 @@ public class CRSReprojectTest extends AbstractTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void reprojectWithRangeCRS() {
+    public void reprojectWithRangeCRS() throws MalformedURLException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI().toURL(), true),
                 null);
     }
 
     @Test
-    public void reprojectWithCustomCRS() {
+    public void reprojectWithCustomCRS() throws MalformedURLException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
                 null,
-                new URILiteral(URI.create("http://www.opengis.net/def/crs/EPSG/0/4326")));
+                new URLLiteral(new URL("http://www.opengis.net/def/crs/EPSG/0/4326")));
     }
 
     @Test
-    public void reprojectWithCustomCRSAndRange() {
+    public void reprojectWithCustomCRSAndRange() throws MalformedURLException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
-                new URILiteral(URI.create("http://www.opengis.net/def/crs/EPSG/0/4326")));
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
+                new URLLiteral(new URL("http://www.opengis.net/def/crs/EPSG/0/4326")));
     }
 
-    public void reproject(GTFeatureCollection domain, GTFeatureCollection range, URILiteral crsURI) {
+    public void reproject(GTFeatureCollection domain, GTFeatureCollection range, URLLiteral crsURI) {
 
         CRSReproject process = new CRSReproject();
         IIdentifier ID_IN_DOMAIN = process.getInputConnector(IN_DOMAIN).getIdentifier();

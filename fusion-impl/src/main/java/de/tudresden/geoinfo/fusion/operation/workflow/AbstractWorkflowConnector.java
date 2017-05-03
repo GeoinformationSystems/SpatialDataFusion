@@ -158,9 +158,10 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
     }
 
     @Override
-    public IData getData() {
-        return data;
+    public @Nullable IData getData() {
+        return this.data;
     }
+
 
     @NotNull
     @Override

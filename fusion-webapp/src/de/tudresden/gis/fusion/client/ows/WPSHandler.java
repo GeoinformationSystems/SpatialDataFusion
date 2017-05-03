@@ -1,3 +1,4 @@
+/*
 //package de.tudresden.gis.fusion.client.ows;
 //
 //import org.primefaces.context.RequestContext;
@@ -63,10 +64,12 @@
 //		return builder.substring(0, builder.length() - 1); //remove last comma
 //	}
 //
-//	/**
+//	*/
+/**
 //	 * call javascript function that updates jsPlumb processes
 //	 * @param event
-//	 */
+//	 *//*
+
 //	@SuppressWarnings("unchecked")
 //	public void updateProcesses(ValueChangeEvent event) {
 //		HashSet<String> oldValues = (HashSet<String>) event.getOldValue();
@@ -89,11 +92,13 @@
 //		}
 //	}
 //
-//	/**
+//	*/
+/**
 //	 * get JSON description for single process
 //	 * @param process process name
 //	 * @return JSON description
-//	 */
+//	 *//*
+
 //	public String getJSONDescription(String process) {
 //		if(process == null || descriptions == null)
 //			return "";
@@ -105,11 +110,13 @@
 //	public void setSelectedProcesses(Set<String> processes){ this.selectedProcesses = processes; }
 //	public void emptySelectedProcesses() { selectedProcesses.clear(); }
 //
-//	/**
+//	*/
+/**
 //	 * get process description for specified identifier
 //	 * @param identifier identifier
 //	 * @return process description
-//	 */
+//	 *//*
+
 //	public WPSProcessDescription getProcessDescription(String identifier){
 //		if(descriptions != null)
 //			return descriptions.getProcessDescription(identifier);
@@ -141,10 +148,12 @@
 //	public String getIdentifier() { return this.getParameter(PARAM_IDENTIFIER); }
 //	public void setIdentifier(String value) { this.setParameter(PARAM_IDENTIFIER, value); }
 //
-//	/**
+//	*/
+/**
 //	 * get selected processes as IOProcess for chaining purposes
 //	 * @return io processes
-//	 */
+//	 *//*
+
 //	public Set<IOProcess> getIOProcesses(){
 //		if(descriptions == null)
 //			return null;
@@ -162,3 +171,4 @@
 //	}
 //
 //}
+*/

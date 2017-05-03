@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,20 +28,20 @@ public class HausdorffDistanceTest extends AbstractTest {
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
-    public void getHausdorffDistance() {
+    public void getHausdorffDistance() throws MalformedURLException {
         calculateDistance(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
                 new DecimalLiteral(50),
                 null,
                 null);
     }
 
     @Test
-    public void getHausdorffDistance2() {
+    public void getHausdorffDistance2() throws MalformedURLException {
         calculateDistance(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
                 new DecimalLiteral(50),
                 new BooleanLiteral(true),
                 new BooleanLiteral(true));

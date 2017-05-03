@@ -8,21 +8,24 @@ import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.IntegerLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.*;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.PatternConstraint;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 public class RDFProvider extends AbstractOperation {
@@ -61,22 +64,22 @@ public class RDFProvider extends AbstractOperation {
         IInputConnector bagSizeConnector = getInputConnector(IN_TRIPLE_BAG_SIZE_TITLE);
         //get data
         ISubject rdfData = (ISubject) (rdfConnector.getData()).resolve();
-        URI base = ((URILiteral) baseConnector.getData()).resolve();
+        URL base = ((URLLiteral) baseConnector.getData()).resolve();
         Map<URI, String> prefixes = parsePrefixes((StringLiteral) prefixConnector.getData());
         //init result
-        URILiteral rdfResource;
+        URLLiteral rdfResource;
         //check for triple store URI
         if (storeConnector.getData() != null) {
             try {
-                URILiteral tripleStoreURI = (URILiteral) storeConnector.getData();
+                URLLiteral tripleStoreURL = (URLLiteral) storeConnector.getData();
                 BooleanLiteral clearStore = (BooleanLiteral) clearConnector.getData();
                 IntegerLiteral bagSize = (IntegerLiteral) bagSizeConnector.getData();
                 //add base prefix to prefixes
                 if (baseConnector.getData() != null)
-                    prefixes.put(base, "base");
-                writeRDFToStore(tripleStoreURI.resolve(), rdfData, prefixes, clearStore.resolve(), bagSize.resolve());
-                rdfResource = tripleStoreURI;
-            } catch (IOException e) {
+                    prefixes.put(base.toURI(), "base");
+                writeRDFToStore(tripleStoreURL.resolve(), rdfData, prefixes, clearStore.resolve(), bagSize.resolve());
+                rdfResource = tripleStoreURL;
+            } catch (IOException | URISyntaxException e) {
                 throw new RuntimeException("Could not access or write to triple store", e);
             }
         }
@@ -118,22 +121,22 @@ public class RDFProvider extends AbstractOperation {
      * @param clearStore  flag: clear triple store before insert
      * @throws IOException if triple store update fails
      */
-    private void writeRDFToStore(URI tripleStore, ISubject rdfData, Map<URI, String> prefixes, boolean clearStore, int bagSize) throws IOException {
+    private void writeRDFToStore(URL tripleStore, ISubject rdfData, Map<URI, String> prefixes, boolean clearStore, int bagSize) throws IOException {
         if (clearStore)
             clearStore(tripleStore);
         updateStore(tripleStore, rdfData, prefixes, bagSize);
     }
 
-    private void clearStore(URI tripleStore) {
+    private void clearStore(URL tripleStore) {
         UpdateRequest request = new UpdateRequest().add(new UpdateClear(Target.ALL));
         updateStore(tripleStore, request);
     }
 
-    private void updateStore(URI tripleStore, UpdateRequest request) {
+    private void updateStore(URL tripleStore, UpdateRequest request) {
         UpdateExecutionFactory.createRemote(request, tripleStore.toString()).execute();
     }
 
-    private void updateStore(URI tripleStore, ISubject rdfData, Map<URI, String> prefixes, int bagSize) {
+    private void updateStore(URL tripleStore, ISubject rdfData, Map<URI, String> prefixes, int bagSize) throws MalformedURLException {
         StringBuilder sRequest = new StringBuilder();
         //insert data
         if (rdfData instanceof IGraph) {
@@ -173,13 +176,13 @@ public class RDFProvider extends AbstractOperation {
      * @return URL literal instance pointing to file
      * @throws IOException if RDF file cannot be created
      */
-    private URILiteral generateRDFFile(ISubject rdfData, URI base, Map<URI, String> prefixes) throws IOException {
+    private URLLiteral generateRDFFile(ISubject rdfData, URL base, Map<URI, String> prefixes) throws IOException {
         //init file
         File file = File.createTempFile("relations_" + UUID.randomUUID(), ".rdf");
         //write RDF turtles
         writeTriplesToFile(rdfData, base, prefixes, file);
         //return
-        return new URILiteral(file.toURI());
+        return new URLLiteral(file.toURI().toURL());
     }
 
     /**
@@ -191,7 +194,7 @@ public class RDFProvider extends AbstractOperation {
      * @param file     output file
      * @throws IOException if triples cannot be written to file
      */
-    private void writeTriplesToFile(ISubject rdfData, URI base, Map<URI, String> prefixes, File file) throws IOException {
+    private void writeTriplesToFile(ISubject rdfData, URL base, Map<URI, String> prefixes, File file) throws IOException {
         //create file writer
         BufferedWriter writer = null;
         try {
@@ -228,7 +231,7 @@ public class RDFProvider extends AbstractOperation {
      * @param chunkSize  number of RDF representations in one String
      * @return list of encoded RDF representation Strings
      */
-    private List<String> encodeTripleResource(IGraph collection, URI base, Map<URI, String> prefixes, int chunkSize) {
+    private List<String> encodeTripleResource(IGraph collection, URL base, Map<URI, String> prefixes, int chunkSize) throws MalformedURLException {
         List<String> sList = new ArrayList<>();
         StringBuilder sTriple = new StringBuilder();
         StringBuilder sTripleRoot = new StringBuilder();
@@ -259,7 +262,7 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes RDF prefixes
      * @return encoded RDF triple representation String
      */
-    private String encodeTripleResource(INode rdf, URI base, Map<URI, String> prefixes) {
+    private String encodeTripleResource(INode rdf, URL base, Map<URI, String> prefixes) throws MalformedURLException {
         StringBuilder sTripleRoot = new StringBuilder();
         String sTriple = encodeTripleResource(rdf, base, prefixes, "", true, true, sTripleRoot);
         return sTripleRoot.append(sTriple).toString();
@@ -276,7 +279,7 @@ public class RDFProvider extends AbstractOperation {
      * @param close        set true to close the set (. instead of ;)
      * @return encoded RDF triple representation String
      */
-    private String encodeTripleResource(INode rdf, URI base, Map<URI, String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) {
+    private String encodeTripleResource(INode rdf, URL base, Map<URI, String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) throws MalformedURLException {
         StringBuilder sTriple = new StringBuilder();
         //if subject is not defined, do nothing
         if (rdf == null)
@@ -303,7 +306,7 @@ public class RDFProvider extends AbstractOperation {
      * @param close        set true to close the set (. instead of ;)
      * @return encoded RDF triple set String
      */
-    private String encodeSubject(ISubject subject, URI base, Map<URI, String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) {
+    private String encodeSubject(ISubject subject, URL base, Map<URI, String> prefixes, String indent, boolean writeSubject, boolean close, StringBuilder sTripleRoot) throws MalformedURLException {
         StringBuilder sTriple = new StringBuilder();
         //check number of predicates
         if (subject.getPredicates().size() == 1) {
@@ -342,7 +345,7 @@ public class RDFProvider extends AbstractOperation {
         return sTriple.toString();
     }
 
-    private String encodeObject(INode object, URI base, Map<URI, String> prefixes, String indent, boolean close, StringBuilder sTripleRoot) {
+    private String encodeObject(INode object, URL base, Map<URI, String> prefixes, String indent, boolean close, StringBuilder sTripleRoot) throws MalformedURLException {
         StringBuilder sTriple = new StringBuilder();
         //encode subject
         if (object instanceof ISubject) {
@@ -379,7 +382,7 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes RDF prefixes
      * @return encoded resource String
      */
-    private String encodeResource(IResource resource, URI base, Map<URI, String> prefixes) {
+    private String encodeResource(IResource resource, URL base, Map<URI, String> prefixes) throws MalformedURLException {
         if (resource.isBlank())
             return "_:" + resource.getClass().getSimpleName() + "_" + UUID.randomUUID();
         else {
@@ -400,7 +403,7 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes RDF prefixes
      * @return encoded literal String
      */
-    private String encodeTypedLiteral(ITypedLiteral literal, URI base, Map<URI, String> prefixes) {
+    private String encodeTypedLiteral(ITypedLiteral literal, URL base, Map<URI, String> prefixes) throws MalformedURLException {
         IResource resource = literal.getLiteralType();
         URI relative = relativizeIdentifier(resource, base, prefixes);
         return "\"" + literal.getLiteral() + "\"^^" + (resource.getIdentifier().equals(relative) ? "<" + resource.getIdentifier() + ">" : relative);
@@ -424,7 +427,7 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes RDF prefixes
      * @return encoded literal String
      */
-    private String encodeLiteral(ILiteral literal, URI base, Map<URI, String> prefixes) {
+    private String encodeLiteral(ILiteral literal, URL base, Map<URI, String> prefixes) throws MalformedURLException {
         if (literal instanceof ITypedLiteral)
             return encodeTypedLiteral((ITypedLiteral) literal, base, prefixes);
         else if (literal instanceof IPlainLiteral)
@@ -439,7 +442,7 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes RDF prefixes
      * @return encoded literal String
      */
-    private String encodeLiteral(ILiteral literal, Map<URI, String> prefixes) {
+    private String encodeLiteral(ILiteral literal, Map<URI, String> prefixes) throws MalformedURLException {
         return encodeLiteral(literal, null, prefixes);
     }
 
@@ -451,11 +454,11 @@ public class RDFProvider extends AbstractOperation {
      * @param prefixes URI prefixes
      * @return relativized resource identifier
      */
-    private URI relativizeIdentifier(IResource resource, URI base, Map<URI, String> prefixes) {
+    private URI relativizeIdentifier(IResource resource, URL base, Map<URI, String> prefixes) throws MalformedURLException {
         URI relative = relativizeIdentifier(resource, base);
         if (resource.getIdentifier().equals(relative) && prefixes != null) {
             for (Map.Entry<URI, String> prefix : prefixes.entrySet()) {
-                relative = relativizeIdentifier(resource, prefix.getKey(), prefix.getValue());
+                relative = relativizeIdentifier(resource, prefix.getKey().toURL(), prefix.getValue());
                 if (!resource.getIdentifier().equals(relative))
                     return relative;
             }
@@ -467,16 +470,16 @@ public class RDFProvider extends AbstractOperation {
      * relativize an resource identifier
      *
      * @param resource input resource
-     * @param uri      URI base
+     * @param url      URI base
      * @param prefix   URI prefix
      * @return relativized resource identifier
      */
-    private URI relativizeIdentifier(IResource resource, URI uri, String prefix) {
+    private URI relativizeIdentifier(IResource resource, URL url, String prefix) {
         //special case: http://www.w3.org/1999/02/22-rdf-syntax-ns#type --> a
         if (resource.getIdentifier().toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
             return URI.create("a");
         //default
-        URI relative = relativizeIdentifier(resource, uri);
+        URI relative = relativizeIdentifier(resource, url);
         if (resource.getIdentifier().getURI().equals(relative) || relative.toString().matches(".*((/)|(.+#)).*"))
             return resource.getIdentifier().getURI();
         else
@@ -491,7 +494,7 @@ public class RDFProvider extends AbstractOperation {
      * @param base     URI base
      * @return relativized resource identifier
      */
-    private URI relativizeIdentifier(IResource resource, URI base) {
+    private URI relativizeIdentifier(IResource resource, URL base) {
         return relativizeIdentifier(resource, base, "");
     }
 
@@ -500,29 +503,29 @@ public class RDFProvider extends AbstractOperation {
         addInputConnector(IN_RDF_TITLE, IN_RDF_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(ISubject.class, IData.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
         addInputConnector(IN_URI_BASE_TITLE, IN_URI_BASE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class)},
+                        new BindingConstraint(URLLiteral.class)},
                 null,
                 null);
         addInputConnector(IN_URI_PREFIXES_TITLE, IN_URI_PREFIXES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
-                        new PatternConstraint("^(" + URILiteral.getURLRegex() + ",([a-z]+);)+$")},
+                        new PatternConstraint("^(" + URLLiteral.getURLRegex() + ",([a-z]+);)+$")},
                 null,
                 null);
         addInputConnector(IN_TRIPLE_STORE_TITLE, IN_TRIPLE_STORE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class)},
+                        new BindingConstraint(URLLiteral.class)},
                 null,
                 null);
         addInputConnector(IN_CLEAR_STORE_TITLE, IN_CLEAR_STORE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 new InputData(new BooleanLiteral(false)).getOutputConnector());
         addInputConnector(IN_TRIPLE_BAG_SIZE_TITLE, IN_TRIPLE_BAG_SIZE_DESCRIPTION,
@@ -536,7 +539,7 @@ public class RDFProvider extends AbstractOperation {
     public void initializeOutputConnectors() {
         addOutputConnector(OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class)},
+                        new BindingConstraint(URLLiteral.class)},
                 null);
     }
 

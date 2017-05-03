@@ -2,7 +2,7 @@ package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.WFSCapabilities;
 import de.tudresden.geoinfo.fusion.data.ows.WMSCapabilities;
 import de.tudresden.geoinfo.fusion.data.ows.WPSCapabilities;
@@ -10,7 +10,7 @@ import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,21 +22,21 @@ public class OWSCapabilitiesParserTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void readWMSCapabilities() {
-        readOWSCapabilities(new URILiteral(URI.create("https://www.umwelt.sachsen.de/umwelt/infosysteme/wms/services/wasser/ueg_utm?service=wms&request=getcapabilities")), WMSCapabilities.class);
+    public void readWMSCapabilities() throws MalformedURLException {
+        readOWSCapabilities(new URLLiteral("https://www.umwelt.sachsen.de/umwelt/infosysteme/wms/services/wasser/ueg_utm?service=wms&request=getcapabilities"), WMSCapabilities.class);
     }
 
     @Test
-    public void readWFSCapabilities() {
-        readOWSCapabilities(new URILiteral(URI.create("https://www.pegelonline.wsv.de/webservices/gis/aktuell/wfs?service=wfs&request=GetCapabilities")), WFSCapabilities.class);
+    public void readWFSCapabilities() throws MalformedURLException {
+        readOWSCapabilities(new URLLiteral("https://www.pegelonline.wsv.de/webservices/gis/aktuell/wfs?service=wfs&request=GetCapabilities"), WFSCapabilities.class);
     }
 
     @Test
-    public void readWPSCapabilities() {
-        readOWSCapabilities(new URILiteral(URI.create("http://geoprocessing.demo.52north.org/latest-wps/WebProcessingService?Request=GetCapabilities&Service=WPS")), WPSCapabilities.class);
+    public void readWPSCapabilities() throws MalformedURLException {
+        readOWSCapabilities(new URLLiteral("http://geoprocessing.demo.52north.org/latest-wps/WebProcessingService?Request=GetCapabilities&Service=WPS"), WPSCapabilities.class);
     }
 
-    private void readOWSCapabilities(URILiteral resource, Class<?> type) {
+    private void readOWSCapabilities(URLLiteral resource, Class<?> type) {
 
         OWSCapabilitiesParser parser = new OWSCapabilitiesParser();
         IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();

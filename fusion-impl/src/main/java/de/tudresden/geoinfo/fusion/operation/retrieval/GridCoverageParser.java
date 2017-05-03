@@ -2,18 +2,17 @@ package de.tudresden.geoinfo.fusion.operation.retrieval;
 
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.util.UUID;
 
@@ -40,11 +39,11 @@ public class GridCoverageParser extends AbstractOperation {
         //get input connectors
         IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
         //get data
-        URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
+        URL resourceURL = ((URLLiteral) resourceConnector.getData()).resolve();
         //parse coverage
         GTGridFeature coverage;
         try {
-            coverage = parseCoverage(resourceURI.toURL());
+            coverage = parseCoverage(resourceURL);
         } catch (IOException e) {
             throw new RuntimeException("Could not parse coverage", e);
         }
@@ -62,7 +61,7 @@ public class GridCoverageParser extends AbstractOperation {
     private GTGridFeature parseCoverage(URL resourceURL) throws IOException {
         InputStream stream;
         File tmpCoverage;
-        tmpCoverage = File.createTempFile("coverage" + UUID.randomUUID(), ".tmp");
+        tmpCoverage = File.createTempFile("coverage_" + UUID.randomUUID(), ".tmp");
         stream = resourceURL.openStream();
         FileOutputStream outputStream = new FileOutputStream(tmpCoverage);
         byte buf[] = new byte[4096];
@@ -80,8 +79,8 @@ public class GridCoverageParser extends AbstractOperation {
     public void initializeInputConnectors() {
         addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class),
-                        new MandatoryConstraint()},
+                        new BindingConstraint(URLLiteral.class),
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }
@@ -91,7 +90,7 @@ public class GridCoverageParser extends AbstractOperation {
         addOutputConnector(OUT_COVERAGE_TITLE, OUT_COVERAGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTGridFeature.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null);
     }
 

@@ -14,7 +14,7 @@ public class Workflow extends AbstractOperation implements IWorkflow {
 
     private static final String PROCESS_TITLE = Workflow.class.getSimpleName();
 
-    private Set<IWorkflowNode> nodes;
+    private Collection<IWorkflowNode> nodes;
 
     /**
      * empty constructor, if used initializeConnectors() must be called after setting workflow nodes
@@ -28,7 +28,7 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param nodes workflow nodes
      */
-    public Workflow(Set<IWorkflowNode> nodes) {
+    public Workflow(Collection<IWorkflowNode> nodes) {
         this();
         this.setNodes(nodes);
     }
@@ -64,6 +64,20 @@ public class Workflow extends AbstractOperation implements IWorkflow {
         return this.nodes;
     }
 
+    @Override
+    public @NotNull Set<IWorkflowConnection> getWorkflowConnections() {
+        Set<IWorkflowConnection> connections = new HashSet<>();
+        for(IWorkflowNode node : this.getWorkflowNodes()){
+            for(IInputConnector inConnector : node.getInputConnectors()){
+                connections.addAll(inConnector.getConnections());
+            }
+            for(IOutputConnector outConnector : node.getOutputConnectors()){
+                connections.addAll(outConnector.getConnections());
+            }
+        }
+        return connections;
+    }
+
     /**
      * adds a workflow node
      *
@@ -81,7 +95,7 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param nodes input workflow nodes
      */
-    protected void setNodes(Set<IWorkflowNode> nodes) {
+    protected void setNodes(Collection<IWorkflowNode> nodes) {
         this.nodes = nodes;
         initializeConnectors();
     }

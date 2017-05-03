@@ -11,7 +11,7 @@ import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 
 import java.util.Arrays;
 
@@ -132,13 +132,13 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
         addInputConnector(IN_DOMAIN_ATTRIBUTE_TITLE, IN_DOMAIN_ATTRIBUTE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
         addInputConnector(IN_RANGE_ATTRIBUTE_TITLE, IN_RANGE_ATTRIBUTE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }

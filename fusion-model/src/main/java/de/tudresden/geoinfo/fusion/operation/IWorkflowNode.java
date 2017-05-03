@@ -38,6 +38,15 @@ public interface IWorkflowNode extends IWorkflowElement {
     IInputConnector getInputConnector(@NotNull IIdentifier id);
 
     /**
+     * get input connector by title
+     *
+     * @param title connector title
+     * @return input connector or null, if no such connector exist
+     */
+    @Nullable
+    IInputConnector getInputConnector(@NotNull String title);
+
+    /**
      * get output connectors
      *
      * @return output connectors of the operation
@@ -61,6 +70,15 @@ public interface IWorkflowNode extends IWorkflowElement {
      */
     @Nullable
     IOutputConnector getOutputConnector(@NotNull IIdentifier id);
+
+    /**
+     * get output connector by title
+     *
+     * @param title connector title
+     * @return output connector or null, if no such connector exist
+     */
+    @Nullable
+    IOutputConnector getOutputConnector(@NotNull String title);
 
     /**
      * get direct ancestors in a workflow

@@ -11,6 +11,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,18 +25,18 @@ public class TopologyRelationTest extends AbstractTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void getTopologyRelations() {
+    public void getTopologyRelations() throws MalformedURLException {
         getTopologyRelations(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
                 null);
     }
 
     @Test
-    public void getTopologyRelationsWithDisjoint() {
+    public void getTopologyRelationsWithDisjoint() throws MalformedURLException {
         getTopologyRelations(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
                 new BooleanLiteral(true));
     }
 

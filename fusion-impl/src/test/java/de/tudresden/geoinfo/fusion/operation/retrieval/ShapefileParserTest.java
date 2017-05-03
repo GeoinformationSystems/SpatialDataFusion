@@ -5,13 +5,14 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.ElementState;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,16 +25,16 @@ public class ShapefileParserTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void readShapefile() {
-        readShapefile(new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()), false);
+    public void readShapefile() throws MalformedURLException {
+        readShapefile(new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL()), false);
     }
 
     @Test
-    public void readShapefileWithIndex() {
-        readShapefile(new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()), true);
+    public void readShapefileWithIndex() throws MalformedURLException {
+        readShapefile(new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL()), true);
     }
 
-    private void readShapefile(URILiteral resource, boolean index) {
+    private void readShapefile(URLLiteral resource, boolean index) {
 
         ShapefileParser parser = new ShapefileParser();
         IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();

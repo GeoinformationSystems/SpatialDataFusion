@@ -1,80 +1,52 @@
 package de.tudresden.geoinfo.client.handler;
 
-import de.tudresden.geoinfo.fusion.data.ows.OWSCapabilities;
+import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.WMSCapabilities;
+import de.tudresden.geoinfo.fusion.operation.ows.WMSProxy;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Set;
 
-public class WMSHandler extends OWSHandler {
-
-    private final String SERVICE = "WMS";
-    private final String DEFAULT_VERSION = "1.3.0";
-    private final String DEFAULT_FORMAT = "image/png";
-    private final String PARAM_FORMAT = "format";
-    private final String PARAM_LAYERS = "layers";
-    private final String PARAM_SRSNAME = "srs";
-    private final String PARAM_BBOX = "bbox";
-    private WMSCapabilities wmsCapabilities;
-
-    public WMSHandler(String sBaseURL) throws IOException {
-        super(sBaseURL);
-        this.setService(SERVICE);
-        this.setVersion(DEFAULT_VERSION);
-        this.setParameter(PARAM_FORMAT, DEFAULT_FORMAT);
-        this.wmsCapabilities = getCapabilities();
-    }
+/**
+ * WMS handler
+ */
+public class WMSHandler extends AbstractOWSHandler {
 
     /**
-     * get WMS capabilities document
-     *
-     * @return capabilites document
+     * constructor
+     * @param sBaseURL OWS base URL
+     * @throws IOException
      */
-    public WMSCapabilities getCapabilities() throws IOException {
-        OWSCapabilities capabilities = super.getCapabilities();
-        if (!(capabilities instanceof WMSCapabilities))
-            throw new IOException("Could not parse WMS capabilities");
-        return (WMSCapabilities) capabilities;
+    public WMSHandler(String uid, String sBaseURL) throws IOException {
+        super(new WMSProxy(new Identifier(uid), new URLLiteral(sBaseURL)));
     }
 
-    /**
-     * get all layers provided by this WMS instance
-     *
-     * @return WMS layers
-     */
-    public Set<String> getSupportedLayers() {
-        return wmsCapabilities != null ? wmsCapabilities.getWMSLayers() : Collections.emptySet();
+    @Override
+    public WMSCapabilities getCapabilities() {
+        return (WMSCapabilities) super.getCapabilities();
     }
 
-    /**
-     * check, if certain layer is provided
-     *
-     * @param sLayer input layer name
-     * @return true, if layer is provided by WMS
-     */
-    public boolean isSupportedLayer(String sLayer) {
-        return this.getSupportedLayers().contains(sLayer);
+    @Override
+    public WMSProxy getProxy() {
+        return (WMSProxy) super.getProxy();
     }
 
-    /**
-     * get selected WMS layer
-     *
-     * @return selected WMS layer
-     */
-    public String getLayer() {
-        return this.getParameter(PARAM_LAYERS);
+    @Override
+    public @NotNull Set<String> getOfferings() {
+        return this.getCapabilities().getWMSLayers();
     }
 
-    /**
-     * select WMS layer
-     *
-     * @param sLayer WMS layer name
-     */
-    public void setLayer(String sLayer) {
-        if (!this.isSupportedLayer(sLayer))
-            throw new IllegalArgumentException("Layer " + sLayer + " is not supported");
-        this.setParameter(PARAM_LAYERS, sLayer);
+    @Override
+    public @Nullable String getSelectedOffering() {
+        return this.getProxy().getLayer();
+    }
+
+    @Override
+    public void setSelectedOffering(@NotNull String offering) {
+        this.getProxy().setLayer(offering);
     }
 
 }

@@ -1,18 +1,21 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
+import de.tudresden.geoinfo.fusion.data.LiteralData;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.BinaryFeatureRelationCollection;
 import de.tudresden.geoinfo.fusion.operation.mapping.TopologyRelation;
 import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
+import de.tudresden.geoinfo.fusion.operation.workflow.CamundaBPMNModel;
 import de.tudresden.geoinfo.fusion.operation.workflow.Workflow;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,8 +32,19 @@ public class WorkflowTest extends AbstractTest {
     private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_RELATIONS = "OUT_RELATIONS";
 
+//    @Test
+//    public void executeWorkflow() throws MalformedURLException {
+//        executeWorkflow(getWorkflow(), new HashMap<>());
+//    }
+
     @Test
-    public void executeWorkflow() {
+    public void executeBPMNWorkflow() throws MalformedURLException {
+        CamundaBPMNModel model = new CamundaBPMNModel(null, "bpmn_test", null);
+        model.initModel(getWorkflow());
+        System.out.println(model.asXML());
+    }
+
+    private IWorkflow getWorkflow() throws MalformedURLException {
         Set<IWorkflowNode> entities = new HashSet<>();
         //1st process
         ShapefileParser parser_dom = new ShapefileParser();
@@ -42,26 +56,24 @@ public class WorkflowTest extends AbstractTest {
         TopologyRelation process_top = new TopologyRelation();
         entities.add(process_top);
         //data objects
-        InputData data_dom = new InputData(new URILiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI()));
-        entities.add(data_dom);
-        InputData data_ran = new InputData(new URILiteral(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI()));
-        entities.add(data_ran);
-        InputData data_index = new InputData(new BooleanLiteral(true));
-        entities.add(data_index);
+        Map<String, LiteralData> literalInputMap = new HashMap<>();
+        literalInputMap.put("domain", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL()));
+        literalInputMap.put("range", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL()));
+        literalInputMap.put("spatial index", new BooleanLiteral(true));
+        LiteralInputData literalInput = new LiteralInputData(literalInputMap);
+        entities.add(literalInput);
         //set connections
-        parser_dom.getInputConnector(IN_RESOURCE).addOutputConnector(data_dom.getOutputConnector());
-        parser_dom.getInputConnector(IN_WITH_INDEX).addOutputConnector(data_index.getOutputConnector());
+        parser_dom.getInputConnector(IN_RESOURCE).addOutputConnector(literalInput.getOutputConnector("domain"));
+        parser_dom.getInputConnector(IN_WITH_INDEX).addOutputConnector(literalInput.getOutputConnector("spatial index"));
         parser_dom.getOutputConnector(OUT_FEATURES).addInputConnector(process_top.getInputConnector(IN_DOMAIN));
-        parser_ran.getInputConnector(IN_RESOURCE).addOutputConnector(data_ran.getOutputConnector());
-        parser_ran.getInputConnector(IN_WITH_INDEX).addOutputConnector(data_index.getOutputConnector());
+        parser_ran.getInputConnector(IN_RESOURCE).addOutputConnector(literalInput.getOutputConnector("range"));
+        parser_ran.getInputConnector(IN_WITH_INDEX).addOutputConnector(literalInput.getOutputConnector("spatial index"));
         parser_ran.getOutputConnector(OUT_FEATURES).addInputConnector(process_top.getInputConnector(IN_RANGE));
-        //execute
-        executeWorkflow(entities, new HashMap<>());
+        //return
+        return new Workflow(entities);
     }
 
-    private void executeWorkflow(Set<IWorkflowNode> entities, HashMap<IIdentifier, IData> input) {
-
-        Workflow workflow = new Workflow(entities);
+    private void executeWorkflow(Workflow workflow, HashMap<IIdentifier, IData> input) {
 
         IIdentifier ID_OUT_RELATIONS = workflow.getOutputConnector(OUT_RELATIONS).getIdentifier();
         IIdentifier ID_OUT_RUNTIME = workflow.getOutputConnector(OUT_RUNTIME).getIdentifier();

@@ -13,7 +13,7 @@
 //import OSMFeatureCollection;
 //import OSMWay;
 //import LongLiteral;
-//import URILiteral;
+//import URLLiteral;
 //import OSMXMLParser;
 //
 //public class LineIntersectionTest {
@@ -22,7 +22,7 @@
 //	public void intersect() {
 //
 //		Map<String,IData> input = new HashMap<String,IData>();
-//		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
+//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
 //
 //		OSMXMLParser parser = new OSMXMLParser();
 //		Map<String,IData> output = parser.execute(input);

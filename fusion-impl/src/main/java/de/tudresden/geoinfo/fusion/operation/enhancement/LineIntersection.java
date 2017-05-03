@@ -10,7 +10,7 @@ import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.Feature;
@@ -226,7 +226,7 @@ public class LineIntersection extends AbstractOperation {
         addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }
@@ -236,7 +236,7 @@ public class LineIntersection extends AbstractOperation {
         addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null);
     }
 }

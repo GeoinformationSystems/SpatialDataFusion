@@ -4,12 +4,12 @@ import com.vividsolutions.jts.geom.Geometry;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -68,7 +68,7 @@ public class CRSReproject extends AbstractOperation {
         CoordinateReferenceSystem domainCRS = getCRS(domainFeatures);
         CoordinateReferenceSystem rangeCRS = rangeFeatures != null ? getCRS(rangeFeatures) : null;
         //get final crs
-        CoordinateReferenceSystem crsFinal = crsConnector.getData() != null ? decodeCRS((URILiteral) crsConnector.getData()) : rangeCRS;
+        CoordinateReferenceSystem crsFinal = crsConnector.getData() != null ? decodeCRS((URLLiteral) crsConnector.getData()) : rangeCRS;
         //transform
         domainFeatures = reproject(domainFeatures, domainCRS, crsFinal);
         if (rangeFeatures != null)
@@ -85,7 +85,7 @@ public class CRSReproject extends AbstractOperation {
      * @param literal URI literal
      * @return decodes CRS
      */
-    private CoordinateReferenceSystem decodeCRS(URILiteral literal) {
+    private CoordinateReferenceSystem decodeCRS(URLLiteral literal) {
         return decodeCRS(literal.getLiteral());
     }
 
@@ -257,7 +257,7 @@ public class CRSReproject extends AbstractOperation {
         addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
         addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
@@ -267,7 +267,7 @@ public class CRSReproject extends AbstractOperation {
                 null);
         addInputConnector(IN_CRS_TITLE, IN_CRS_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class)},
+                        new BindingConstraint(URLLiteral.class)},
                 null,
                 null);
     }
@@ -277,7 +277,7 @@ public class CRSReproject extends AbstractOperation {
         addOutputConnector(OUT_DOMAIN_TITLE, OUT_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null);
         addOutputConnector(OUT_RANGE_TITLE, OUT_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{

@@ -7,6 +7,7 @@ import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.Set;
@@ -23,7 +24,7 @@ public class GTVectorFeature extends AbstractFeature {
      * @param feature    feature object
      * @param relations  feature relations
      */
-    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull SimpleFeature feature, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull Feature feature, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) {
         super(identifier, feature, metadata, relations);
     }
 
@@ -33,7 +34,7 @@ public class GTVectorFeature extends AbstractFeature {
      * @param identifier feature identifier
      * @param feature    feature object
      */
-    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull SimpleFeature feature, @Nullable IMetadata metadata) {
+    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull Feature feature, @Nullable IMetadata metadata) {
         this(identifier, feature, metadata, null);
     }
 

@@ -4,7 +4,7 @@ import com.google.common.collect.Sets;
 import de.tudresden.geoinfo.fusion.data.DataCollection;
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.osm.*;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.IRole;
 import de.tudresden.geoinfo.fusion.data.relation.RelationType;
@@ -13,7 +13,7 @@ import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -21,7 +21,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -66,17 +66,17 @@ public class OSMXMLParser extends AbstractOperation {
         //get input connectors
         IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
         //get data
-        URI resourceURI = ((URILiteral) resourceConnector.getData()).resolve();
+        URL resourceURL = ((URLLiteral) resourceConnector.getData()).resolve();
         //init features
         OSMFeatureCollection<OSMVectorFeature> features;
         //init relations
         DataCollection<OSMRelation> relations;
         //parse
         try {
-            Map<String, OSMPropertySet> featureMap = parseOSM(resourceURI.toURL());
-            features = initOSMCollection(new Identifier(resourceURI), featureMap);
-            relations = initOSMRelations(new Identifier(resourceURI), featureMap, features);
-        } catch (IOException | XMLStreamException e) {
+            Map<String, OSMPropertySet> featureMap = parseOSM(resourceURL);
+            features = initOSMCollection(new Identifier(resourceURL), featureMap);
+            relations = initOSMRelations(new Identifier(resourceURL), featureMap, features);
+        } catch (IOException | XMLStreamException | URISyntaxException e) {
             throw new RuntimeException("Could not parse OSM XML source", e);
         }
         //set output connector
@@ -232,8 +232,8 @@ public class OSMXMLParser extends AbstractOperation {
     public void initializeInputConnectors() {
         addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class),
-                        new MandatoryConstraint()},
+                        new BindingConstraint(URLLiteral.class),
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }
@@ -243,7 +243,7 @@ public class OSMXMLParser extends AbstractOperation {
         addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(OSMFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null);
         addOutputConnector(OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{

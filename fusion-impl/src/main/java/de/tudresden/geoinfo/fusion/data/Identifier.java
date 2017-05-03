@@ -48,7 +48,7 @@ public class Identifier implements IIdentifier {
      * empty constructor, creates random identifiers
      */
     public Identifier() {
-        this(UUID.randomUUID().toString());
+        this("_" + UUID.randomUUID());
     }
 
     @NotNull

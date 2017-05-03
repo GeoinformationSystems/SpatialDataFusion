@@ -1,9 +1,9 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
-import de.tudresden.geoinfo.fusion.data.ows.WPSProcessDescriptions;
+import de.tudresden.geoinfo.fusion.data.ows.WPSDescribeProcess;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -27,9 +27,9 @@ public class WPSDescriptionParser extends OWSXMLParser {
     @Override
     public void execute() {
         //parse document resource
-        WPSProcessDescriptions description;
+        WPSDescribeProcess description;
         try {
-            description = new WPSProcessDescriptions(this.getResourceURI(), getDocument(), null);
+            description = new WPSDescribeProcess(this.getResourceURI(), getDocument(), null);
         } catch (IOException | SAXException | ParserConfigurationException e) {
             throw new RuntimeException("Could not parse OWS XML resource", e);
         }
@@ -41,8 +41,8 @@ public class WPSDescriptionParser extends OWSXMLParser {
     public void initializeOutputConnectors() {
         addOutputConnector(OUT_DESCRIPTION_TITLE, OUT_DESCRIPTION_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(WPSProcessDescriptions.class),
-                        new MandatoryConstraint()},
+                        new BindingConstraint(WPSDescribeProcess.class),
+                        new MandatoryDataConstraint()},
                 null);
     }
 

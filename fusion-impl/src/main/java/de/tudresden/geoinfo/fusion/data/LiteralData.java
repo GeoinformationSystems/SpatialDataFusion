@@ -101,4 +101,9 @@ public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
     public IResource getLiteralType() {
         return this.dataType;
     }
+
+    @Override
+    public String toString() {
+        return this.resolve().toString();
+    }
 }

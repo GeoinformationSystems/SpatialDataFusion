@@ -17,7 +17,7 @@ public interface IResource extends INode {
     IIdentifier getIdentifier();
 
     /**
-     * get title of this resource (should be locally unique)
+     * get title of this resource (must be locally unique)
      *
      * @return resource title
      */

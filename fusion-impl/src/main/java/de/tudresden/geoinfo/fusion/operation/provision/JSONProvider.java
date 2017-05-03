@@ -1,12 +1,12 @@
 package de.tudresden.geoinfo.fusion.operation.provision;
 
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.geojson.feature.FeatureJSON;
 
 import java.io.BufferedWriter;
@@ -37,7 +37,7 @@ public class JSONProvider extends AbstractOperation {
         //get data
         GTFeatureCollection features = (GTFeatureCollection) dataConnector.getData();
         //init result
-        URILiteral jsonResource;
+        URLLiteral jsonResource;
         //check for triple store URI
         try {
             jsonResource = encodeFeatures(features);
@@ -55,13 +55,13 @@ public class JSONProvider extends AbstractOperation {
      * @return URI to generated file
      * @throws IOException
      */
-    private URILiteral encodeFeatures(GTFeatureCollection features) throws IOException {
+    private URLLiteral encodeFeatures(GTFeatureCollection features) throws IOException {
         //init file
         File file = File.createTempFile("json_" + UUID.randomUUID(), ".rdf");
         //write RDF turtles
         writeFeaturesToFile(features, file);
         //return
-        return new URILiteral(file.toURI());
+        return new URLLiteral(file.toURI().toURL());
     }
 
     /**
@@ -90,7 +90,7 @@ public class JSONProvider extends AbstractOperation {
         addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }
@@ -99,7 +99,7 @@ public class JSONProvider extends AbstractOperation {
     public void initializeOutputConnectors() {
         addOutputConnector(OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class)},
+                        new BindingConstraint(URLLiteral.class)},
                 null);
     }
 

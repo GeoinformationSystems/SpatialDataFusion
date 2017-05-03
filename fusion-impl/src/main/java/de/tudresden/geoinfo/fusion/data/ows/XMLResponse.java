@@ -2,10 +2,11 @@ package de.tudresden.geoinfo.fusion.data.ows;
 
 import de.tudresden.geoinfo.fusion.data.Data;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -15,9 +16,9 @@ import java.util.List;
 /**
  * standard OWS response
  */
-public class OWSResponse extends Data<Document> {
+public class XMLResponse extends Data<Document> {
 
-    private URILiteral uri;
+    private URLLiteral uri;
 
     /**
      * constructor
@@ -25,7 +26,7 @@ public class OWSResponse extends Data<Document> {
      * @param uri    OWS response uri literal
      * @param object OWS response document
      */
-    public OWSResponse(@NotNull URILiteral uri, @NotNull Document object, @Nullable IMetadata metadata) {
+    public XMLResponse(@NotNull URLLiteral uri, @NotNull Document object, @Nullable IMetadata metadata) {
         super(uri.getIdentifier(), object, metadata);
         this.uri = uri;
     }
@@ -56,12 +57,12 @@ public class OWSResponse extends Data<Document> {
     }
 
     /**
-     * get first element from response with provided tag name
+     * get first element from document with provided tag name
      *
      * @param regex regular expression for tag name
-     * @return
+     * @return first node matching the regex
      */
-    public Node getNode(@NotNull String regex) {
+    public @Nullable Node getNode(@NotNull String regex) {
         return getNode(regex, resolve().getChildNodes());
     }
 
@@ -72,7 +73,7 @@ public class OWSResponse extends Data<Document> {
      * @param nodes input node list
      * @return first node matching the regex
      */
-    private Node getNode(@NotNull String regex, @NotNull NodeList nodes) {
+    public @Nullable Node getNode(@NotNull String regex, @NotNull NodeList nodes) {
         int i = 0;
         while (nodes.item(i) != null) {
             Node node = nodes.item(i++);
@@ -91,10 +92,25 @@ public class OWSResponse extends Data<Document> {
      * get all elements from response with provided tag name
      *
      * @param regex regular expression for tag name
-     * @return
+     * @return list of nodes matching the regex
      */
-    public List<Node> getNodes(String regex) {
-        return OWSResponse.getNodes(regex, resolve().getChildNodes(), null);
+    public @NotNull List<Node> getNodes(String regex) {
+        return XMLResponse.getNodes(regex, resolve().getChildNodes(), null);
+    }
+
+    /**
+     * get attribute value from set of attributes
+     * @param regex input regex
+     * @param attributes input attribute map
+     * @return attribute value or null, if no attribute matched regex
+     */
+    public @Nullable String getAttributeValue(@NotNull String regex, NamedNodeMap attributes){
+        for (int i = 0; i < attributes.getLength(); i++) {
+            Node attribute = attributes.item(i);
+            if (attribute.getNodeName().matches(regex))
+                return attribute.getNodeValue().trim();
+        }
+        return null;
     }
 
     /**
@@ -102,7 +118,7 @@ public class OWSResponse extends Data<Document> {
      *
      * @return base URI literal
      */
-    public URILiteral getURI() {
+    public @NotNull URLLiteral getURI() {
         return this.uri;
     }
 

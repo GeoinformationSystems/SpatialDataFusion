@@ -21,8 +21,8 @@ public class Data<T> extends Resource implements IData {
      */
     public Data(@Nullable IIdentifier identifier, @NotNull T object, @Nullable IMetadata metadata) {
         super(identifier, metadata != null ? metadata.getTitle() : null, metadata != null ? metadata.getDescription() : null);
-        this.object = object;
-        this.metadata = metadata;
+        this.setObject(object);
+        this.setMetadata(metadata);
     }
 
     /**
@@ -43,10 +43,26 @@ public class Data<T> extends Resource implements IData {
         return object;
     }
 
+    /**
+     * set object instance
+     * @param object input object
+     */
+    protected void setObject(T object){
+        this.object = object;
+    }
+
     @Nullable
     @Override
     public IMetadata getMetadata() {
         return metadata;
+    }
+
+    /**
+     * set object metadata
+     * @param metadata metadata object
+     */
+    protected void setMetadata(IMetadata metadata){
+        this.metadata = metadata;
     }
 
 }

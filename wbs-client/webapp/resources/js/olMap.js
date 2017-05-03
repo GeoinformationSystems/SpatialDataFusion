@@ -26,22 +26,23 @@ function olMap(div, crs, zoom, center_wgs84, coordDiv) {
     /**
      * add basemap
      */
-    this.addBasemap = function (key, layer) {
-        this.addLayer(this.basemaps, key, layer);
+    this.addBasemap = function (uid, key, layer) {
+        this.addLayer(uid, this.basemaps, key, layer);
     };
 
     /**
      * add layer
      */
-    this.addVectorLayer = function (key, layer) {
-        this.addLayer(this.layers, key, layer);
+    this.addVectorLayer = function (uid, key, layer) {
+        this.addLayer(uid, this.layers, key, layer);
     };
 
     /**
      * add a layer
      */
-    this.addLayer = function (layers, key, layer) {
-        layers[key] = layer;
+    this.addLayer = function (uid, layers, key, layer) {
+        // layer["key"] = key;
+        layers[uid] = layer;
     };
 
     /**
@@ -87,6 +88,7 @@ function olMap(div, crs, zoom, center_wgs84, coordDiv) {
                 zoom: this.zoom
             })
         });
+        this.selectedBasemaps.push(defaultKey);
     };
 
     /**
@@ -105,6 +107,8 @@ function olMap(div, crs, zoom, center_wgs84, coordDiv) {
      */
     this.updateLayerSelection = function (sKeys) {
         this.updateSelection(this.layers, this.selectedLayers, sKeys);
+        //JSF function: set selected layer features
+        pf_setSelectedFeatures(olMap.f_getJSONFeatures());
     };
 
     /**
@@ -363,11 +367,25 @@ function olMap(div, crs, zoom, center_wgs84, coordDiv) {
      * @returns {string}
      */
     this.f_getJSONFeatures = function () {
-        var features = olMap.selectedFeatures.getArray();
-        if (features.length === 0)
-            return "";
+        var selection = [];
         var jFormat = new ol.format.GeoJSON();
-        return JSON.stringify(jFormat.writeFeatures(features));
+        for (var i = 0; i < olMap.selectedLayers.length; i++) {
+            var layer = {};
+            layer['layer'] = olMap.selectedLayers[i];
+            layer['features'] = []
+            var features = olMap.f_getSelectedFeaturesByLayer(layer['layer']);
+            for (var j = 0; j < features.length; j++) {
+                layer['features'].push(jFormat.writeFeatureObject(features[j]));
+            }
+            selection.push(layer);
+        }
+        return JSON.stringify(selection);
+
+        // var features = olMap.selectedFeatures.getArray();
+        // if (features.length === 0)
+        //     return "";
+        // var jFormat = new ol.format.GeoJSON();
+        // return JSON.stringify(jFormat.writeFeatures(features));
     }
 
 }

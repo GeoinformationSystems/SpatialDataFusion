@@ -7,10 +7,12 @@ import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureIterator;
+import org.geotools.feature.FeatureCollection;
+import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -43,7 +45,7 @@ public class GTFeatureCollection extends AbstractFeatureCollection<GTVectorFeatu
      * @param identifier        resource identifier
      * @param featureCollection GeoTools feature collection
      */
-    public GTFeatureCollection(@Nullable IIdentifier identifier, @NotNull SimpleFeatureCollection featureCollection, @Nullable IMetadata metadata) {
+    public GTFeatureCollection(@Nullable IIdentifier identifier, @NotNull FeatureCollection featureCollection, @Nullable IMetadata metadata) {
         this(identifier, getGTCollection(identifier, featureCollection), metadata);
     }
 
@@ -54,12 +56,12 @@ public class GTFeatureCollection extends AbstractFeatureCollection<GTVectorFeatu
      * @return collection of GTVectorFeature implementations
      */
     @NotNull
-    public static Collection<GTVectorFeature> getGTCollection(@Nullable IIdentifier collectionId, @NotNull SimpleFeatureCollection featureCollection) {
+    public static Collection<GTVectorFeature> getGTCollection(@Nullable IIdentifier collectionId, @NotNull FeatureCollection featureCollection) {
         Collection<GTVectorFeature> collection = new HashSet<>();
-        try (SimpleFeatureIterator iterator = featureCollection.features()) {
+        try (FeatureIterator iterator = featureCollection.features()) {
             while (iterator.hasNext()) {
-                SimpleFeature feature = iterator.next();
-                IIdentifier featureID = collectionId == null ? new Identifier(feature.getID()) : new Identifier((collectionId + "#" + feature.getID()));
+                Feature feature = iterator.next();
+                IIdentifier featureID = collectionId == null ? new Identifier(feature.getIdentifier().getID()) : new Identifier((collectionId + "#" + feature.getIdentifier().getID()));
                 collection.add(new GTVectorFeature(featureID, feature, null));
             }
         }

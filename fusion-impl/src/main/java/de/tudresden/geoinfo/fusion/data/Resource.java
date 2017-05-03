@@ -23,7 +23,7 @@ public class Resource implements IResource {
     public Resource(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description) {
         this.identifier = identifier != null ? identifier : new Identifier();
         this.title = title != null ? title : this.identifier.toString();
-        this.description = description;
+        this.description = description != null ? description : this.title;
     }
 
     /**
@@ -32,7 +32,7 @@ public class Resource implements IResource {
      * @param identifier resource identifier
      */
     public Resource(@NotNull IIdentifier identifier) {
-        this(identifier, null, null);
+        this(identifier, identifier.toString(), identifier.toString());
     }
 
     /**
@@ -41,7 +41,7 @@ public class Resource implements IResource {
      * @param title resource title
      */
     public Resource(@NotNull String title) {
-        this(null, title, null);
+        this(null, title, title);
     }
 
     @Override
@@ -54,9 +54,25 @@ public class Resource implements IResource {
         return title;
     }
 
+    /**
+     * change resource title
+     * @param title new resource title
+     */
+    protected void setTitle(String title) {
+        this.title = title;
+    }
+
     @Override
     public @Nullable String getDescription() {
         return description;
+    }
+
+    /**
+     * change resource description
+     * @param description new resource description
+     */
+    protected void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

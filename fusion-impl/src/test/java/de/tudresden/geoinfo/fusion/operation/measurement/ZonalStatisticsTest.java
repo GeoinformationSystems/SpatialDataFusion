@@ -13,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,19 +28,19 @@ public class ZonalStatisticsTest extends AbstractTest {
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
-    public void getZonalStatisticsGK() {
+    public void getZonalStatisticsGK() throws MalformedURLException {
         calculateZonalStatistics(
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "municipalities_gk.shp").toURI(), true),
-                readGrid(new File("D:/Geodaten/Testdaten/tif/dem_gk.tif").toURI()),
+                readGrid(new File("D:/Geodaten/Testdaten/tif/dem_gk.tif").toURI().toURL()),
                 new IntegerLiteral(0),
                 new DecimalLiteral(100));
     }
 
     @Test
-    public void getZonalStatisticsWGS84() {
+    public void getZonalStatisticsWGS84() throws MalformedURLException {
         calculateZonalStatistics(
                 readShapefile(new File("D:/Geodaten/Testdaten/shape", "municipalities_wgs84.shp").toURI(), true),
-                readGrid(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI()),
+                readGrid(new File("D:/Geodaten/Testdaten/tif/dem.tif").toURI().toURL()),
                 new IntegerLiteral(0),
                 null);
     }

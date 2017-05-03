@@ -9,7 +9,7 @@ import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 
 import java.util.Set;
 
@@ -142,13 +142,13 @@ public abstract class AbstractFeatureMapping extends AbstractOperation {
         addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
         addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
-                        new MandatoryConstraint()},
+                        new MandatoryDataConstraint()},
                 null,
                 null);
         addInputConnector(IN_MEASUREMENTS_TITLE, IN_MEASUREMENTS_DESCRIPTION,
@@ -165,7 +165,7 @@ public abstract class AbstractFeatureMapping extends AbstractOperation {
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new InputData(new BooleanLiteral(false)).getOutputConnector());
+                new InputData<>(new BooleanLiteral(false)).getOutputConnector());
     }
 
     @Override

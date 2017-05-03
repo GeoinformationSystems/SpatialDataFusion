@@ -1,10 +1,10 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
-import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryConstraint;
+import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -34,30 +34,30 @@ public abstract class OWSXMLParser extends AbstractOperation {
 
     public Document getDocument() throws SAXException, IOException, ParserConfigurationException {
         //get URL
-        URILiteral uriLiteral = getResourceURI();
+        URLLiteral uriLiteral = getResourceURI();
         //parse HTTP connection
-        if (uriLiteral.resolve().getScheme().toLowerCase().startsWith("http"))
+        if (uriLiteral.resolve().getProtocol().toLowerCase().startsWith("http"))
             return parseDocumentFromHTTP(uriLiteral);
             //parse file
-        else if (uriLiteral.resolve().getScheme().toLowerCase().startsWith("file"))
+        else if (uriLiteral.resolve().getProtocol().toLowerCase().startsWith("file"))
             return parseDocumentFromFile(uriLiteral);
         else
             throw new IllegalArgumentException("Unsupported OWS resource");
     }
 
-    protected URILiteral getResourceURI() {
-        return ((URILiteral) getInputConnector(IN_RESOURCE_TITLE).getData());
+    protected URLLiteral getResourceURI() {
+        return ((URLLiteral) getInputConnector(IN_RESOURCE_TITLE).getData());
     }
 
-    private Document parseDocumentFromHTTP(URILiteral uriLiteral) throws IOException, SAXException, ParserConfigurationException {
-        HttpURLConnection connection = (HttpURLConnection) uriLiteral.resolve().toURL().openConnection();
+    private Document parseDocumentFromHTTP(URLLiteral uriLiteral) throws IOException, SAXException, ParserConfigurationException {
+        HttpURLConnection connection = (HttpURLConnection) uriLiteral.resolve().openConnection();
         if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
             throw new IOException("OWS resource is not valid or not accessible, HTTP response " + connection.getResponseCode());
         return parse(connection.getInputStream());
     }
 
-    private Document parseDocumentFromFile(URILiteral uriLiteral) throws SAXException, IOException, ParserConfigurationException {
-        File file = new File(uriLiteral.resolve().toURL().getFile());
+    private Document parseDocumentFromFile(URLLiteral uriLiteral) throws SAXException, IOException, ParserConfigurationException {
+        File file = new File(uriLiteral.resolve().getFile());
         if (!file.exists() || file.isDirectory())
             throw new IllegalArgumentException("Cannot read OWS resource");
         return parse(new FileInputStream(file));
@@ -79,8 +79,8 @@ public abstract class OWSXMLParser extends AbstractOperation {
     public void initializeInputConnectors() {
         addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(URILiteral.class),
-                        new MandatoryConstraint()},
+                        new BindingConstraint(URLLiteral.class),
+                        new MandatoryDataConstraint()},
                 null,
                 null);
     }

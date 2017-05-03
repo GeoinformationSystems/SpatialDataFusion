@@ -1,14 +1,12 @@
 /**
- * string for identifier separation and replacements
+ * string for identifier separation
  */
 var ioSeparator = '---';
-var spaceReplacement = '§§§';
-var dotReplacement = '___';
 
 /**
  * style definitions
  */
-var style_single_center = "left:40%;top:10%";
+var style_single_center = "left:30%;top:10%";
 var style_output = "right:0;top:10%";
 var style_input = "left:0;";
 
@@ -27,11 +25,16 @@ plumb[singlePlumb] = {};
 plumb[multiPlumb] = {};
 
 /**
+ * input descriptions (selected features for each selected layer)
+ */
+var inputDescriptions;
+
+/**
  * connection update functions
  */
 var updateConnectionFunctions = {};
-updateConnectionFunctions[singlePlumb] = pf_updateConnections_single;
-//updateConnectionFunctions[multiPlumb] = pf_updateConnections_multi;
+updateConnectionFunctions[singlePlumb] = pf_updateWorkflow_single;
+//updateConnectionFunctions[multiPlumb] = pf_updateWorkflow_multi;
 
 /**
  * initialize jsPlumb object properties
@@ -42,15 +45,19 @@ for (var key in plumb) {
     //set divs
     plumb[key].div_main = "plumb_main_" + key;
     plumb[key].div_desc = "plumb_desc_" + key;
+    plumb[key].div_desc_txt = "plumb_desc_text_" + key;
+    plumb[key].div_validation = "plumb_validation_" + key;
     //set connections
-    plumb[key].connections = [];
+    plumb[key].workflow = {};
     //set plumb key
     plumb[key].key = key;
+    //set update workflow function name
+    plumb[key].updateConnections = updateConnectionFunctions[key];
 }
 
 /**
  * set active plumb object
- * @param plumb active plumb identifier
+ * @param identifier active plumb identifier
  */
 function f_setActivePlumb(identifier) {
     activePlumb = identifier;
@@ -86,10 +93,10 @@ function f_initPlumb(plumb) {
     });
     plumb.jsPlumb.bind("click", function (c) {
         plumb.jsPlumb.detach(c);
-        f_updateConnections();
+        f_updateWorkflow();
     });
     plumb.jsPlumb.bind("connection", function (info, originalEvent) {
-        f_updateConnections();
+        f_updateWorkflow();
     });
 }
 
@@ -102,7 +109,7 @@ function f_clearPlumb() {
     for (var i = 0; i < plumb[activePlumb].activeProcesses.length; i++) {
         f_removeProcess(plumb[activePlumb].activeProcesses[i])
     }
-    plumb[activePlumb].connections.length = 0;
+    plumb[activePlumb].workflow = {};
 }
 
 /**
@@ -110,7 +117,7 @@ function f_clearPlumb() {
  * @param description process description
  */
 function f_removeProcess(description) {
-    plumb[activePlumb].jsPlumb.remove(plumb[activePlumb].jsPlumb.getSelector("#" + description.identifier));
+    plumb[activePlumb].jsPlumb.remove($(document.getElementById(description.identifier_norm)));
 }
 
 /**
@@ -119,7 +126,7 @@ function f_removeProcess(description) {
  * @param style element style
  */
 function f_addProcess(description, style) {
-    //normalize decsription
+    //normalize description
     description = f_normalizeDescription(description);
     //add to active processes
     plumb[activePlumb].activeProcesses.push(description);
@@ -130,11 +137,11 @@ function f_addProcess(description, style) {
     plumb[activePlumb].jsPlumb.draggable(div);
     //add inputs
     for (var i = 0; i < description.inputs.length; i++) {
-        f_addProcessIO(description.identifier, description.inputs[i], true);
+        f_addProcessIO(description.identifier_norm, description.inputs[i], true);
     }
     //add outputs
-    for (var i = 0; i < description.outputs.length; i++) {
-        f_addProcessIO(description.identifier, description.outputs[i], false);
+    for (i = 0; i < description.outputs.length; i++) {
+        f_addProcessIO(description.identifier_norm, description.outputs[i], false);
     }
 }
 
@@ -144,23 +151,38 @@ function f_addProcess(description, style) {
  * @returns {void|string|XML|*} normalized description
  */
 function f_normalizeDescription(description) {
-    description.identifier = f_normalizeIdentifier(description.identifier);
-    for (var i = 0; i < description.inputs.length; i++) {
-        description.inputs[i].identifier = f_normalizeIdentifier(description.inputs[i].identifier);
-    }
-    for (var i = 0; i < description.outputs.length; i++) {
-        description.outputs[i].identifier = f_normalizeIdentifier(description.outputs[i].identifier);
-    }
+    description.identifier_norm = f_encodeIdentifier(description.identifier);
+    description.title_norm = f_encodeTitle(description.title);
     return description;
 }
 
 /**
- * normalize identifier
+ * encode identifier
  * @param identifier input identifier
- * @returns {void|string|XML|*} normalized identifier
+ * @returns {string} encoded identifier
  */
-function f_normalizeIdentifier(identifier) {
-    return identifier.replace(/\./g, dotReplacement).replace(/ /g, spaceReplacement);
+function f_encodeIdentifier(identifier) {
+    //replace special characters
+    return identifier.replace( /(:|\.|\[|\]|,|=|@|\/)/g, "\\\\$1" );
+}
+
+/**
+ * decode identifier
+ * @param identifier input identifier
+ * @returns {string} decoded identifier
+ */
+function f_decodeIdentifier(identifier) {
+    //undo replacements from f_encodeIdentifier(identifier)
+    return identifier.replace( /(\\\\)/g, "" );
+}
+
+/**
+ * encode title
+ * @param title input title
+ * @returns {string} encoded title
+ */
+function f_encodeTitle(title) {
+    return title;
 }
 
 /**
@@ -171,38 +193,47 @@ function f_normalizeIdentifier(identifier) {
  */
 function f_createProcessDiv(description, style) {
     return $('<div>')
-        .attr('id', description.identifier)
+        .attr('id', description.identifier_norm)
         .attr('style', style)
-        .append('<div class="plumb_process_title">' + description.title + '</div>')
+        .append('<div class="plumb_process_title">' + description.title_norm + '</div>')
         .addClass('plumb_process')
 }
 
 /**
  * add process IO to jsPlumb process
- * @param identifier identifier for process
+ * @param identifier_norm identifier for process
  * @param ioDescription IO description
  * @param isInput true if IO description is input
  */
-function f_addProcessIO(identifier, ioDescription, isInput) {
-    var processIOId = identifier + ioSeparator + ioDescription.identifier;
+function f_addProcessIO(identifier_norm, ioDescription, isInput) {
+    ioDescription = f_normalizeDescription(ioDescription);
+    var processIOId = identifier_norm + ioSeparator + ioDescription.identifier_norm;
     var processIO = $('<div>').attr('id', processIOId).addClass('plumb_process_io').addClass((isInput ? 'plumb_process_in' : 'plumb_process_out'));
     processIO.text(ioDescription.title);
     processIO.mouseover(function () {
-        $('#' + plumb[activePlumb].div_desc).html(f_getIODetails(ioDescription));
+        plumb[activePlumb].desc_txt.html(f_getIODetails(ioDescription));
+        plumb[activePlumb].desc.css("display", "block");
+        plumb[activePlumb].desc.css("position", "fixed");
+        var rightX = processIO.offset().left + processIO.width();
+        var bottomY = processIO.offset().top + processIO.height();
+        plumb[activePlumb].desc.css("left", rightX - 50 + "px");
+        plumb[activePlumb].desc.css("top", bottomY + 5 + "px");
     });
     processIO.mouseleave(function () {
-        $('#' + plumb[activePlumb].div_desc).html('');
+        plumb[activePlumb].desc_txt.html('');
+        plumb[activePlumb].desc.css("display", "none");
+        plumb[activePlumb].desc.css("position", "relative");
     });
-    $('#' + identifier).append(processIO);
-    var io = plumb[activePlumb].jsPlumb.getSelector("#" + processIOId);
+
+    $(document.getElementById(identifier_norm)).append(processIO);
     if (isInput) {
-        plumb[activePlumb].jsPlumb.makeTarget(io, {
+        plumb[activePlumb].jsPlumb.makeTarget(processIO, {
             anchor: "LeftMiddle",
             maxConnections: 1
         });
     }
     else {
-        plumb[activePlumb].jsPlumb.makeSource(io, {
+        plumb[activePlumb].jsPlumb.makeSource(processIO, {
             anchor: "RightMiddle",
             connector: ["Flowchart", {stub: 30, cornerRadius: 5, gap: 10}]
         });
@@ -215,16 +246,16 @@ function f_addProcessIO(identifier, ioDescription, isInput) {
  * @returns {String}
  */
 function f_getIODetails(ioDescription) {
-    var details = '<span class="io_id">' + ioDescription.identifier + '</span><br /><span class="io_title">' + ioDescription.title + '</span><br />' +
+    var details = '<div class="io_description">' + ioDescription.description + '</div>' +
         '<span class="io_format_title">defaultFormat</span><br />' + f_getFormatString(ioDescription.defaultFormat) +
         '<span class="io_format_title">supportedFormats</span><br />';
     for (var i = 0; i < ioDescription.supportedFormats.length; i++) {
-        details += f_getFormatString(ioDescription.supportedFormats[i]);
-        if (i >= 5) {
-            details += '<div class="ioFormat">... (' +
-                (ioDescription.supportedFormats.length - 5) + ' more)</div>';
+        if (i >= 3) {
+            details += '<div class="io_format">... (' +
+                (ioDescription.supportedFormats.length - i) + ' more)</div>';
             break;
         }
+        details += f_getFormatString(ioDescription.supportedFormats[i]);
     }
     return details;
 }
@@ -239,39 +270,53 @@ function f_getFormatString(format) {
     if (typeof format === 'undefined')
         string += 'no format defined<br />';
     else
-        string += (typeof format.mimetype !== 'undefined' && format.mimetype.length > 0 ? 'mimetype: ' + format.mimetype + '<br />' : '') +
-            (typeof format.schema !== 'undefined' && format.schema.length > 0 ? 'schema: ' + format.schema + '<br />' : '') +
-            (typeof format.type !== 'undefined' && format.type.length > 0 ? 'type: ' + format.type + '<br />' : '');
+        string +=
+            f_getFormatSubString('mimetype', format.mimetype) +
+            f_getFormatSubString('schema', format.schema) +
+            f_getFormatSubString('type', format.type);
     if (string.lastIndexOf('<br />') > -1)
         string = string.substring(0, string.lastIndexOf('<br />'));
     return string + '</div>';
 }
 
-/**
- * initialize single plumb
- * @param processDescription input process description
- */
-function f_initSinglePlumb(sProcessDescription) {
-    var processDescription = f_getProcessDescriptionFromJSONString(sProcessDescription);
-    if (!isValidDescription(processDescription))
-        return;
-    f_setActivePlumb(singlePlumb);
-    f_addProcess(processDescription, style_single_center);
-    //add inputs
-    var inputDescriptions = f_getInputDescriptions();
-    for (var i = 0; i < inputDescriptions.length; i++) {
-        f_addProcess(inputDescriptions[i], style_input + "top:" + (i * 20 + 10) + "%;");
-    }
-    //add output
-    f_addProcess(f_getOutputDescription(), style_output);
+function f_getFormatSubString(key, value){
+    if(typeof value === 'undefined' || value === null || value.length < 1)
+        return '';
+    else
+        return key + ": " + value + '<br />';
 }
 
 /**
- * parse process description from JSON
- * @param sProcessDescription JSON string
+ * initialize single plumb
+ * @param jsonProcessDescription input process description
  */
-function f_getProcessDescriptionFromJSONString(sProcessDescription) {
-    return JSON.parse(sProcessDescription);
+function f_initSinglePlumb(jsonProcessDescription) {
+    var processDescription = JSON.parse(jsonProcessDescription);
+    if (!isValidDescription(processDescription))
+        return;
+    f_setActivePlumb(singlePlumb);
+    //set relevant div elements
+    f_resetPlumb();
+    //add inputs
+    for (var i = 0; i < inputDescriptions.length; i++) {
+        f_addProcess(inputDescriptions[i], style_input + "top:" + (i * 20 + 10) + "%;");
+    }
+    //add main process
+    f_addProcess(processDescription, style_single_center);
+    //add output
+    f_addProcess(f_getOutputDescription(), style_output);
+    f_updateWorkflow();
+}
+
+/**
+ * set active div elements
+ */
+function f_resetPlumb() {
+    f_initPlumb(plumb[activePlumb]);
+    plumb[activePlumb].main = $(document.getElementById(plumb[activePlumb].div_main));
+    plumb[activePlumb].validation = $(document.getElementById(plumb[activePlumb].div_validation));
+    plumb[activePlumb].desc = $(document.getElementById(plumb[activePlumb].div_desc));
+    plumb[activePlumb].desc_txt = $(document.getElementById(plumb[activePlumb].div_desc_txt));
 }
 
 /**
@@ -279,7 +324,7 @@ function f_getProcessDescriptionFromJSONString(sProcessDescription) {
  * @param processDescription input description
  */
 function isValidDescription(processDescription) {
-    return processDescription != null && processDescription.identifier !== 'undefined';
+    return processDescription !== null && processDescription.identifier !== 'undefined' && processDescription.title !== 'undefined';
 }
 
 /**
@@ -291,46 +336,68 @@ function f_clearSinglePlumb() {
 }
 
 /**
- * get selected process inputs from openlayers
- * @returns input description array
+ * dd literal value
+ * @param value literal
  */
-function f_getInputDescriptions() {
-    var inputDescriptions = [];
-    //uses reference to olMap object
-    for (var i = 0; i < olMap.selectedLayers.length; i++) {
-        sLayer = olMap.selectedLayers[i];
-        var selection = olMap.f_getSelectedFeaturesByLayer(sLayer);
-        inputDescriptions.push(f_getInputDescription(sLayer, selection));
-    }
-    return inputDescriptions;
+function f_addLiteral(value) {
+    value = value.replace(',', '.')
+    if (value.length === 0)
+        return;
+    f_addLiteralInput(value);
 }
 
 /**
- * get input description for layer
- * @returns input description
+ * add literal value as input process
+ * @param value literal
  */
-function f_getInputDescription(sLayer, selection) {
-    var description = {
-        title: sLayer, identifier: sLayer,
-        inputs: []
+function f_addLiteralInput(value) {
+    if($('#LiteralInputs').length === 0)
+        f_addProcess(f_getLiteralInputDescription(), style_input + "bottom:0%;");
+    var description = f_getLiteralValueDescription(value, f_getProcessById('LiteralInputs').outputs.length + 1);
+    f_getProcessById('LiteralInputs').outputs.push(description);
+    f_addProcessIO('LiteralInputs', description, false);
+}
+
+/**
+ * get literal input process description
+ * @returns input process description
+ */
+function f_getLiteralInputDescription() {
+    return {
+        title: 'LiteralInputs', identifier: 'LiteralInputs',
+        inputs: [],
+        outputs: []
     };
-    description.outputs = [];
-    if (selection.length > 0) {
-        for (var i = 0; i < selection.length; i++) {
-            description.outputs.push({
-                identifier: selection[i].getId(), title: selection[i].getId(),
-                defaultFormat: {mimetype: 'application/json'},
-                supportedFormats: [{mimetype: 'application/json'}]
-            });
-        }
-    }
-    else
-        description.outputs.push({
-            identifier: 'ALL_features', title: 'all features',
-            defaultFormat: {mimetype: 'application/json'},
-            supportedFormats: [{mimetype: 'application/json'}]
-        });
-    return description;
+}
+
+/**
+ * get literal value description
+ * @param value literal
+ * @param index literal index for identification
+ * @returns {{identifier: *, minOccurs: *, maxOccurs: *, title: *, defaultFormat: *, supportedFormats: *}} value description
+ */
+function f_getLiteralValueDescription(value, index){
+    return f_getProcessIODescription(
+        "Literal_" + index, 1, 1, value, "Literal value: " + value,
+        f_getIOFormat(null, null, "xs:string"),
+        f_getSupportedFormats(value)
+    )
+}
+
+/**
+ * get supported io types for literal value
+ * @param value literal
+ * @return {[*]} formats
+ */
+function f_getSupportedFormats(value) {
+    var supportedFormats = [f_getIOFormat(null, null, "xs:string")];
+    if (/^(true|false|0|1)$/i.test(value))
+        supportedFormats.push(f_getIOFormat(null, null, "xs:boolean"));
+    if (/^\d+$/.test(value))
+        supportedFormats.push(f_getIOFormat(null, null, "xs:integer"));
+    if (/^\d+\.?\d*$/.test(value))
+        supportedFormats.push(f_getIOFormat(null, null, "xs:double"));
+    return supportedFormats;
 }
 
 /**
@@ -338,51 +405,67 @@ function f_getInputDescription(sLayer, selection) {
  * @returns output description
  */
 function f_getOutputDescription() {
-    return {
-        title: 'Output', identifier: 'Output',
-        inputs: [{
-            identifier: 'IN_OUTPUT', title: 'Output of the process',
-            defaultFormat: {mimetype: 'any'},
-            supportedFormats: [{mimetype: 'any'}]
-        }],
-        outputs: []
-    };
+    return f_getProcessDescription(
+        'Output', 'Output',
+        [
+            f_getProcessIODescription(
+                'Output', 1, 100, 'Output', 'Output of the Workflow',
+                f_getIOFormat('*', '*', '*'),
+                [
+                    f_getIOFormat('*', '*', '*')
+                ]
+            )
+        ],
+        [],
+        'output'
+    );
 }
 
 /**
  * update jsPlumbConnections in JSF
  */
-function f_updateConnections() {
-    plumb[activePlumb].connections = f_getConnections();
-    updateConnectionFunctions[plumb[activePlumb].key](JSON.stringify(plumb[activePlumb].connections));
+function f_updateWorkflow() {
+    plumb[activePlumb].workflow = f_getWorkflowDescription();
+    plumb[activePlumb].updateConnections(JSON.stringify(plumb[activePlumb].workflow));
+}
+
+/**
+ * set validation message
+ * @param message message string
+ */
+function f_setValidationMessage(message) {
+    console.log(message);
+    plumb[activePlumb].validation.html(message);
 }
 
 /**
  * get jsPlumb connections
+ * @returns {Array}
  */
-function f_getConnections() {
-    var connections = [];
+function f_getWorkflowDescription() {
+    var workflow = {};
+    workflow.processes = plumb[activePlumb].activeProcesses;
+    workflow.connections = [];
     var plumbConnections = plumb[activePlumb].jsPlumb.getAllConnections();
     for (var i = 0; i < plumbConnections.length; i++) {
         var connection = {};
         //split identifier
         var source = plumbConnections[i].sourceId.split(ioSeparator);
         var target = plumbConnections[i].targetId.split(ioSeparator);
-        //get descriptions
-        var sourceProcess = f_getProcessById(source[0]);
-        var targetProcess = f_getProcessById(target[0]);
         //set connection
-        connection['s_identifier'] = sourceProcess;
-        connection['t_identifier'] = targetProcess;
-        connection['s_output'] = source[1];
-        connection['t_input'] = target[1];
-        connections.push(connection);
+        connection['s_identifier'] = f_decodeIdentifier(source[0]);
+        connection['t_identifier'] = f_decodeIdentifier(target[0]);
+        connection['s_output'] = f_decodeIdentifier(source[1]);
+        connection['t_input'] = f_decodeIdentifier(target[1]);
+        workflow.connections.push(connection);
     }
-    return connections;
+    return workflow;
 }
 
 /**
  * get process description by identifier
+ * @param identifier process identifier
+ * @returns {*} process or null, if process does not exist
  */
 function f_getProcessById(identifier) {
     for (var i = 0; i < plumb[activePlumb].activeProcesses.length; i++) {
@@ -390,6 +473,69 @@ function f_getProcessById(identifier) {
             return plumb[activePlumb].activeProcesses[i];
     }
     return null;
+}
+
+/**
+ * get process description
+ * @param identifier process identifier
+ * @param title process title
+ * @param inputs process inputs
+ * @param outputs process outputs
+ * @returns {{title: *, identifier: *, inputs: *, outputs: *}} process description
+ */
+function f_getProcessDescription(identifier, title, inputs, outputs, type){
+    return {
+        title: title,
+        identifier: identifier,
+        inputs: inputs,
+        outputs: outputs,
+        type: type
+    };
+}
+
+/**
+ * get process IO description
+ * @param identifier IO identifier
+ * @param minOccurs IO min occurs
+ * @param maxOccurs IO max occurs
+ * @param title IO title
+ * @param description IO description
+ * @param defaultFormat IO default format
+ * @param supportedFormats IO supported formats
+ * @return {{identifier: *, minOccurs: *, maxOccurs: *, title: *, defaultFormat: *, supportedFormats: *}} IO description
+ */
+function f_getProcessIODescription(identifier, minOccurs, maxOccurs, title, description, defaultFormat, supportedFormats){
+    return {
+        identifier: identifier,
+        minOccurs: minOccurs, maxOccurs: maxOccurs,
+        title: title,
+        description: description,
+        defaultFormat: defaultFormat,
+        supportedFormats: supportedFormats
+    }
+}
+
+/**
+ * get IO format description
+ * @param mimetype IO mimetype
+ * @param schema IO schema
+ * @param type IO type
+ * @returns {{mimetype: *, schema: *, type: *}} format description
+ */
+function f_getIOFormat(mimetype, schema, type) {
+    return {
+        mimetype: mimetype,
+        schema: schema,
+        type: type
+    }
+}
+
+/**
+ * set selected features by layer
+ * @param selection input selection
+ */
+function f_setInputDescriptions(descriptions){
+    inputDescriptions = JSON.parse(descriptions);
 }
 
 

@@ -1,16 +1,13 @@
 package de.tudresden.geoinfo.fusion.data.ows;
 
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.literal.URILiteral;
+import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -19,6 +16,7 @@ import java.util.*;
 public class WMSCapabilities extends OWSCapabilities {
 
     private static final String WMS_LAYER = ".*(?i)Layer";
+    private static final String SERVICE_WMS = "(?i)WMS";
 
     private Map<String, WMSLayer> wmsLayers;
 
@@ -28,14 +26,9 @@ public class WMSCapabilities extends OWSCapabilities {
      * @param uri      WMS capabilities uri
      * @param object   capabilities document
      * @param metadata document metadata
-     * @throws ParserConfigurationException
-     * @throws SAXException
-     * @throws IOException
      */
-    public WMSCapabilities(@NotNull URILiteral uri, Document object, @Nullable IMetadata metadata) throws ParserConfigurationException, SAXException, IOException {
+    public WMSCapabilities(@NotNull URLLiteral uri, Document object, @Nullable IMetadata metadata) {
         super(uri, object, metadata);
-        if (!this.getServiceType().equals(OWSServiceType.WMS))
-            throw new IOException("Document is not a WMS capabilities document");
         initWMSCapabilities();
     }
 
@@ -44,14 +37,17 @@ public class WMSCapabilities extends OWSCapabilities {
      *
      * @param capabilities input capabilities
      */
-    public WMSCapabilities(@NotNull OWSCapabilities capabilities) throws ParserConfigurationException, SAXException, IOException {
-        this(capabilities.getURI(), capabilities.resolve(), capabilities.getMetadata());
+    public WMSCapabilities(@NotNull OWSCapabilities capabilities) {
+        super(capabilities.getURI(), capabilities.resolve(), capabilities.getMetadata(), capabilities.getServiceIdentification(), capabilities.getOperationsMetadata());
+        initWMSCapabilities();
     }
 
     /**
      * initialize WFS capabilities
      */
     private void initWMSCapabilities() {
+        if (!this.getServiceType().matches(SERVICE_WMS))
+            throw new IllegalArgumentException("Document is not a valid WMS capabilities document");
         this.wmsLayers = new HashMap<>();
         List<Node> matches = this.getNodes(WMS_LAYER);
         for (Node node : matches) {

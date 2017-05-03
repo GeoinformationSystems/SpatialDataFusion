@@ -14,7 +14,7 @@
 //import de.tudresden.gis.fusion.data.literal.DecimalLiteral;
 //import de.tudresden.gis.fusion.data.literal.IntegerLiteral;
 //import de.tudresden.gis.fusion.data.literal.StringLiteral;
-//import de.tudresden.gis.fusion.data.literal.URILiteral;
+//import de.tudresden.gis.fusion.data.literal.URLLiteral;
 //import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
 //import de.tudresden.gis.fusion.operation.io.GMLParser;
 //import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
@@ -34,13 +34,13 @@
 //
 //		Map<String,IData> input = new HashMap<String,IData>();
 //
-//		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:radwege_dd&srsname=crs:84"));
+//		input.put("IN_RESOURCE", new URLLiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:radwege_dd&srsname=crs:84"));
 //		Map<String,IData> output = parserGML.execute(input);
 //		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
 //		//noise
 //
-//		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:laermkartierung&srsname=crs:84"));
+//		input.put("IN_RESOURCE", new URLLiteral("http://localhost:8081/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typename=fusion:laermkartierung&srsname=crs:84"));
 //		output = parserGML.execute(input);
 //		GTFeatureCollection targetNoise = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
@@ -53,7 +53,7 @@
 //
 //		//pm10 - 09:00
 //
-//		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wcs?request=getcoverage&version=2.0.0&coverageId=fusion__pm10-200607050900-wgs84-2"));
+//		input.put("IN_RESOURCE", new URLLiteral("http://localhost:8081/geoserver/wcs?request=getcoverage&version=2.0.0&coverageId=fusion__pm10-200607050900-wgs84-2"));
 //		output = parserCoverage.execute(input);
 //		GTGridCoverage targetPM10_09 = (GTGridCoverage) output.get("OUT_COVERAGE");
 //
@@ -69,7 +69,7 @@
 //
 //		//pm10 - 12:00
 //
-//		input.put("IN_RESOURCE", new URILiteral("http://localhost:8081/geoserver/wcs?request=getcoverage&version=2.0.0&coverageId=fusion__pm10-200607051200-wgs84-2"));
+//		input.put("IN_RESOURCE", new URLLiteral("http://localhost:8081/geoserver/wcs?request=getcoverage&version=2.0.0&coverageId=fusion__pm10-200607051200-wgs84-2"));
 //		output = parserCoverage.execute(input);
 //		GTGridCoverage targetPM10_12 = (GTGridCoverage) output.get("OUT_COVERAGE");
 //
@@ -86,7 +86,7 @@
 //		if(tripleStore){
 //			TripleStoreGenerator generator = new TripleStoreGenerator();
 //			input.put("IN_RDF", relations);
-//			input.put("IN_TRIPLE_STORE", new URILiteral("http://localhost:3030/fusion/update"));
+//			input.put("IN_TRIPLE_STORE", new URLLiteral("http://localhost:3030/fusion/update"));
 //			input.put("IN_CLEAR_STORE", new BooleanLiteral(true));
 //			input.put("IN_URI_PREFIXES", new StringLiteral(""
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
@@ -115,7 +115,7 @@
 //					+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 //					+ "http://www.w3.org/2001/XMLSchema#;xsd;"));
 //			output = generator.execute(input);
-//			result = ((URILiteral) output.get("OUT_RESOURCE")).getLiteral();
+//			result = ((URLLiteral) output.get("OUT_RESOURCE")).getLiteral();
 //		}
 //
 //		Runtime runtime = Runtime.getRuntime();

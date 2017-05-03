@@ -5,6 +5,7 @@ import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
 import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -43,7 +44,9 @@ public class DataTypeConstraint implements IConnectionConstraint {
     }
 
     @Override
-    public boolean compliantWith(@NotNull IWorkflowConnector connector) {
+    public boolean compliantWith(@Nullable IWorkflowConnector connector) {
+        if (connector == null)
+            return true;
         for (IConnectionConstraint constraint : connector.getConnectionConstraints()) {
             if (constraint instanceof DataTypeConstraint) {
                 for (IResource resource : ((DataTypeConstraint) constraint).getSupportedDataTypes()) {

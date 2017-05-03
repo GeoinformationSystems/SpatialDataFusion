@@ -19,7 +19,7 @@
 //import de.tudresden.gis.fusion.data.IData;
 //import de.tudresden.gis.fusion.data.feature.geotools.GTVectorFeature;
 //import de.tudresden.gis.fusion.data.feature.geotools.GTFeatureCollection;
-//import de.tudresden.gis.fusion.data.literal.URILiteral;
+//import de.tudresden.gis.fusion.data.literal.URLLiteral;
 //import de.tudresden.gis.fusion.operation.io.ShapefileParser;
 //
 //public class SinuosityPyramid {
@@ -31,7 +31,7 @@
 //
 //		ShapefileParser parser = new ShapefileParser();
 //		Map<String,IData> input = new HashMap<String,IData>();
-//		input.put("IN_RESOURCE", new URILiteral(new File("D:/Geodaten/LfULG/Gew�sserstrukturkartierung", "Gewaessernetz.shp").toURI()));
+//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/LfULG/Gew�sserstrukturkartierung", "Gewaessernetz.shp").toURI()));
 //		Map<String,IData> output = parser.execute(input);
 //		GTFeatureCollection reference = (GTFeatureCollection) output.get("OUT_FEATURES");
 //		GTVectorFeature lockwitzbach = reference.elementById("Gewaessernetz.55");
