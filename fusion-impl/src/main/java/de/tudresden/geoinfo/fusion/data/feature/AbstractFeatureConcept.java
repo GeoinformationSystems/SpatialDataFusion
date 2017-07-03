@@ -27,11 +27,13 @@ public abstract class AbstractFeatureConcept extends Data implements IFeatureCon
         super(identifier, concept, metadata);
     }
 
+    @NotNull
     @Override
     public Collection<IFeatureEntity> getRelatedEntities() {
         return entities;
     }
 
+    @NotNull
     @Override
     public Collection<IFeatureType> getRelatedTypes() {
         return types;

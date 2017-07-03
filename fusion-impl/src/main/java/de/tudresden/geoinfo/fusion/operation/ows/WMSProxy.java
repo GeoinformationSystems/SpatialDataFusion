@@ -11,13 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public class WMSProxy extends OWSServiceOperation {
 
-    private static final String PROCESS_TITLE = WMSProxy.class.getSimpleName();
+    private static final String PROCESS_TITLE = WMSProxy.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for OGC WMS";
 
     private final static String IN_FORMAT_TITLE = "IN_FORMAT";
@@ -35,28 +34,28 @@ public class WMSProxy extends OWSServiceOperation {
      * constructor
      */
     public WMSProxy(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
-        super(identifier, PROCESS_TITLE, PROCESS_DESCRIPTION, base, true);
+        super(identifier, base);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //do nothing //TODO implement getMap
     }
 
     @Override
-    public @Nullable WMSCapabilities getCapabilities() {
+    public @NotNull WMSCapabilities getCapabilities() {
         return (WMSCapabilities) super.getCapabilities();
     }
 
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(IN_FORMAT_TITLE, IN_FORMAT_DESCRIPTION,
+        addInputConnector(null, IN_FORMAT_TITLE, IN_FORMAT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class)},
                 null,
                 null);
-        addInputConnector(IN_LAYER_TITLE, IN_LAYER_DESCRIPTION,
+        addInputConnector(null, IN_LAYER_TITLE, IN_LAYER_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new MandatoryDataConstraint()},
@@ -70,8 +69,13 @@ public class WMSProxy extends OWSServiceOperation {
     }
 
     @Override
-    public @Nullable String getSelectedOffering(){
+    public @Nullable String getSelectedOffering() {
         return this.getLayer();
+    }
+
+    @Override
+    public void setSelectedOffering(@NotNull String offering) {
+        this.setLayer(offering);
     }
 
     @Override
@@ -91,11 +95,12 @@ public class WMSProxy extends OWSServiceOperation {
 
     @Override
     public @NotNull Set<String> getOfferings() {
-        return this.getCapabilities() != null ? this.getCapabilities().getWMSLayers() : Collections.emptySet();
+        return this.getCapabilities().getWMSLayers();
     }
 
     /**
      * get selected layer
+     *
      * @return selected layer
      */
     public @Nullable String getLayer() {
@@ -104,12 +109,25 @@ public class WMSProxy extends OWSServiceOperation {
 
     /**
      * select layer
+     *
      * @param layer input typename
      */
     public void setLayer(@NotNull String layer) {
-        if (!this.getOfferings().contains(layer))
+        if (!this.isSelectedOffering(layer))
             throw new IllegalArgumentException("Layer " + layer + " is not supported");
         this.setParameter(PARAM_LAYERS, layer);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

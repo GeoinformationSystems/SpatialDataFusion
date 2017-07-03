@@ -163,7 +163,7 @@ function f_normalizeDescription(description) {
  */
 function f_encodeIdentifier(identifier) {
     //replace special characters
-    return identifier.replace( /(:|\.|\[|\]|,|=|@|\/)/g, "\\\\$1" );
+    return identifier.replace(/(:|\.|\[|\]|,|=|@|\/)/g, "\\\\$1");
 }
 
 /**
@@ -173,7 +173,7 @@ function f_encodeIdentifier(identifier) {
  */
 function f_decodeIdentifier(identifier) {
     //undo replacements from f_encodeIdentifier(identifier)
-    return identifier.replace( /(\\\\)/g, "" );
+    return identifier.replace(/(\\\\)/g, "");
 }
 
 /**
@@ -279,8 +279,8 @@ function f_getFormatString(format) {
     return string + '</div>';
 }
 
-function f_getFormatSubString(key, value){
-    if(typeof value === 'undefined' || value === null || value.length < 1)
+function f_getFormatSubString(key, value) {
+    if (typeof value === 'undefined' || value === null || value.length < 1)
         return '';
     else
         return key + ": " + value + '<br />';
@@ -351,7 +351,7 @@ function f_addLiteral(value) {
  * @param value literal
  */
 function f_addLiteralInput(value) {
-    if($('#LiteralInputs').length === 0)
+    if ($('#LiteralInputs').length === 0)
         f_addProcess(f_getLiteralInputDescription(), style_input + "bottom:0%;");
     var description = f_getLiteralValueDescription(value, f_getProcessById('LiteralInputs').outputs.length + 1);
     f_getProcessById('LiteralInputs').outputs.push(description);
@@ -376,7 +376,7 @@ function f_getLiteralInputDescription() {
  * @param index literal index for identification
  * @returns {{identifier: *, minOccurs: *, maxOccurs: *, title: *, defaultFormat: *, supportedFormats: *}} value description
  */
-function f_getLiteralValueDescription(value, index){
+function f_getLiteralValueDescription(value, index) {
     return f_getProcessIODescription(
         "Literal_" + index, 1, 1, value, "Literal value: " + value,
         f_getIOFormat(null, null, "xs:string"),
@@ -434,7 +434,6 @@ function f_updateWorkflow() {
  * @param message message string
  */
 function f_setValidationMessage(message) {
-    console.log(message);
     plumb[activePlumb].validation.html(message);
 }
 
@@ -483,7 +482,7 @@ function f_getProcessById(identifier) {
  * @param outputs process outputs
  * @returns {{title: *, identifier: *, inputs: *, outputs: *}} process description
  */
-function f_getProcessDescription(identifier, title, inputs, outputs, type){
+function f_getProcessDescription(identifier, title, inputs, outputs, type) {
     return {
         title: title,
         identifier: identifier,
@@ -504,7 +503,7 @@ function f_getProcessDescription(identifier, title, inputs, outputs, type){
  * @param supportedFormats IO supported formats
  * @return {{identifier: *, minOccurs: *, maxOccurs: *, title: *, defaultFormat: *, supportedFormats: *}} IO description
  */
-function f_getProcessIODescription(identifier, minOccurs, maxOccurs, title, description, defaultFormat, supportedFormats){
+function f_getProcessIODescription(identifier, minOccurs, maxOccurs, title, description, defaultFormat, supportedFormats) {
     return {
         identifier: identifier,
         minOccurs: minOccurs, maxOccurs: maxOccurs,
@@ -534,7 +533,7 @@ function f_getIOFormat(mimetype, schema, type) {
  * set selected features by layer
  * @param selection input selection
  */
-function f_setInputDescriptions(descriptions){
+function f_setInputDescriptions(descriptions) {
     inputDescriptions = JSON.parse(descriptions);
 }
 

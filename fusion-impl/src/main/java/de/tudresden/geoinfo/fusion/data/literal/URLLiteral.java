@@ -2,7 +2,6 @@ package de.tudresden.geoinfo.fusion.data.literal;
 
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
-import de.tudresden.geoinfo.fusion.data.Metadata;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
@@ -22,8 +21,6 @@ public class URLLiteral extends LiteralData<URL> {
     private IOFormat format;
 
     /**
-     * constructor
-     *
      * @param identifier literal identifier
      * @param value      literal value
      * @param metadata   literal metadata
@@ -36,31 +33,19 @@ public class URLLiteral extends LiteralData<URL> {
     /**
      * constructor
      *
-     * @param identifier  literal identifier
-     * @param value       literal value
-     * @param title       literal title
-     * @param description literal description
+     * @param value literal value
      */
-    public URLLiteral(@Nullable IIdentifier identifier, @NotNull String title, @Nullable String description, @NotNull URL value, @Nullable IOFormat format) {
-        this(identifier, value, new Metadata(title, description), format);
-    }
-
-    /**
-     * constructor, creates random identifier
-     *
-     * @param value URL value
-     */
-    public URLLiteral(URL value, @Nullable IOFormat format) {
+    public URLLiteral(@NotNull URL value, @Nullable IOFormat format) {
         this(null, value, null, format);
     }
 
     /**
      * constructor, creates random identifier
      *
-     * @param sValue URL value
+     * @param sURL URL value
      */
-    public URLLiteral(String sValue, @Nullable IOFormat format) throws MalformedURLException {
-        this(null, new URL(sValue), null, format);
+    public URLLiteral(String sURL, @Nullable IOFormat format) {
+        this(URLFromString(sURL), format);
     }
 
     /**
@@ -77,8 +62,37 @@ public class URLLiteral extends LiteralData<URL> {
      *
      * @param sValue URL string value
      */
-    public URLLiteral(@NotNull String sValue) throws MalformedURLException {
+    public URLLiteral(@NotNull String sValue) {
         this(sValue, null);
+    }
+
+    /**
+     * get RegEx for URL validation; !note: the RegEx is rather permissive!
+     *
+     * @return URL regex string
+     */
+    public static @NotNull String getURLRegex() {
+        return "" +
+                "(https?|file|ftp):" +    //scheme
+                "//[^\\?#]*" +            //authority
+                "[^\\?#]*" +            //path
+                "(\\?[^#]*)?" +            //query
+                "(#\\w*)?";                //fragment
+    }
+
+    /**
+     * create URL from String
+     *
+     * @param sURL input URL String
+     * @return valid URL
+     * @throws IllegalArgumentException, if sURL is not a valid URL
+     */
+    public static URL URLFromString(String sURL) {
+        try {
+            return new URL(sURL);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(sURL + " is not a valid URL");
+        }
     }
 
     @Override
@@ -100,25 +114,12 @@ public class URLLiteral extends LiteralData<URL> {
     }
 
     /**
-     * get IO format associated with uri literal
+     * get IO format referenced by uri literal
+     *
      * @return IO format
      */
-    public IOFormat getIOFormat(){
+    public IOFormat getIOFormat() {
         return this.format;
-    }
-
-    /**
-     * get RegEx for URL validation; !note: the RegEx is rather permissive!
-     *
-     * @return URL regex string
-     */
-    public static @NotNull String getURLRegex() {
-        return "" +
-                "(https?|file|ftp):" +    //scheme
-                "//[^\\?#]*" +            //authority
-                "[^\\?#]*" +            //path
-                "(\\?[^#]*)?" +            //query
-                "(#\\w*)?";                //fragment
     }
 
     @Override

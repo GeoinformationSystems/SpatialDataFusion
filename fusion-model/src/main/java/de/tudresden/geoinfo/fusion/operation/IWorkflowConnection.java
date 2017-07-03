@@ -8,19 +8,19 @@ import org.jetbrains.annotations.NotNull;
 public interface IWorkflowConnection extends IWorkflowElement {
 
     /**
-     * get input connection
+     * get input connector
      *
-     * @return input connection
+     * @return input connector
      */
     @NotNull
-    IInputConnector getInput();
+    IInputConnector getInputConnector();
 
     /**
-     * get output connection
+     * get output connector
      *
-     * @return output connection
+     * @return output connector
      */
     @NotNull
-    IOutputConnector getOutput();
+    IOutputConnector getOutputConnector();
 
 }

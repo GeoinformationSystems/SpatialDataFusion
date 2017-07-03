@@ -10,7 +10,6 @@ import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.IOFormatConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.PatternConstraint;
@@ -45,23 +44,23 @@ public abstract class OWSServiceOperation extends AbstractOperation {
 
     /**
      * constructor
-     * @param title OWS title
-     * @param description OWS description
-     * @param base OSW base URL
+     *
+     * @param base        OSW base URL
      */
-    public OWSServiceOperation(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull URLLiteral base, boolean initialize) {
-        super(identifier, title, description, false);
+    public OWSServiceOperation(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
+        super(identifier);
         this.requestBuilder = new KVPRequestBuilder(base);
         this.requestBuilder.setParameter(PARAM_VERSION, this.getDefaultVersion());
         this.requestBuilder.setParameter(PARAM_SERVICE, this.getService());
-        if(initialize)
-            this.initializeConnectors();
+        this.initializeConnectors();
     }
 
     @Override
     public void initializeConnectors() {
-        super.initializeConnectors();
-        this.setCapabilities();
+        if(this.requestBuilder != null) {
+            super.initializeConnectors();
+            this.setCapabilities();
+        }
     }
 
     /**
@@ -69,28 +68,29 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      *
      * @return OWS request parameter
      */
-    public @Nullable String getParameter(@NotNull String parameter){
+    public @Nullable String getParameter(@NotNull String parameter) {
         return this.requestBuilder.getParameter(parameter);
     }
 
     /**
      * get OWS GET request
+     *
      * @param mandatoryKeys mandatory GET keys
-     * @param optionalKeys optional GET keys
+     * @param optionalKeys  optional GET keys
      * @return GET request for OWS service
-     * @throws MalformedURLException
      */
-    public URLLiteral getRequest(@NotNull String[] mandatoryKeys, @NotNull String[] optionalKeys) throws MalformedURLException {
+    public URLLiteral getRequest(@NotNull String[] mandatoryKeys, @NotNull String[] optionalKeys) {
         return this.getKVPRequestBuilder().getKVPRequest(mandatoryKeys, optionalKeys);
     }
 
     /**
      * set OWS request parameter
-     * @param parameter   OWS request parameter
-     * @param value   OWS request parameter value
+     *
+     * @param parameter OWS request parameter
+     * @param value     OWS request parameter value
      */
-    public void setParameter(@NotNull String parameter, @Nullable String value){
-        if(value == null)
+    public void setParameter(@NotNull String parameter, @Nullable String value) {
+        if (value == null)
             this.requestBuilder.removeParameter(parameter);
         else
             this.requestBuilder.setParameter(parameter, value);
@@ -98,11 +98,12 @@ public abstract class OWSServiceOperation extends AbstractOperation {
 
     /**
      * set OWS request parameter
-     * @param parameter   OWS request parameter
+     *
+     * @param parameter OWS request parameter
      * @param literal   OWS request parameter value
      */
-    public void setParameter(@NotNull String parameter, @Nullable StringLiteral literal){
-        if(literal == null)
+    public void setParameter(@NotNull String parameter, @Nullable StringLiteral literal) {
+        if (literal == null)
             this.requestBuilder.removeParameter(parameter);
         else
             this.setParameter(parameter, literal.resolve());
@@ -113,12 +114,13 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      *
      * @return OWS service URL
      */
-    public @NotNull URLLiteral getBase(){
+    public @NotNull URLLiteral getBase() {
         return this.requestBuilder.getBase();
     }
 
     /**
      * get service type for this OWS
+     *
      * @return service type
      */
     public abstract String getService();
@@ -128,7 +130,7 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      *
      * @return OWS service version
      */
-    public @NotNull String getVersion(){
+    public @NotNull String getVersion() {
         //noinspection ConstantConditions
         return this.requestBuilder.getParameter(PARAM_VERSION);
     }
@@ -136,40 +138,62 @@ public abstract class OWSServiceOperation extends AbstractOperation {
     /**
      * set OWS version
      */
-    public void setVersion(){
+    public void setVersion() {
         this.setParameter(PARAM_VERSION, (StringLiteral) this.getInputData(IN_VERSION_TITLE));
     }
 
     /**
      * get default versio for this OWS
+     *
      * @return default version
      */
     public abstract @NotNull String getDefaultVersion();
 
     /**
      * get supported version for this OWS
+     *
      * @return supported versions
      */
     public abstract @NotNull Set<String> getSupportedVersions();
 
     /**
      * get offerings that can be requested from the OWS
+     *
      * @return service offerings (e.g. layers, maps, processes)
      */
     public abstract @NotNull Set<String> getOfferings();
 
     /**
      * get offerings that can be requested from the OWS
+     *
      * @return service offerings (e.g. layers, maps, processes)
      */
     public abstract @Nullable String getSelectedOffering();
+
+    /**
+     * select OWS offering
+     *
+     * @param offering OWS offering
+     * @throws IllegalArgumentException if offering is not supported
+     */
+    public abstract void setSelectedOffering(@NotNull String offering);
+
+    /**
+     * check, if provided offering is supported by this service
+     *
+     * @param offering input offering
+     * @return true, if offering is provided by this service
+     */
+    public boolean isSelectedOffering(@NotNull String offering) {
+        return this.getOfferings().contains(offering);
+    }
 
     /**
      * get OWS service request
      *
      * @return OWS service request
      */
-    public @NotNull String getRequest(){
+    public @NotNull String getRequest() {
         //noinspection ConstantConditions
         return this.requestBuilder.getParameter(PARAM_VERSION);
     }
@@ -177,18 +201,19 @@ public abstract class OWSServiceOperation extends AbstractOperation {
     /**
      * set OWS request
      *
-     * @param request   OWS request
+     * @param request OWS request
      */
-    public void setRequest(@NotNull String request){
+    public void setRequest(@NotNull String request) {
         this.requestBuilder.setParameter(PARAM_REQUEST, request);
     }
 
     /**
      * get OWS capabilities
+     *
      * @return OWS capabilities
      */
-    public @NotNull OWSCapabilities getCapabilities(){
-        if(this.capabilities == null)
+    public @NotNull OWSCapabilities getCapabilities() {
+        if (this.capabilities == null)
             this.setCapabilities();
         return this.capabilities;
     }
@@ -198,7 +223,7 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      */
     void setCapabilities() {
         //init parser
-        OWSCapabilitiesParser parser = new OWSCapabilitiesParser();
+        OWSCapabilitiesParser parser = new OWSCapabilitiesParser(null);
         IIdentifier ID_IN_RESOURCE = parser.getInputConnector(PARSER_IN_RESOURCE).getIdentifier();
         IIdentifier ID_OUT_CAPABILITIES = parser.getOutputConnector(PARSER_OUT_CAPABILITIES).getIdentifier();
         Map<IIdentifier, IData> input = new HashMap<>();
@@ -214,6 +239,7 @@ public abstract class OWSServiceOperation extends AbstractOperation {
 
     /**
      * get KVP request builder
+     *
      * @return KVP request builder
      */
     private @NotNull KVPRequestBuilder getKVPRequestBuilder() {
@@ -222,6 +248,7 @@ public abstract class OWSServiceOperation extends AbstractOperation {
 
     /**
      * get capabilities request
+     *
      * @return get capabilities
      * @throws MalformedURLException
      */
@@ -232,14 +259,14 @@ public abstract class OWSServiceOperation extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_VERSION_TITLE, IN_VERSION_DESCRIPTION,
+        addInputConnector(null, IN_VERSION_TITLE, IN_VERSION_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new PatternConstraint("(" + String.join(")|(", this.getSupportedVersions()) + ")")},
                 new IConnectionConstraint[]{
                         new IOFormatConstraint(new IOFormat(null, null, "xs:string"))
                 },
-                new InputData<>(new StringLiteral(this.getDefaultVersion())).getOutputConnector());
+                new StringLiteral(this.getDefaultVersion()));
     }
 
 }

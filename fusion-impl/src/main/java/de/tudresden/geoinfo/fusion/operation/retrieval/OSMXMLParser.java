@@ -14,6 +14,8 @@ import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -27,7 +29,7 @@ import java.util.*;
 
 public class OSMXMLParser extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = OSMXMLParser.class.getSimpleName();
+    private static final String PROCESS_TITLE = OSMXMLParser.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for OSM XML format";
 
     private final static String IN_RESOURCE_TITLE = "IN_RESOURCE";
@@ -57,12 +59,12 @@ public class OSMXMLParser extends AbstractOperation {
     /**
      * constructor
      */
-    public OSMXMLParser() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public OSMXMLParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
         //get data
@@ -225,12 +227,12 @@ public class OSMXMLParser extends AbstractOperation {
     }
 
     private RelationType initRelationType(Set<IRole> roles) {
-        return new RelationType(null, null, null, roles);
+        return new RelationType(null, roles);
     }
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},
@@ -240,15 +242,27 @@ public class OSMXMLParser extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(OSMFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
-        addOutputConnector(OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
+        addOutputConnector(null, OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DataCollection.class)},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

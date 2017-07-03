@@ -1,13 +1,38 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <geotools.version>17.1</geotools.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>geotools</id>
+            <name>Geotools repository</name>
+            <url>http://download.osgeo.org/webdav/geotools</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-opengis</artifactId>
-            <version>15.1</version>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>15.0</version>
         </dependency>
     </dependencies>
+
     <parent>
         <groupId>de.tudresden.geoinfo</groupId>
         <artifactId>fusion-parent</artifactId>

@@ -2,6 +2,7 @@ package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
@@ -30,87 +31,52 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
     /**
      * constructor
      *
-     * @param identifier  operation identifier
-     * @param title       operation title
-     * @param description operation description
-     * @param initialize  flag: initialize inputs and outputs (if false, initialization must explicitly be invoked by implementing class)
      */
-    protected AbstractOperation(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, boolean initialize) {
-        super(identifier, title, description, initialize);
-    }
-
-    /**
-     * constructor
-     *
-     * @param title       operation title
-     * @param description operation description
-     * @param initialize  flag: initialize inputs and outputs (if false, initialization must explicitly be invoked by implementing class)
-     */
-    protected AbstractOperation(@Nullable String title, @Nullable String description, boolean initialize) {
-        this(null, title, description, initialize);
-    }
-
-    /**
-     * constructor
-     *
-     * @param identifier  operation identifier
-     * @param title       operation title
-     * @param description operation description
-     */
-    protected AbstractOperation(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description) {
-        super(identifier, title, description, true);
-    }
-
-    /**
-     * constructor
-     *
-     * @param title       operation title
-     * @param description operation description
-     */
-    protected AbstractOperation(@Nullable String title, @Nullable String description) {
-        this(null, title, description, true);
-    }
-
-    /**
-     * constructor
-     *
-     * @param identifier operation identifier
-     */
-    public AbstractOperation(@NotNull IIdentifier identifier, boolean initialize) {
-        this(identifier, null, null, initialize);
-    }
-
-    /**
-     * constructor
-     *
-     * @param title operation title
-     */
-    public AbstractOperation(@NotNull String title, boolean initialize) {
-        this(null, title, null, initialize);
+    public AbstractOperation(@Nullable IIdentifier identifier) {
+        super(identifier, null, null);
     }
 
     @NotNull
     @Override
-    public Map<IIdentifier, IData> execute(@NotNull Map<IIdentifier, IData> inputs) {
-        //set inputs
-        this.connectInputs(inputs);
+    public abstract String getTitle();
+
+    @Nullable
+    @Override
+    public abstract String getDescription();
+
+    @NotNull
+    @Override
+    public Map<IIdentifier, IData> execute(@Nullable Map<IIdentifier, IData> inputs) {
+        //set inputs from input map
+        if(inputs != null)
+            super.connectInputs(inputs);
+        //set inputs from connections
+        for (IInputConnector input : this.getInputConnectors()) {
+            Collection<IWorkflowConnection> connections = input.getConnections();
+            if (!connections.isEmpty())
+                input.setData(connections.iterator().next().getOutputConnector().getData());
+        }
         //execute
-        performExecute();
+        setOutputConnectors();
         //return result
         return this.getOutputs();
+    }
+
+    @Override
+    public void execute() {
+        this.execute(null);
     }
 
     /**
      * execute process with runtime measurement
      */
-    private void performExecute() {
+    private void setOutputConnectors() {
         //set start time
         this.setStartTime();
         //execute (set output connectors)
-        this.execute();
+        this.executeOperation();
         //set runtime
         this.setRuntime();
-        updateState();
     }
 
     /**
@@ -118,6 +84,13 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      */
     protected void initializeConnectors() {
         super.initializeConnectors();
+    }
+
+    /**
+     * remove all output connectors
+     */
+    protected void clearOutputConnectors() {
+        super.clearOutputConnectors();
         this.amendOutputConnectors();
     }
 
@@ -126,7 +99,7 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      */
     private void amendOutputConnectors() {
         //add process start time
-        this.addOutputConnector(OUT_START, "Start time of the operation",
+        this.addOutputConnector(null, OUT_START, "Start time of the operation",
                 new IRuntimeConstraint[]{
                         new MandatoryDataConstraint(),
                         new BindingConstraint(LongLiteral.class)},
@@ -134,7 +107,7 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
                         new IOFormatConstraint(new IOFormat(null, null, "xs:double"))
                 });
         //add process runtime
-        this.addOutputConnector(OUT_RUNTIME, "Runtime of the operation",
+        this.addOutputConnector(null, OUT_RUNTIME, "Runtime of the operation",
                 new IRuntimeConstraint[]{
                         new MandatoryDataConstraint(),
                         new BindingConstraint(LongLiteral.class)},
@@ -149,12 +122,9 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
     private void setStartTime() {
         this.connectOutput(OUT_START, new LongLiteral(
                 null,
-                "Start time",
-                "Start time of the operation in Unix time",
                 System.currentTimeMillis(),
-                this,
-                LongLiteral.getMaxRange(),
-                TIME_UNIT));
+                new Metadata("Start time", "Start time of the operation in Unix time", TIME_UNIT, LongLiteral.getMaxRange()),
+                this));
     }
 
     /**
@@ -172,12 +142,9 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
     private void setRuntime() {
         this.connectOutput(OUT_RUNTIME, new LongLiteral(
                 null,
-                "Runtime",
-                "Runtime of the operation in milliseconds",
                 System.currentTimeMillis() - this.getStartTime().resolve(),
-                this,
-                LongLiteral.getPositiveRange(),
-                TIME_UNIT));
+                new Metadata("Runtime", "Runtime of the operation in milliseconds", TIME_UNIT, LongLiteral.getPositiveRange()),
+                this));
     }
 
     /**
@@ -202,21 +169,9 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
         return outputs;
     }
 
-    @Override
-    public void performAction() {
-        //set data for input nodes
-        for (IInputConnector input : this.getInputConnectors()) {
-            Collection<IWorkflowConnection> connections = input.getConnections();
-            if (!connections.isEmpty())
-                input.setData(connections.iterator().next().getOutput().getData());
-        }
-        //execute
-        performExecute();
-    }
-
     /**
-     * execution of the process (must set output connectors using addOutputConnector(...))
+     * execute the operation
      */
-    public abstract void execute();
+    public abstract void executeOperation();
 
 }

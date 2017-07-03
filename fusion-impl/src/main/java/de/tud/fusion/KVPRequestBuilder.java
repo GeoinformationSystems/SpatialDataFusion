@@ -4,8 +4,6 @@ import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,17 +50,17 @@ public class KVPRequestBuilder {
      * @param value parameter value
      */
     public void setParameter(@NotNull String key, @Nullable String value) {
-        if(value != null && !value.isEmpty())
+        if (value != null && !value.isEmpty())
             this.parameters.put(key.toLowerCase(), value);
     }
 
     /**
      * set request parameter
      *
-     * @param key   parameter key
+     * @param key parameter key
      */
-    public @Nullable String removeParameter(String key) {
-        return this.parameters.remove(key);
+    public void removeParameter(String key) {
+        this.parameters.remove(key);
     }
 
     /**
@@ -72,7 +70,8 @@ public class KVPRequestBuilder {
      * @return kvp parameter string
      */
     private @Nullable String getKVPString(@NotNull String key) {
-        if(!this.parameters.containsKey(key))
+        String value = this.getParameter(key);
+        if (value == null || value.isEmpty())
             return null;
         return key + "=" + this.getParameter(key);
     }
@@ -84,18 +83,20 @@ public class KVPRequestBuilder {
      * @param optionalKeys  optional keys for the request
      * @return KVP request
      */
-    public URLLiteral getKVPRequest(@NotNull String[] mandatoryKeys, @NotNull String[] optionalKeys) throws MalformedURLException {
+    public URLLiteral getKVPRequest(@NotNull String[] mandatoryKeys, @NotNull String[] optionalKeys) {
         StringBuilder sBuilder = new StringBuilder().append(this.base.toString()).append("?");
         for (String key : mandatoryKeys) {
-            if (this.getParameter(key) == null || this.getParameter(key).length() == 0)
+            String kvpString = this.getKVPString(key);
+            if (kvpString == null)
                 throw new IllegalArgumentException("KVP parameter " + key + " must not be null");
-            sBuilder.append(this.getKVPString(key) + "&");
+            sBuilder.append(kvpString).append("&");
         }
         for (String key : optionalKeys) {
-            if (this.getParameter(key) != null && this.getParameter(key).length() != 0)
-                sBuilder.append(this.getKVPString(key) + "&");
+            String kvpString = this.getKVPString(key);
+            if (kvpString != null)
+                sBuilder.append(kvpString).append("&");
         }
-        return new URLLiteral(new URL(sBuilder.substring(0, sBuilder.length() - 1)));
+        return new URLLiteral(sBuilder.substring(0, sBuilder.length() - 1));
     }
 
 }

@@ -39,8 +39,9 @@ public class OWSCapabilities extends XMLResponse {
 
     /**
      * constructor
+     *
      * @param serviceIdentification service identification
-     * @param operationsMetadata operation metadtaa
+     * @param operationsMetadata    operation metadtaa
      */
     OWSCapabilities(@NotNull URLLiteral uri, @NotNull Document object, @Nullable IMetadata metadata, ServiceIdentification serviceIdentification, OperationsMetadata operationsMetadata) {
         super(uri, object, metadata);
@@ -53,7 +54,7 @@ public class OWSCapabilities extends XMLResponse {
      */
     private void initCapabilities() {
         initServiceIdentification();
-        if(!this.getServiceType().equalsIgnoreCase("WMS"))
+        if (!this.getServiceType().equalsIgnoreCase("WMS"))
             initOperations();
     }
 
@@ -62,7 +63,7 @@ public class OWSCapabilities extends XMLResponse {
      */
     private void initServiceIdentification() {
         Node serviceIdentificationNode = getNode(NODE_SERVICE_IDENTIFICATION);
-        if(serviceIdentificationNode == null)
+        if (serviceIdentificationNode == null)
             throw new IllegalArgumentException("Document does not provide OWS service identification");
         this.serviceIdentification = new ServiceIdentification(serviceIdentificationNode);
     }
@@ -72,13 +73,14 @@ public class OWSCapabilities extends XMLResponse {
      */
     private void initOperations() {
         Node operationsMetadataNode = getNode(NODE_OPERATION_METADATA);
-        if(operationsMetadataNode == null)
+        if (operationsMetadataNode == null)
             throw new IllegalArgumentException("Document does not provide OWS operations metadata");
         this.operationsMetadata = new OperationsMetadata(operationsMetadataNode);
     }
 
     /**
      * get service identification metadata
+     *
      * @return service identification metadata
      */
     public ServiceIdentification getServiceIdentification() {
@@ -87,6 +89,7 @@ public class OWSCapabilities extends XMLResponse {
 
     /**
      * get service operations metadata
+     *
      * @return service operations metadata
      */
     public OperationsMetadata getOperationsMetadata() {
@@ -95,9 +98,10 @@ public class OWSCapabilities extends XMLResponse {
 
     /**
      * get OWS service type
+     *
      * @return OWS service type
      */
-    public @NotNull String getServiceType(){
+    public @NotNull String getServiceType() {
         return this.getServiceIdentification().getServiceType();
     }
 
@@ -114,9 +118,10 @@ public class OWSCapabilities extends XMLResponse {
 
         /**
          * constructor
+         *
          * @param serviceIdentificationNode service identification node
          */
-        ServiceIdentification(@NotNull Node serviceIdentificationNode){
+        ServiceIdentification(@NotNull Node serviceIdentificationNode) {
             NodeList identificationNodes = serviceIdentificationNode.getChildNodes();
             for (int i = 0; i < identificationNodes.getLength(); i++) {
                 Node element = identificationNodes.item(i);
@@ -126,7 +131,7 @@ public class OWSCapabilities extends XMLResponse {
                 }
                 //check for service type version
                 if (element.getNodeName().matches(NODE_SERVICE_TYPE_VERSION)) {
-                    if(this.serviceTypeVersions == null)
+                    if (this.serviceTypeVersions == null)
                         this.serviceTypeVersions = new HashSet<>();
                     this.serviceTypeVersions.add(element.getTextContent().trim());
                 }
@@ -138,7 +143,7 @@ public class OWSCapabilities extends XMLResponse {
          * validate service identification
          */
         private void validate() {
-            if(this.serviceType == null)
+            if (this.serviceType == null)
                 throw new IllegalArgumentException("Document does not provide OWS service type");
         }
 
@@ -169,19 +174,20 @@ public class OWSCapabilities extends XMLResponse {
 
         private static final String NODE_OPERATION = ".*(?i)Operation";
 
-        private Map<String,OperationMetadata> operationsMetadata;
+        private Map<String, OperationMetadata> operationsMetadata;
 
         /**
          * constructor
+         *
          * @param operationsMetadataNode operations metadata node
          */
-        OperationsMetadata(@NotNull Node operationsMetadataNode){
+        OperationsMetadata(@NotNull Node operationsMetadataNode) {
             NodeList operations = operationsMetadataNode.getChildNodes();
             for (int i = 0; i < operations.getLength(); i++) {
                 Node element = operations.item(i);
                 if (element.getNodeName().matches(NODE_OPERATION)) {
                     OperationMetadata operationMetadata = new OperationMetadata(element);
-                    if(this.operationsMetadata == null)
+                    if (this.operationsMetadata == null)
                         this.operationsMetadata = new HashMap<>();
                     this.operationsMetadata.put(operationMetadata.getName().toLowerCase(), new OperationMetadata(element));
                 }
@@ -193,16 +199,17 @@ public class OWSCapabilities extends XMLResponse {
          * validate operations metadata
          */
         private void validate() {
-            if(this.operationsMetadata == null)
+            if (this.operationsMetadata == null)
                 throw new IllegalArgumentException("Document does not provide OWS service operations");
         }
 
         /**
          * get operation metadata
+         *
          * @param name operation name
          * @return associated operation metadata
          */
-        public @Nullable OperationMetadata getOperationMetadata(@NotNull String name){
+        public @Nullable OperationMetadata getOperationMetadata(@NotNull String name) {
             return this.operationsMetadata.get(name.toLowerCase());
         }
 
@@ -220,13 +227,14 @@ public class OWSCapabilities extends XMLResponse {
 
             private String name;
             private String httpGetBase;
-            private Map<String,Set<String>> parameters = new HashMap<>();
+            private Map<String, Set<String>> parameters = new HashMap<>();
 
             /**
              * constructor
+             *
              * @param operationMetadataNode operation metadata node
              */
-            OperationMetadata(@NotNull Node operationMetadataNode){
+            OperationMetadata(@NotNull Node operationMetadataNode) {
                 this.name = getAttributeValue(NAME, operationMetadataNode.getAttributes());
                 NodeList metadataNodes = operationMetadataNode.getChildNodes();
                 for (int i = 0; i < metadataNodes.getLength(); i++) {
@@ -234,19 +242,19 @@ public class OWSCapabilities extends XMLResponse {
                     //set http get URI
                     if (metadataNode.getNodeName().matches(OPERATION_DCP)) {
                         Node httpGetNode = getNode(OPERATION_DCP_GET, metadataNode.getChildNodes());
-                        if(httpGetNode != null)
+                        if (httpGetNode != null)
                             this.httpGetBase = getAttributeValue(OPERATION_DCP_GET_LINK, httpGetNode.getAttributes());
                     }
                     //set parameter name and values
-                    else if(metadataNode.getNodeName().matches(OPERATION_PARAMETER)){
+                    else if (metadataNode.getNodeName().matches(OPERATION_PARAMETER)) {
                         String name = getAttributeValue(NAME, metadataNode.getAttributes());
-                        if(name == null)
+                        if (name == null)
                             continue;
                         Set<String> values = new HashSet<>();
                         NodeList parameterNodes = metadataNode.getChildNodes();
                         for (int j = 0; j < parameterNodes.getLength(); j++) {
                             Node parameterNode = parameterNodes.item(j);
-                            if(parameterNode.getNodeName().matches(OPERATION_PARAMETER_VALUE))
+                            if (parameterNode.getNodeName().matches(OPERATION_PARAMETER_VALUE))
                                 values.add(parameterNode.getTextContent().trim());
                         }
                         this.parameters.put(name.toLowerCase(), values);
@@ -259,14 +267,15 @@ public class OWSCapabilities extends XMLResponse {
              * validate operation metadata
              */
             private void validate() {
-                if(this.name == null)
+                if (this.name == null)
                     throw new IllegalArgumentException("OWS service operation does not specify a name");
-                if(this.httpGetBase == null)
+                if (this.httpGetBase == null)
                     throw new IllegalArgumentException("OWS service operation does not specify a DCP HTTP GET access point");
             }
 
             /**
              * get operation name
+             *
              * @return operation name
              */
             public @NotNull String getName() {
@@ -275,6 +284,7 @@ public class OWSCapabilities extends XMLResponse {
 
             /**
              * get operation DCP HTTP GET URL
+             *
              * @return operation GET access URL
              */
             public @NotNull String getHTTPGETBase() {
@@ -283,6 +293,7 @@ public class OWSCapabilities extends XMLResponse {
 
             /**
              * get operation parameters
+             *
              * @return operation parameters
              */
             public @NotNull Set<String> getParameters() {
@@ -291,6 +302,7 @@ public class OWSCapabilities extends XMLResponse {
 
             /**
              * get operation parameter values
+             *
              * @return operation parameter values
              */
             public @NotNull Set<String> getParameterValues(String parameter) {

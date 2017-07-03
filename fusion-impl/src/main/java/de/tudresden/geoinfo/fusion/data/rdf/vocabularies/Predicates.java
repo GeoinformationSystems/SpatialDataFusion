@@ -38,6 +38,7 @@ public enum Predicates implements IRDFVocabulary {
      * Measurement
      */
 
+    MEASUREMENTS("http://tu-dresden.de/uw/geo/gis/fusion#hasMeasurements"),
     MEASUREMENT_VALUE_RANGE("http://tu-dresden.de/uw/geo/gis/fusion#hasRange"),
     HAS_RANGE_MEMBER("http://tu-dresden.de/uw/geo/gis/fusion#hasRangeMember"),
     RANGE_IS_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#isContinuous"),

@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * IO connector implementation
@@ -18,19 +17,18 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
 
     private IWorkflowNode entity;
     private Collection<IWorkflowConnection> connections;
-    private Set<IRuntimeConstraint> runtimeConstraints;
-    private Set<IConnectionConstraint> connectionConstraints;
+    private Collection<IRuntimeConstraint> runtimeConstraints;
+    private Collection<IConnectionConstraint> connectionConstraints;
     private IData data;
 
     /**
      * constructor
      *
      * @param entity                associated entity
-     * @param identifier            IO identifier
      * @param runtimeConstraints    IO connector data constraints
      * @param connectionConstraints IO connector data description constraints
      */
-    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints) {
+    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
         super(identifier, title, description);
         this.entity = entity;
         this.connections = new HashSet<>();
@@ -41,72 +39,23 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
     /**
      * constructor
      *
-     * @param entity                associated operation
-     * @param identifier            IO identifier
-     * @param runtimeConstraints    IO connector data constraints
-     * @param connectionConstraints IO connector data description constraints
-     */
-    public AbstractWorkflowConnector(@NotNull IIdentifier identifier, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints) {
-        this(identifier, null, null, entity, runtimeConstraints, connectionConstraints);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated operation
-     * @param title                 IO title
-     * @param runtimeConstraints    IO connector data constraints
-     * @param connectionConstraints IO connector data description constraints
-     */
-    public AbstractWorkflowConnector(@NotNull String title, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints) {
-        this(null, title, null, entity, runtimeConstraints, connectionConstraints);
-    }
-
-    /**
-     * constructor
-     *
      * @param entity                associated entity
-     * @param identifier            IO identifier
      * @param runtimeConstraints    IO connector data constraints
      * @param connectionConstraints IO connector data description constraints
      */
-    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints) {
-        this(identifier, title, description, entity, new HashSet<>(Arrays.asList(runtimeConstraints)), new HashSet<>(Arrays.asList(connectionConstraints)));
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated operation
-     * @param identifier            IO identifier
-     * @param runtimeConstraints    IO connector data constraints
-     * @param connectionConstraints IO connector data description constraints
-     */
-    public AbstractWorkflowConnector(@NotNull IIdentifier identifier, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints) {
-        this(identifier, null, null, entity, runtimeConstraints, connectionConstraints);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated operation
-     * @param title                 IO title
-     * @param runtimeConstraints    IO connector data constraints
-     * @param connectionConstraints IO connector data description constraints
-     */
-    public AbstractWorkflowConnector(@NotNull String title, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints) {
-        this(null, title, null, entity, runtimeConstraints, connectionConstraints);
+    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
+        this(identifier, title, description, entity, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
     }
 
     @NotNull
     @Override
-    public Set<IRuntimeConstraint> getRuntimeConstraints() {
+    public Collection<IRuntimeConstraint> getRuntimeConstraints() {
         return runtimeConstraints;
     }
 
     @NotNull
     @Override
-    public Set<IConnectionConstraint> getConnectionConstraints() {
+    public Collection<IConnectionConstraint> getConnectionConstraints() {
         return connectionConstraints;
     }
 
@@ -117,20 +66,8 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
     }
 
     @Override
-    public boolean addConnection(@NotNull IWorkflowConnection connection) {
-        return connection.getState().equals(ElementState.READY) && this.connections.add(connection);
-    }
-
-    /**
-     * add a data object
-     *
-     * @param data data to set
-     */
-    public boolean setData(@NotNull IData data) {
-        if (!validate(data))
-            return false;
-        this.data = data;
-        return true;
+    public void addConnection(@NotNull IWorkflowConnection connection) {
+        this.connections.add(connection);
     }
 
     /**
@@ -150,11 +87,8 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
     }
 
     @Override
-    public void updateState() {
-        if (this.connections != null && !this.connections.isEmpty())
-            this.setState(ElementState.READY);
-        if (validate(this.data))
-            this.setState(ElementState.SUCCESS);
+    public boolean isReady() {
+        return validate(this.data);
     }
 
     @Override
@@ -162,11 +96,28 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
         return this.data;
     }
 
+    /**
+     * add a data object
+     *
+     * @param data data to set
+     */
+    public void setData(@Nullable IData data) {
+        if (!validate(data))
+            throw new IllegalArgumentException("Provided data is not applicable to this connector");
+        this.data = data;
+    }
 
     @NotNull
     @Override
     public IWorkflowNode getEntity() {
         return this.entity;
+    }
+
+    public void reset() {
+        for(IWorkflowConnection connection : this.getConnections()){
+            connection.reset();
+        }
+        this.getConnections().clear();
     }
 
 }

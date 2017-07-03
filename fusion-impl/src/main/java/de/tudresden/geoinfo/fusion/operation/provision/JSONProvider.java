@@ -2,12 +2,15 @@ package de.tudresden.geoinfo.fusion.operation.provision;
 
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,7 +20,7 @@ import java.util.UUID;
 
 public class JSONProvider extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = JSONProvider.class.getSimpleName();
+    private static final String PROCESS_TITLE = JSONProvider.class.getName();
     private static final String PROCESS_DESCRIPTION = "Generator for GeoJSON format";
 
     private final static String IN_FEATURES_TITLE = "IN_FEATURES";
@@ -26,12 +29,12 @@ public class JSONProvider extends AbstractOperation {
     private final static String OUT_RESOURCE_TITLE = "OUT_RESOURCE";
     private final static String OUT_RESOURCE_DESCRIPTION = "Link to JSON encoded file";
 
-    public JSONProvider() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public JSONProvider(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector dataConnector = getInputConnector(IN_FEATURES_TITLE);
         //get data
@@ -87,7 +90,7 @@ public class JSONProvider extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -97,10 +100,22 @@ public class JSONProvider extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
+        addOutputConnector(null, OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

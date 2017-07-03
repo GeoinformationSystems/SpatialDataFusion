@@ -1,9 +1,15 @@
 package de.tudresden.geoinfo.client.handler;
 
+import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
-import de.tudresden.geoinfo.fusion.operation.*;
+import de.tudresden.geoinfo.fusion.data.metadata.DC_Metadata;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.operation.IInputConnector;
+import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowNode;
 import de.tudresden.geoinfo.fusion.operation.workflow.CamundaBPMNModel;
 import de.tudresden.geoinfo.fusion.operation.workflow.Workflow;
 import org.jetbrains.annotations.NotNull;
@@ -11,20 +17,16 @@ import org.jetbrains.annotations.Nullable;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
  */
 public class WorkflowHandler {
 
-    private CamundaBPMNModel bmpnModel;
-    private JSONObject jsonWorkflowDescription;
-
-    private String validationMessage;
     private final static String MSG_SUCCESS = "<span class='validation_valid'>Connections are valid</span>";
-
     private final static String WORKFLOW_PROCESSES = "processes";
     private final static String WORKFLOW_CONNECTIONS = "connections";
     private final static String JSON_IDENTIFIER = "identifier";
@@ -44,23 +46,30 @@ public class WorkflowHandler {
     private final static String CONNECTION_S_OUT = "s_output";
     private final static String CONNECTION_T_IN = "t_input";
 
-    public void setWorkflowDescription(Map<String,IWorkflowNode> nodes, String sWorkflowDescription){
+    private Workflow workflow;
+    private JSONObject jsonWorkflowDescription;
+    private String validationMessage;
+    private Map<IIdentifier,IData> outputs;
+
+    public void setWorkflowDescription(Map<String, IWorkflowNode> nodes, String sWorkflowDescription) {
         this.jsonWorkflowDescription = new JSONObject(sWorkflowDescription);
         this.setValidationMessage();
-        if(isValidDescription()) {
-            //add literal node
-            IWorkflowNode literalNode = getLiteralNode();
-            if(literalNode != null)
-                nodes.put(literalNode.getIdentifier().toString(), literalNode);
-            //add output node
-            IWorkflowNode outputNode = getOutputNode();
-            nodes.put(outputNode.getIdentifier().toString(), outputNode);
-            //initialize workflow
-            IWorkflow workflow = initWorkflow(nodes);
-            bmpnModel = new CamundaBPMNModel(null, "BPMN Model", null);
-            bmpnModel.initModel(workflow);
-            System.out.println(bmpnModel.asXML());
+        if (isValidDescription()) {
+            //initialize workflow with connections
+            this.workflow = initWorkflow(nodes);
         }
+    }
+
+    public Workflow getWorkflow() {
+        return this.workflow;
+    }
+
+    public Map<IIdentifier,IData> getOutput() {
+        return this.outputs;
+    }
+
+    public CamundaBPMNModel getBPMNModel() {
+        return new CamundaBPMNModel(null, this.getWorkflow());
     }
 
     private JSONArray getProcesses() {
@@ -81,51 +90,51 @@ public class WorkflowHandler {
 
     public void setValidationMessage() {
         StringBuilder builder = new StringBuilder();
-        for(Object process : this.getProcesses()){
+        for (Object process : this.getProcesses()) {
             setProcessValidationMessage((JSONObject) process, builder);
         }
         setConnectionsValidationMessage(builder);
-        if(builder.length() == 0)
+        if (builder.length() == 0)
             builder.append(MSG_SUCCESS);
         this.validationMessage = builder.toString();
     }
 
-    private void setProcessValidationMessage(JSONObject process, StringBuilder builder){
+    private void setProcessValidationMessage(JSONObject process, StringBuilder builder) {
         JSONArray inputs = process.getJSONArray(PROCESS_INPUTS);
-        for(Object input : inputs){
+        for (Object input : inputs) {
             String identifier = ((JSONObject) input).getString(JSON_IDENTIFIER);
-            if(((JSONObject) input).getInt(IO_MINOCCURS) > 0){
+            if (((JSONObject) input).getInt(IO_MINOCCURS) > 0) {
                 boolean check = false;
-                for(Object connection : this.getConnections()){
-                    if(connection != null && ((JSONObject) connection).get("t_input").toString().equals(identifier))
+                for (Object connection : this.getConnections()) {
+                    if (connection != null && ((JSONObject) connection).get("t_input").toString().equals(identifier))
                         check = true;
                 }
-                if(!check)
+                if (!check)
                     builder.append("<span class='validation_hint'>Input '").append(identifier).append("' must be connected</span><br />");
             }
         }
     }
 
-    private void setConnectionsValidationMessage(StringBuilder builder){
-        for(Object connection : this.getConnections()){
-            if(connection != null){
+    private void setConnectionsValidationMessage(StringBuilder builder) {
+        for (Object connection : this.getConnections()) {
+            if (connection != null) {
                 String sourceId = ((JSONObject) connection).getString(CONNECTION_S_ID);
                 String targetId = ((JSONObject) connection).getString(CONNECTION_T_ID);
                 String sourceIOId = ((JSONObject) connection).getString(CONNECTION_S_OUT);
                 String targetIOId = ((JSONObject) connection).getString(CONNECTION_T_IN);
                 JSONArray sourceFormats = getSupportedFormats(sourceId, sourceIOId, false);
                 JSONArray targetFormats = getSupportedFormats(targetId, targetIOId, true);
-                if(!containCommonFormat(sourceFormats, targetFormats))
+                if (!containCommonFormat(sourceFormats, targetFormats))
                     builder.append("<span class='validation_error'>Connection ").append(sourceIOId).append(" : ").append(targetIOId).append(" is not valid (no common format)</span>");
             }
         }
     }
 
     private JSONArray getSupportedFormats(String processId, String ioId, boolean input) {
-        for(Object process : this.getProcesses()){
-            if(!(((JSONObject) process).getString(JSON_IDENTIFIER).equals(processId)))
+        for (Object process : this.getProcesses()) {
+            if (!(((JSONObject) process).getString(JSON_IDENTIFIER).equals(processId)))
                 continue;
-            if(input)
+            if (input)
                 return getSupportedFormats(((JSONObject) process).getJSONArray(PROCESS_INPUTS), ioId);
             else
                 return getSupportedFormats(((JSONObject) process).getJSONArray(PROCESS_OUTPUTS), ioId);
@@ -135,8 +144,8 @@ public class WorkflowHandler {
     }
 
     private JSONArray getSupportedFormats(JSONArray ioArray, String ioId) {
-        for(Object jIO : ioArray){
-            if(!(((JSONObject) jIO).getString(JSON_IDENTIFIER).equals(ioId)))
+        for (Object jIO : ioArray) {
+            if (!(((JSONObject) jIO).getString(JSON_IDENTIFIER).equals(ioId)))
                 continue;
             return ((JSONObject) jIO).getJSONArray(IO_FORMATS);
         }
@@ -145,9 +154,9 @@ public class WorkflowHandler {
     }
 
     private boolean containCommonFormat(JSONArray sourceFormats, JSONArray targetFormats) {
-        for(Object jsourceFormat : sourceFormats){
-            for(Object jtargetFormat : targetFormats){
-                if(commonFormat((JSONObject) jsourceFormat, (JSONObject) jtargetFormat))
+        for (Object jsourceFormat : sourceFormats) {
+            for (Object jtargetFormat : targetFormats) {
+                if (commonFormat((JSONObject) jsourceFormat, (JSONObject) jtargetFormat))
                     return true;
             }
         }
@@ -155,14 +164,14 @@ public class WorkflowHandler {
     }
 
     private boolean commonFormat(JSONObject jsourceFormat, JSONObject jtargetFormat) {
-        if(this.isWildcard(jsourceFormat) || this.isWildcard(jtargetFormat))
+        if (this.isWildcard(jsourceFormat) || this.isWildcard(jtargetFormat))
             return true;
         boolean common = false;
-        if(!jsourceFormat.isNull(FORMAT_MIMETYPE) && !jtargetFormat.isNull(FORMAT_MIMETYPE))
+        if (!jsourceFormat.isNull(FORMAT_MIMETYPE) && !jtargetFormat.isNull(FORMAT_MIMETYPE))
             common = equals(jsourceFormat.getString(FORMAT_MIMETYPE), jtargetFormat.getString(FORMAT_MIMETYPE));
-        if(!jsourceFormat.isNull(FORMAT_SCHEMA) && !jtargetFormat.isNull(FORMAT_SCHEMA))
+        if (!jsourceFormat.isNull(FORMAT_SCHEMA) && !jtargetFormat.isNull(FORMAT_SCHEMA))
             common = equals(jsourceFormat.getString(FORMAT_SCHEMA), jtargetFormat.getString(FORMAT_SCHEMA));
-        if(!jsourceFormat.isNull(FORMAT_TYPE) && !jtargetFormat.isNull(FORMAT_TYPE))
+        if (!jsourceFormat.isNull(FORMAT_TYPE) && !jtargetFormat.isNull(FORMAT_TYPE))
             common = equals(jsourceFormat.getString(FORMAT_TYPE), jtargetFormat.getString(FORMAT_TYPE));
         return common;
     }
@@ -173,52 +182,112 @@ public class WorkflowHandler {
                 !jFormat.isNull(FORMAT_TYPE) && jFormat.getString(FORMAT_TYPE).equals("*");
     }
 
-    private boolean equals(@NotNull String io1, @NotNull String io2){
+    private boolean equals(@NotNull String io1, @NotNull String io2) {
         return io1.equalsIgnoreCase(io2);
     }
 
-    private IWorkflow initWorkflow(Map<String,IWorkflowNode> nodes) {
+    private Workflow initWorkflow(Map<String, IWorkflowNode> nodes) {
+
+        Set<IOutputConnector> outputConnectors = new HashSet<>();
+
         //add connections
-        for(Object connection : this.getConnections()) {
-            //get workflow nodes
-            IWorkflowNode sourceNode = nodes.get(((JSONObject) connection).getString(CONNECTION_S_ID));
-            if(sourceNode == null)
-                throw new IllegalArgumentException("Source node not found");
-            IWorkflowNode targetNode = nodes.get(((JSONObject) connection).getString(CONNECTION_T_ID));
-            if(targetNode == null)
-                throw new IllegalArgumentException("Target node not found");
-            //get workflow connectors
-            IOutputConnector out = sourceNode.getOutputConnector(((JSONObject) connection).getString(CONNECTION_S_OUT));
-            if(out == null)
-                throw new IllegalArgumentException("Output connector not found");
-            IInputConnector in = targetNode.getInputConnector(((JSONObject) connection).getString(CONNECTION_T_IN));
-            if(in == null)
-                throw new IllegalArgumentException("Input connector not found");
+        for (Object connection : this.getConnections()) {
+
+            //get connection target node
+            IWorkflowNode targetNode = getNode(nodes, connection, CONNECTION_T_ID);
+            if (targetNode == null) {
+                //set output data node
+                if (isWorkflowOutputConnection((JSONObject) connection)) {
+                    IWorkflowNode sourceNode = this.getNode(nodes, connection, CONNECTION_S_ID);
+                    IOutputConnector out = (IOutputConnector) this.getConnector(sourceNode, connection, CONNECTION_S_OUT, false);
+                    if(out != null)
+                        outputConnectors.add(out);
+                    continue;
+                }
+            }
+
+            //get target connector
+            IInputConnector in = (IInputConnector) this.getConnector(targetNode, connection, CONNECTION_T_IN, true);
+            if (in == null)
+                throw new IllegalArgumentException("Input connector " + getConnectionString(connection, CONNECTION_T_IN) + " not found");
+
+            //get connection source node
+            IWorkflowNode sourceNode = this.getNode(nodes, connection, CONNECTION_S_ID);
+            if (sourceNode == null){
+                //add literal data to input connector
+                if(getConnectionString(connection, CONNECTION_S_ID).equals(PROCESS_LITERAL_INPUTS))
+                    in.setData(getInputLiteral(getConnectionString(connection, CONNECTION_S_OUT)));
+                continue;
+            }
+
+            //get source connector
+            IOutputConnector out = (IOutputConnector) this.getConnector(sourceNode, connection, CONNECTION_S_OUT, false);
+            if (out == null)
+                throw new IllegalArgumentException("Output connector " + getConnectionString(connection, CONNECTION_S_OUT) + " not found");
+
             //establish connection
-            in.addOutputConnector(out);
+            in.connect(out);
         }
-        return new Workflow(nodes.values());
+        Workflow workflow = new Workflow(null, nodes.values());
+        workflow.initializeOutputConnectors(outputConnectors);
+        return workflow;
     }
 
-    private @Nullable IWorkflowNode getLiteralNode() {
+    private @Nullable LiteralData getInputLiteral(String literalIdentifier) {
         for (Object process : this.getProcesses()) {
-            if (((JSONObject) process).getString(JSON_IDENTIFIER).equals(PROCESS_LITERAL_INPUTS)){
-                Map<String, LiteralData> literalInputMap = new HashMap<>();
-                for(Object output : ((JSONObject) process).getJSONArray(PROCESS_OUTPUTS)){
-                    LiteralData data = getLiteralData((JSONObject) output);
-                    literalInputMap.put(data.getIdentifier().toString(), data);
-                }
-                return new LiteralInputData(new Identifier(PROCESS_LITERAL_INPUTS), literalInputMap, "Literal Inputs");
+            if ((((JSONObject) process).getString(JSON_IDENTIFIER).equals(PROCESS_LITERAL_INPUTS))){
+                return getInputLiteral(((JSONObject) process), literalIdentifier);
             }
         }
         return null;
     }
 
-    private LiteralData getLiteralData(JSONObject output) {
-        return new StringLiteral(new Identifier(output.getString(JSON_IDENTIFIER)), output.getString(JSON_TITLE), null, output.getString(JSON_TITLE));
+    private @Nullable LiteralData getInputLiteral(JSONObject literalProcess, String literalIdentifier){
+        JSONArray outputs = literalProcess.getJSONArray(PROCESS_OUTPUTS);
+        for(Object output : outputs){
+            if(((JSONObject) output).getString(JSON_IDENTIFIER).equals(literalIdentifier))
+                return new StringLiteral(((JSONObject) output).getString(JSON_TITLE));
+        }
+        return null;
     }
 
-    private @NotNull IWorkflowNode getOutputNode() {
-        return new OutputData<>(new Identifier(OUTPUT_NODE), null, OUTPUT_NODE, OUTPUT_DESCRIPTION);
+    private @Nullable IWorkflowNode getNode(Map<String, IWorkflowNode> nodes, Object connection, String identifier){
+        return nodes.get(getConnectionString(connection, identifier));
     }
+
+    private @Nullable IWorkflowConnector getConnector(IWorkflowNode node, Object connection, String identifier, boolean isInput){
+        return isInput ? node.getInputConnector(getConnectionString(connection, identifier)) : node.getOutputConnector(getConnectionString(connection, identifier));
+    }
+
+    private String getConnectionString(Object connection, String identifier){
+        return ((JSONObject) connection).getString(identifier);
+    }
+
+    private boolean isWorkflowOutputConnection(JSONObject connection) {
+        return connection.getString(CONNECTION_T_ID).equals(OUTPUT_NODE);
+    }
+
+    private LiteralData getLiteralData(JSONObject output) {
+        return new StringLiteral(new Identifier(output.getString(JSON_IDENTIFIER)), output.getString(JSON_TITLE), null);
+    }
+
+    public void execute() {
+        this.outputs = this.getWorkflow().execute(null);
+    }
+
+    public String getResultMessage() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<h3>Results for Workflow: ").append(this.getWorkflow().getIdentifier()).append("</h3>");
+        for (Map.Entry<IIdentifier,IData> output : this.getOutput().entrySet()) {
+            builder.append("<span class='validation_valid'>")
+                    .append(output.getValue().getMetadata() != null && output.getValue().getMetadata().hasElement(DC_Metadata.DC_TITLE.getResource()) ?
+                            output.getValue().getMetadata().getElement(DC_Metadata.DC_TITLE.getResource()).getValue() :
+                            output.getKey().toString())
+                    .append(": </span><span>")
+                    .append(output.getValue().resolve())
+                    .append("</span><br />");
+        }
+        return builder.toString();
+    }
+
 }

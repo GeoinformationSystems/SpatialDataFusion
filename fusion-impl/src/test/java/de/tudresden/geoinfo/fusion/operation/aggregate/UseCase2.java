@@ -41,34 +41,34 @@
 //
 //		Map<String,IData> input = new HashMap<String,IData>();
 //
-//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI()));
+//		input.setRDFProperty("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI()));
 //		Map<String,IData> output = parserShape.execute(input);
 //		GTFeatureCollection source = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
-//		input.put("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
+//		input.setRDFProperty("IN_RESOURCE", new URLLiteral(new File("D:/Geodaten/Testdaten/osm", "sample.xml").toURI()));
 //		output = parserOSM.execute(input);
 //		GTFeatureCollection target = (GTFeatureCollection) output.get("OUT_WAYS");
 //
 //		//singleparts for atkis
 //		input.clear();
 //		MultiToSinglepart multiTosingle = new MultiToSinglepart();
-//		input.put("IN_FEATURES", source);
+//		input.setRDFProperty("IN_FEATURES", source);
 //		output = multiTosingle.execute(input);
 //		source = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
 //		//intersect osm
 //		input.clear();
 //		LineIntersection lineIntersect = new LineIntersection();
-//		input.put("IN_FEATURES", target);
+//		input.setRDFProperty("IN_FEATURES", target);
 //		output = lineIntersect.execute(input);
 //		target = (GTFeatureCollection) output.get("OUT_FEATURES");
 //
 //		//bbox measurement
 //		input.clear();
 //		BoundingBoxOverlap process_bbox = new BoundingBoxOverlap();
-//		input.put("IN_SOURCE", source);
-//		input.put("IN_TARGET", target);
-//		input.put("IN_THRESHOLD", new DecimalLiteral(0.0005));
+//		input.setRDFProperty("IN_SOURCE", source);
+//		input.setRDFProperty("IN_TARGET", target);
+//		input.setRDFProperty("IN_THRESHOLD", new DecimalLiteral(0.0005));
 //		output = process_bbox.execute(input);
 //		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_bbox, relations.resolve().size() + " relations");
@@ -76,11 +76,11 @@
 //		//angle difference
 //		input.clear();
 //		AngleDifference process_angle = new AngleDifference();
-//		input.put("IN_SOURCE", source);
-//		input.put("IN_TARGET", target);
-//		input.put("IN_RELATIONS", relations);
-//		input.put("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
-//		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
+//		input.setRDFProperty("IN_SOURCE", source);
+//		input.setRDFProperty("IN_TARGET", target);
+//		input.setRDFProperty("IN_RELATIONS", relations);
+//		input.setRDFProperty("IN_THRESHOLD", new DecimalLiteral(Math.PI/8));
+//		input.setRDFProperty("IN_DROP_RELATIONS", new BooleanLiteral(true));
 //		output = process_angle.execute(input);
 //		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_angle, relations.resolve().size() + " relations");
@@ -88,10 +88,10 @@
 //		//hausdorff distance
 //		input.clear();
 //		HausdorffDistance process_hd = new HausdorffDistance();
-//		input.put("IN_SOURCE", source);
-//		input.put("IN_TARGET", target);
-//		input.put("IN_RELATIONS", relations);
-//		input.put("IN_THRESHOLD", new DecimalLiteral(0.0005));
+//		input.setRDFProperty("IN_SOURCE", source);
+//		input.setRDFProperty("IN_TARGET", target);
+//		input.setRDFProperty("IN_RELATIONS", relations);
+//		input.setRDFProperty("IN_THRESHOLD", new DecimalLiteral(0.0005));
 //		output = process_hd.execute(input);
 //		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_hd, relations.resolve().size() + " relations");
@@ -99,12 +99,12 @@
 //		//road names
 //		input.clear();
 //		DamerauLevenshteinDistance process_dld = new DamerauLevenshteinDistance();
-//		input.put("IN_SOURCE", source);
-//		input.put("IN_SOURCE_ATT", new StringLiteral("GN"));
-//		input.put("IN_TARGET", target);
-//		input.put("IN_TARGET_ATT", new StringLiteral("name"));
-//		input.put("IN_RELATIONS", relations);
-//		input.put("IN_THRESHOLD", new IntegerLiteral(5));
+//		input.setRDFProperty("IN_SOURCE", source);
+//		input.setRDFProperty("IN_SOURCE_ATT", new StringLiteral("GN"));
+//		input.setRDFProperty("IN_TARGET", target);
+//		input.setRDFProperty("IN_TARGET_ATT", new StringLiteral("name"));
+//		input.setRDFProperty("IN_RELATIONS", relations);
+//		input.setRDFProperty("IN_THRESHOLD", new IntegerLiteral(5));
 //		output = process_dld.execute(input);
 //		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_dld, relations.resolve().size() + " relations");
@@ -112,8 +112,8 @@
 //		//best correspondences
 //		input.clear();
 //		BestCorrespondenceMapping process_bcm = new BestCorrespondenceMapping();
-//		input.put("IN_RELATIONS", relations);
-////		input.put("IN_DROP_RELATIONS", new BooleanLiteral(true));
+//		input.setRDFProperty("IN_RELATIONS", relations);
+////		input.setRDFProperty("IN_DROP_RELATIONS", new BooleanLiteral(true));
 //		output = process_bcm.execute(input);
 //		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
 //		systemOut(process_bcm, relations.resolve().size() + " relations");
@@ -122,10 +122,10 @@
 //		String result;
 //		if(tripleStore){
 //			TripleStoreGenerator generator = new TripleStoreGenerator();
-//			input.put("IN_RDF", relations);
-//			input.put("IN_TRIPLE_STORE", new URLLiteral("http://localhost:3030/fusion/update"));
-//			input.put("IN_CLEAR_STORE", new BooleanLiteral(true));
-//			input.put("IN_URI_PREFIXES", new StringLiteral(""
+//			input.setRDFProperty("IN_RDF", relations);
+//			input.setRDFProperty("IN_TRIPLE_STORE", new URLLiteral("http://localhost:3030/fusion/update"));
+//			input.setRDFProperty("IN_CLEAR_STORE", new BooleanLiteral(true));
+//			input.setRDFProperty("IN_URI_PREFIXES", new StringLiteral(""
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion/relation#;relation;"
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#;spatialOp;"
@@ -143,8 +143,8 @@
 //		}
 //		else {
 //			RDFTurtleGenerator generator = new RDFTurtleGenerator();
-//			input.put("IN_RDF", relations);
-//			input.put("IN_URI_PREFIXES", new StringLiteral(""
+//			input.setRDFProperty("IN_RDF", relations);
+//			input.setRDFProperty("IN_URI_PREFIXES", new StringLiteral(""
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion#;fusion;"
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion/relation#;relation;"
 //					+ "http://tu-dresden.de/uw/geo/gis/fusion/operation/spatial#;spatialOp;"

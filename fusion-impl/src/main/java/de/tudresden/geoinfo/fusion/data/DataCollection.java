@@ -26,13 +26,11 @@ public class DataCollection<T extends IData> extends Data<Collection<T>> impleme
     /**
      * constructor
      *
-     * @param identifier  collection identifier
-     * @param elements    collection elements
-     * @param title       collection title
-     * @param description collection description
+     * @param identifier data identifier
+     * @param elements   data elements
      */
-    public DataCollection(@Nullable IIdentifier identifier, @NotNull Collection<T> elements, @NotNull String title, @Nullable String description) {
-        this(identifier, elements, new Metadata(title, description));
+    public DataCollection(@Nullable IIdentifier identifier, @NotNull Collection<T> elements) {
+        this(identifier, elements, null);
     }
 
     @NotNull

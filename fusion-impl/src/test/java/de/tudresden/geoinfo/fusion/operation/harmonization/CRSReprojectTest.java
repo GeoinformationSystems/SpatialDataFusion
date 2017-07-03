@@ -2,18 +2,19 @@ package de.tudresden.geoinfo.fusion.operation.harmonization;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import org.junit.Assert;
+import de.tudresden.geoinfo.fusion.operation.mapping.TopologyRelation;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
+import static de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser.readShapefile;
 
 public class CRSReprojectTest extends AbstractTest {
 
@@ -23,68 +24,48 @@ public class CRSReprojectTest extends AbstractTest {
 
     private final static String OUT_DOMAIN = "OUT_DOMAIN";
     private final static String OUT_RANGE = "OUT_RANGE";
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
-    public void reprojectWithRangeCRS() throws MalformedURLException {
+    public void reprojectWithRangeCRS() throws IOException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_svs_wgs84.shp").toURI().toURL(), true),
+                readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                readShapefile(new File("src/test/resources/lines1_gk.shp").toURI().toURL(), true),
                 null);
     }
 
     @Test
-    public void reprojectWithCustomCRS() throws MalformedURLException {
+    public void reprojectWithCustomCRS() throws IOException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
+                readShapefile(new File("src/test/resources/lines1_gk.shp").toURI().toURL(), true),
                 null,
                 new URLLiteral(new URL("http://www.opengis.net/def/crs/EPSG/0/4326")));
     }
 
     @Test
-    public void reprojectWithCustomCRSAndRange() throws MalformedURLException {
+    public void reprojectWithCustomCRSAndRange() throws IOException {
         reproject(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI().toURL(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI().toURL(), true),
-                new URLLiteral(new URL("http://www.opengis.net/def/crs/EPSG/0/4326")));
+                readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
+                new URLLiteral(new URL("http://www.opengis.net/def/crs/EPSG/0/31469")));
     }
 
-    public void reproject(GTFeatureCollection domain, GTFeatureCollection range, URLLiteral crsURI) {
+    private void reproject(GTFeatureCollection domain, GTFeatureCollection range, URLLiteral crsURI) {
 
-        CRSReproject process = new CRSReproject();
-        IIdentifier ID_IN_DOMAIN = process.getInputConnector(IN_DOMAIN).getIdentifier();
-        IIdentifier ID_IN_RANGE = process.getInputConnector(IN_RANGE).getIdentifier();
-        IIdentifier ID_IN_CRS = process.getInputConnector(IN_CRS).getIdentifier();
-        IIdentifier ID_OUT_RANGE = process.getOutputConnector(OUT_RANGE).getIdentifier();
-        IIdentifier ID_OUT_RUNTIME = process.getOutputConnector(OUT_RUNTIME).getIdentifier();
-        IIdentifier ID_OUT_DOMAIN = process.getOutputConnector(OUT_DOMAIN).getIdentifier();
+        AbstractOperation operation = new TopologyRelation(null);
 
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_DOMAIN, domain);
+        Map<String,IData> inputs = new HashMap<>();
+        inputs.put(IN_DOMAIN, domain);
+        if(range != null)
+            inputs.put(IN_RANGE, range);
+        if(crsURI != null)
+            inputs.put(IN_CRS, crsURI);
+
+        Map<String,Class<? extends IData>> outputs = new HashMap<>();
+        outputs.put(OUT_DOMAIN, GTFeatureCollection.class);
         if (range != null)
-            input.put(ID_IN_RANGE, range);
-        if (crsURI != null)
-            input.put(ID_IN_CRS, crsURI);
+            outputs.put(OUT_RANGE, GTFeatureCollection.class);
 
-        Map<IIdentifier, IData> output = process.execute(input);
+        this.execute(operation, inputs, outputs);
 
-        Assert.assertNotNull(output);
-        Assert.assertTrue(output.containsKey(ID_OUT_DOMAIN));
-        Assert.assertTrue(output.get(ID_OUT_DOMAIN) instanceof GTFeatureCollection);
-
-        if (range != null)
-            Assert.assertTrue(output.get(ID_OUT_RANGE) instanceof GTFeatureCollection);
-
-        GTFeatureCollection outDomain = (GTFeatureCollection) output.get(ID_OUT_DOMAIN);
-
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
-        System.out.print("TEST: " + process.getIdentifier() + "\n\t" +
-                "number of source features: " + domain.size() + "\n\t" +
-                "old CRS: " + domain.collection().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
-                "new CRS: " + outDomain.collection().getSchema().getCoordinateReferenceSystem().getName() + "\n\t" +
-                "process runtime (ms): " + ((LongLiteral) output.get(ID_OUT_RUNTIME)).resolve() + "\n\t" +
-                "memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
     }
-
 }

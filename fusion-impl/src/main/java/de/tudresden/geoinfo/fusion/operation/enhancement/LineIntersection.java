@@ -6,6 +6,7 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
@@ -13,15 +14,16 @@ import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
-import java.io.IOException;
 import java.util.*;
 
 public class LineIntersection extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = LineIntersection.class.getSimpleName();
+    private static final String PROCESS_TITLE = LineIntersection.class.getName();
     private static final String PROCESS_DESCRIPTION = "Intersects linear network to avoid topological inconsistency";
 
     private final static String IN_FEATURES_TITLE = "IN_FEATURES";
@@ -33,12 +35,12 @@ public class LineIntersection extends AbstractOperation {
     /**
      * constructor
      */
-    public LineIntersection() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public LineIntersection(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector featureConnector = getInputConnector(IN_FEATURES_TITLE);
         //get input
@@ -54,7 +56,6 @@ public class LineIntersection extends AbstractOperation {
      *
      * @param inFeatures input line features
      * @return intersected line features
-     * @throws IOException
      */
     private GTFeatureCollection runIntersection(GTFeatureCollection inFeatures) {
         //build index
@@ -188,7 +189,7 @@ public class LineIntersection extends AbstractOperation {
      * @return intersections between start and end
      */
     private Collection<Coordinate> pointsOnLine(Coordinate start, Coordinate end, CoordinateList intersections) {
-        //iterate intersections and put into map (sorted by distance to start coordinate)
+        //iterate intersections and setRDFProperty into map (sorted by distance to start coordinate)
         SortedMap<Double, Coordinate> coordMap = new TreeMap<>();
         for (Coordinate coord : intersections.toCoordinateArray()) {
             if (pointOnLine(start, end, coord)) {
@@ -223,7 +224,7 @@ public class LineIntersection extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -233,10 +234,22 @@ public class LineIntersection extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 }

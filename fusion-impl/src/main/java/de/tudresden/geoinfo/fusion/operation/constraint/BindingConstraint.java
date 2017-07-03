@@ -6,6 +6,7 @@ import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -15,7 +16,7 @@ import java.util.Set;
  */
 public class BindingConstraint implements IRuntimeConstraint {
 
-    private Set<Class<?>> supportedBindings;
+    private Set<Class<?>> supportedBindings = new HashSet<>();
 
     /**
      * constructor
@@ -23,7 +24,7 @@ public class BindingConstraint implements IRuntimeConstraint {
      * @param supportedBindings supported bindings
      */
     public BindingConstraint(@NotNull Set<Class<?>> supportedBindings) {
-        this.supportedBindings = supportedBindings;
+        this.supportedBindings.addAll(supportedBindings);
     }
 
     /**
@@ -33,15 +34,6 @@ public class BindingConstraint implements IRuntimeConstraint {
      */
     public BindingConstraint(@NotNull Class<?>... supportedBindings) {
         this(Sets.newHashSet(supportedBindings));
-    }
-
-    /**
-     * constructor
-     *
-     * @param supportedBinding supported binding
-     */
-    public BindingConstraint(@NotNull Class<?> supportedBinding) {
-        this(Sets.newHashSet(supportedBinding));
     }
 
     /**
@@ -64,6 +56,14 @@ public class BindingConstraint implements IRuntimeConstraint {
     @Override
     public boolean compliantWith(@Nullable IData target) {
         return compliantWith(target, true);
+    }
+
+    /**
+     * get supported bindings
+     * @return supported bindings
+     */
+    public Set<Class<?>> getSupportedBindings() {
+        return this.supportedBindings;
     }
 
 }

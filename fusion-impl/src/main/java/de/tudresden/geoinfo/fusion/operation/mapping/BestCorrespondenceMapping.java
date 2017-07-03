@@ -41,8 +41,8 @@
 //	public void execute() throws ProcessException {
 //
 //		//get input
-//		BinaryFeatureRelationCollection relations = (BinaryFeatureRelationCollection) getInput(IN_RELATIONS);
-//		bDropRelations = ((BooleanLiteral) getInput(IN_DROP_RELATIONS)).resolve();
+//		BinaryFeatureRelationCollection relations = (BinaryFeatureRelationCollection) getInputConnector(IN_RELATIONS);
+//		bDropRelations = ((BooleanLiteral) getInputConnector(IN_DROP_RELATIONS)).resolve();
 //
 //		//add best correspondence relations
 //		addBestCorrespondences(relations);

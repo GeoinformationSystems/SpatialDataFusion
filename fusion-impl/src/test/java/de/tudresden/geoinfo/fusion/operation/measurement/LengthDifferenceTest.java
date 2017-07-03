@@ -3,15 +3,14 @@ package de.tudresden.geoinfo.fusion.operation.measurement;
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurementCollection;
+import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import org.junit.Assert;
+import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,43 +24,27 @@ public class LengthDifferenceTest extends AbstractTest {
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
-    public void getLengthDifference() throws MalformedURLException {
+    public void getLengthDifference() throws IOException {
         calculateDifference(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
-                new DecimalLiteral(50));
+                ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
+                new DecimalLiteral(0.0005));
     }
 
-    public void calculateDifference(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
+    private void calculateDifference(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
 
-        LengthDifference process = new LengthDifference();
-        IIdentifier ID_IN_DOMAIN = process.getInputConnector(IN_DOMAIN).getIdentifier();
-        IIdentifier ID_IN_RANGE = process.getInputConnector(IN_RANGE).getIdentifier();
-        IIdentifier ID_IN_THRESHOLD = process.getInputConnector(IN_THRESHOLD).getIdentifier();
-        IIdentifier ID_OUT_RUNTIME = process.getOutputConnector(OUT_RUNTIME).getIdentifier();
-        IIdentifier ID_OUT_MEASUREMENTS = process.getOutputConnector(OUT_MEASUREMENTS).getIdentifier();
+        AbstractOperation operation = new LengthDifference(null);
 
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_DOMAIN, domain);
-        input.put(ID_IN_RANGE, range);
-        input.put(ID_IN_THRESHOLD, threshold);
+        Map<String,IData> inputs = new HashMap<>();
+        inputs.put(IN_DOMAIN, domain);
+        inputs.put(IN_RANGE, range);
+        inputs.put(IN_THRESHOLD, threshold);
 
-        Map<IIdentifier, IData> output = process.execute(input);
+        Map<String,Class<? extends IData>> outputs = new HashMap<>();
+        outputs.put(OUT_MEASUREMENTS, RelationMeasurementCollection.class);
 
-        Assert.assertNotNull(output);
-        Assert.assertTrue(output.containsKey(ID_OUT_MEASUREMENTS));
-        Assert.assertTrue(output.get(ID_OUT_MEASUREMENTS) instanceof RelationMeasurementCollection);
+        this.execute(operation, inputs, outputs);
 
-        RelationMeasurementCollection measurements = (RelationMeasurementCollection) output.get(ID_OUT_MEASUREMENTS);
-
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
-        System.out.print("TEST: " + process.getIdentifier() + "\n\t" +
-                "number of reference features: " + domain.size() + "\n\t" +
-                "number of target features: " + range.size() + "\n\t" +
-                "number of measurements: " + measurements.resolve().size() + "\n\t" +
-                "process runtime (ms): " + ((LongLiteral) output.get(ID_OUT_RUNTIME)).resolve() + "\n\t" +
-                "memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
     }
 
 }

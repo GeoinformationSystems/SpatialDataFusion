@@ -9,7 +9,9 @@ import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.WFSCapabilities;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
+import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.IOFormatConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
@@ -28,7 +30,7 @@ import java.util.*;
 
 public class WFSProxy extends OWSServiceOperation {
 
-    private static final String PROCESS_TITLE = WFSProxy.class.getSimpleName();
+    private static final String PROCESS_TITLE = WFSProxy.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for OGC WFS";
 
     private final static String IN_FORMAT_TITLE = "IN_FORMAT";
@@ -57,16 +59,48 @@ public class WFSProxy extends OWSServiceOperation {
     private final static Set<String> SUPPORTED_VERSIONS = new HashSet<>(Arrays.asList("1.0.0", "1.1.0", "2.0.0"));
 
     private Set<IIdentifier> featureIdConnectors;
+    private boolean referenceOutput = false;
 
     /**
      * constructor
      */
     public WFSProxy(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
-        super(identifier, PROCESS_TITLE, PROCESS_DESCRIPTION, base, true);
+        super(identifier, base);
+    }
+
+    /**
+     * flag: if true, proxy outputs are WFS references; if false, proxy outputs are GTVectorFeature/GTFeatureCollection objects
+     * @return reference output flag
+     */
+    public boolean isReferenceOutput() {
+        return this.referenceOutput;
+    }
+
+    public void setReferenceOutput(boolean referenceOutput){
+        this.referenceOutput = referenceOutput;
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
+        if(isReferenceOutput())
+            setReferenceOutput();
+        else
+            setFeatureOutput();
+    }
+
+    private void setReferenceOutput() {
+        connectOutput(OUT_FEATURES_TITLE, this.getFeatureRequest());
+        if (this.getFeatureIdentifier().length > 0) {
+            for (String fid : this.getFeatureIdentifier()) {
+                URLLiteral featureRequest = this.getFeatureRequest(new StringLiteral(fid));
+                IOutputConnector connector = getOutputConnector(fid);
+                    if (connector != null)
+                        connector.setData(featureRequest);
+            }
+        }
+    }
+
+    private void setFeatureOutput() {
         //parse features
         GTFeatureCollection features;
         try {
@@ -74,49 +108,73 @@ public class WFSProxy extends OWSServiceOperation {
         } catch (IOException e) {
             throw new RuntimeException("Could not parse WFS features: ", e);
         }
-        //set output connector
+        //set output connectors
         connectOutput(OUT_FEATURES_TITLE, features);
+        if (this.getFeatureIdentifier().length > 0) {
+            for (String fid : this.getFeatureIdentifier()) {
+                GTVectorFeature feature = features.getFeatureById(fid);
+                if (feature != null) {
+                    IOutputConnector connector = getOutputConnector(fid);
+                    if (connector != null)
+                        connector.setData(feature);
+                }
+            }
+        }
     }
 
     @Override
-    public WFSCapabilities getCapabilities() {
+    public @NotNull WFSCapabilities getCapabilities() {
         return (WFSCapabilities) super.getCapabilities();
     }
 
     public GTFeatureCollection getFeatures() throws MalformedURLException {
         GTFeatureParser parser = getParser(((StringLiteral) getInputData(IN_FORMAT_TITLE)));
-        if(parser == null)
+        if (parser == null)
             throw new RuntimeException("Could not find a parser for input format " + (getInputData(IN_FORMAT_TITLE)));
         //parse and return
         return getFeatures(getFeatureRequest(), parser);
     }
 
+    public @NotNull URLLiteral getFeatureRequest(){
+        return this.getFeatureRequest((StringLiteral) getInputData(IN_FID_TITLE));
+    }
+
     /**
      * get feature request
+     *
      * @return get feature request
-     * @throws MalformedURLException
      */
-    public @NotNull URLLiteral getFeatureRequest() throws MalformedURLException {
+    public @NotNull URLLiteral getFeatureRequest(@Nullable StringLiteral fids) {
         this.setRequest(VALUE_GETFEATURE);
         this.setVersion();
         this.setParameter(PARAM_LAYER, ((StringLiteral) getInputData(IN_LAYER_TITLE)));
         this.setParameter(PARAM_OUTPUTFORMAT, ((StringLiteral) getInputData(IN_FORMAT_TITLE)));
-        this.setParameter(PARAM_IDENTIFIER, ((StringLiteral) getInputData(IN_FID_DESCRIPTION)));
+        if(fids != null && !fids.isBlank())
+            this.setParameter(PARAM_IDENTIFIER, fids);
         return this.getRequest(new String[]{PARAM_SERVICE, PARAM_REQUEST, PARAM_VERSION, PARAM_LAYER}, new String[]{PARAM_OUTPUTFORMAT, PARAM_IDENTIFIER});
     }
 
     private @Nullable GTFeatureParser getParser(@Nullable StringLiteral format) {
-        if(format == null || format.resolve().matches("(?i).*gml.*"))
-            return new GMLParser();
-        else if(format.resolve().matches("(?i).*json.*"))
-            return new JSONParser();
+        if (format == null || format.resolve().matches("(?i).*gml.*"))
+            return new GMLParser(null);
+        else if (format.resolve().matches("(?i).*json.*"))
+            return new JSONParser(null);
         return null;
+    }
+
+    @Override
+    protected void connectData(@NotNull IWorkflowConnector connector, @Nullable IData data) {
+        super.connectData(connector, data);
+        //update output connectors, if input FIDs are provided
+        if (connector.getTitle() != null && connector.getTitle().equals(IN_FID_TITLE))
+            this.updateOutputconnectors();
     }
 
     /**
      * parse features from WFS
+     *
      * @param request input request
-     * @param parser feature parser
+     * @param parser  feature parser
      * @return feature collection from from WFS
      */
     private GTFeatureCollection getFeatures(URLLiteral request, GTFeatureParser parser) {
@@ -131,21 +189,23 @@ public class WFSProxy extends OWSServiceOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_FORMAT_TITLE, IN_FORMAT_DESCRIPTION,
+        super.initializeInputConnectors();
+        addInputConnector(null, IN_FORMAT_TITLE, IN_FORMAT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class)},
                 null,
                 null);
-        addInputConnector(IN_LAYER_TITLE, IN_LAYER_DESCRIPTION,
+        addInputConnector(null, IN_LAYER_TITLE, IN_LAYER_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_FID_TITLE, IN_FID_DESCRIPTION,
+        addInputConnector(null, IN_FID_TITLE, IN_FID_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
-                        new PatternConstraint("(\\w+)(,\\w+)*")},
+                        //regex: [^,]+ matches characters except comma one or more times; ,[^,]+)* matches a comma with subsequent non-comma characters
+                        new PatternConstraint("([^,]+)(,[^,]+)*")},
                 null,
                 null);
     }
@@ -171,12 +231,18 @@ public class WFSProxy extends OWSServiceOperation {
     }
 
     @Override
-    public @Nullable String getSelectedOffering(){
+    public @Nullable String getSelectedOffering() {
         return this.getTypename();
+    }
+
+    @Override
+    public void setSelectedOffering(@NotNull String offering) {
+        this.setTypename(offering);
     }
 
     /**
      * get selected typename
+     *
      * @return selected typename
      */
     public @Nullable String getTypename() {
@@ -185,10 +251,11 @@ public class WFSProxy extends OWSServiceOperation {
 
     /**
      * sselect typename
+     *
      * @param typename input typename
      */
     public void setTypename(@NotNull String typename) {
-        if (!this.getCapabilities().getWFSLayers().contains(typename))
+        if (!this.isSelectedOffering(typename))
             throw new IllegalArgumentException("WFS does not provide a layer " + typename);
         //set KVP parameter
         this.setParameter(IN_LAYER_TITLE, typename);
@@ -198,36 +265,27 @@ public class WFSProxy extends OWSServiceOperation {
 
     /**
      * get selected feature identifier
+     *
      * @return feature identifier
      */
-    public @Nullable String[] getFeatureIdentifier() {
-        String fids = this.getParameter(PARAM_IDENTIFIER);
-        return fids != null ? fids.split(",") : null;
+    public @NotNull String[] getFeatureIdentifier() {
+        StringLiteral fids = ((StringLiteral) getInputData(IN_FID_TITLE));
+        return fids != null ? fids.resolve().split(",") : new String[]{};
     }
 
     /**
-     * set feature identifier to be selected
-     * @param featureIds input identifier
+     * set selected feature identifier
      */
-    public void setFeatureIdentifier(@NotNull Set<String> featureIds) {
-        this.setParameter(PARAM_IDENTIFIER, featureIds.isEmpty() ? null : StringUtils.join(featureIds, ","));
-        updateOutputconnectors();
-    }
-
-    /**
-     * set feature identifier to be selected
-     * @param featureId input identifier
-     */
-    public void setFeatureIdentifier(@Nullable String featureId) {
-        this.setFeatureIdentifier(featureId != null ? Collections.singleton(featureId) : Collections.emptySet());
+    public void setFeatureIdentifier(@Nullable Set<String> fids) {
+        this.connectInput(IN_FID_TITLE, fids != null && !fids.isEmpty() ? new StringLiteral(StringUtils.join(fids, ",")) : null);
     }
 
     @Override
     public void initializeOutputConnectors() {
         //add output for all features
-        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(GTFeatureCollection.class),
+                        new BindingConstraint(isReferenceOutput() ? URLLiteral.class : GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 new IConnectionConstraint[]{getWFSFormatConstraint()});
     }
@@ -236,22 +294,25 @@ public class WFSProxy extends OWSServiceOperation {
      * update output connectors
      */
     private void updateOutputconnectors() {
-        if(this.getFeatureIdentifier() == null || this.getFeatureIdentifier().length == 0)
+        String[] featureIds = this.getFeatureIdentifier();
+        if (featureIds.length == 0)
             return;
         //set featureIdConnectors
-        if(this.featureIdConnectors == null)
+        if (this.featureIdConnectors == null)
             this.featureIdConnectors = new HashSet<>();
         //remove previous feature id connectors
-        for(IIdentifier connectorId : this.featureIdConnectors){
+        for (IIdentifier connectorId : this.featureIdConnectors) {
             this.removeOutputConnector(connectorId);
         }
         this.featureIdConnectors.clear();
         //add new output connectors
-        for(String featureId : this.getFeatureIdentifier()){
-            if(featureId == null)
+        for (String featureId : featureIds) {
+            if (featureId.isEmpty())
                 continue;
             OutputConnector connector = new OutputConnector(new Identifier(featureId), featureId, featureId, this,
-                    new IRuntimeConstraint[]{new BindingConstraint(GTVectorFeature.class)},
+                    new IRuntimeConstraint[]{
+                            new BindingConstraint(isReferenceOutput() ? URLLiteral.class : GTVectorFeature.class),
+                            new MandatoryDataConstraint()},
                     new IConnectionConstraint[]{getWFSFormatConstraint()});
             this.featureIdConnectors.add(connector.getIdentifier());
             this.addOutputConnector(connector);
@@ -260,10 +321,22 @@ public class WFSProxy extends OWSServiceOperation {
 
     /**
      * get formats supported by this WFS proxy
+     *
      * @return supported WFS feature encoding formats
      */
     private IOFormatConstraint getWFSFormatConstraint() {
         return new IOFormatConstraint(this.getCapabilities().getOutputDescription().getSupportedFormats());
     }
 
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
+    }
 }

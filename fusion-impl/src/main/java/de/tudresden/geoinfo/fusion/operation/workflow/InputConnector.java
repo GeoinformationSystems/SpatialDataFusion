@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Input connector implementation
@@ -18,7 +17,7 @@ import java.util.Set;
  */
 public class InputConnector extends AbstractWorkflowConnector implements IInputConnector {
 
-    private IOutputConnector defaultConnector;
+    private IData defaultData;
 
     /**
      * constructor
@@ -28,9 +27,9 @@ public class InputConnector extends AbstractWorkflowConnector implements IInputC
      * @param runtimeConstraints    connector runtime constraints
      * @param connectionConstraints connection constraints
      */
-    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints, IOutputConnector defaultConnector) {
+    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, IData defaultData) {
         super(identifier, title, description, entity, runtimeConstraints, connectionConstraints);
-        this.defaultConnector = defaultConnector;
+        this.defaultData = defaultData;
     }
 
     /**
@@ -41,56 +40,8 @@ public class InputConnector extends AbstractWorkflowConnector implements IInputC
      * @param runtimeConstraints    connector runtime constraints
      * @param connectionConstraints connection constraints
      */
-    public InputConnector(@NotNull IIdentifier identifier, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints, IOutputConnector defaultConnector) {
-        this(identifier, null, null, entity, runtimeConstraints, connectionConstraints, defaultConnector);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated workflow entity
-     * @param title                 IO title
-     * @param runtimeConstraints    connector runtime constraints
-     * @param connectionConstraints connection constraints
-     */
-    public InputConnector(@NotNull String title, @NotNull IWorkflowNode entity, @Nullable Set<IRuntimeConstraint> runtimeConstraints, @Nullable Set<IConnectionConstraint> connectionConstraints, IOutputConnector defaultConnector) {
-        this(null, title, null, entity, runtimeConstraints, connectionConstraints, defaultConnector);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated workflow entity
-     * @param identifier            IO identifier
-     * @param runtimeConstraints    connector runtime constraints
-     * @param connectionConstraints connection constraints
-     */
-    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, IOutputConnector defaultConnector) {
-        this(identifier, title, description, entity, new HashSet<>(Arrays.asList(runtimeConstraints)), new HashSet<>(Arrays.asList(connectionConstraints)), defaultConnector);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated workflow entity
-     * @param identifier            IO identifier
-     * @param runtimeConstraints    connector runtime constraints
-     * @param connectionConstraints connection constraints
-     */
-    public InputConnector(@NotNull IIdentifier identifier, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, IOutputConnector defaultConnector) {
-        this(identifier, null, null, entity, runtimeConstraints, connectionConstraints, defaultConnector);
-    }
-
-    /**
-     * constructor
-     *
-     * @param entity                associated workflow entity
-     * @param title                 IO title
-     * @param runtimeConstraints    connector runtime constraints
-     * @param connectionConstraints connection constraints
-     */
-    public InputConnector(@NotNull String title, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, IOutputConnector defaultConnector) {
-        this(null, title, null, entity, runtimeConstraints, connectionConstraints, defaultConnector);
+    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
+        this(identifier, title, description, entity, new HashSet<>(Arrays.asList(runtimeConstraints)), new HashSet<>(Arrays.asList(connectionConstraints)), defaultData);
     }
 
     /**
@@ -104,30 +55,20 @@ public class InputConnector extends AbstractWorkflowConnector implements IInputC
         return this.getConnections().iterator().next();
     }
 
-    @NotNull
     @Override
-    public Collection<IOutputConnector> getOutputConnectors() {
-        Collection<IOutputConnector> connectors = new HashSet<>();
-        for (IWorkflowConnection connection : this.getConnections()) {
-            connectors.add(connection.getOutput());
-        }
-        return connectors;
-    }
-
-    @Override
-    public boolean addOutputConnector(@NotNull IOutputConnector connector) {
+    public void connect(@NotNull IOutputConnector connector) {
         IWorkflowConnection connection = new WorkflowConnection(this, connector);
-        return connection.getState().equals(ElementState.READY);
+        super.addConnection(connection);
     }
 
     @Override
-    public IOutputConnector getDefault() {
-        return defaultConnector;
+    public IData getDefaultData() {
+        return defaultData;
     }
 
     @Override
     public IData getData() {
-        return super.getData() != null ? super.getData() : (getDefault() != null ? getDefault().getData() : null);
+        return super.getData() != null ? super.getData() : this.getDefaultData();
     }
 
 }

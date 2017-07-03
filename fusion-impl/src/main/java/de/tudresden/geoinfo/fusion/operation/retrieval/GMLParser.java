@@ -4,10 +4,15 @@ import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
+import de.tudresden.geoinfo.fusion.data.metadata.DC_Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataElement;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.apache.commons.io.FileUtils;
 import org.geotools.xml.Configuration;
 import org.geotools.xml.PullParser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.SAXException;
 
@@ -23,7 +28,7 @@ import java.util.UUID;
 
 public class GMLParser extends GTFeatureParser {
 
-    private static final String PROCESS_TITLE = GMLParser.class.getSimpleName();
+    private static final String PROCESS_TITLE = GMLParser.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for OGC GML format";
 
     private final static String TEMP_FOLDER = System.getProperty("java.io.tmpdir");
@@ -31,8 +36,8 @@ public class GMLParser extends GTFeatureParser {
     /**
      * constructor
      */
-    public GMLParser() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public GMLParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     /**
@@ -61,6 +66,7 @@ public class GMLParser extends GTFeatureParser {
 
     /**
      * copy gml from http connection
+     *
      * @param resourceURL http resource URL
      * @return file resource URL
      * @throws IOException
@@ -186,7 +192,7 @@ public class GMLParser extends GTFeatureParser {
      *
      * @param resourceURL input URL
      * @param contentType GML content type
-     * @param file      GML input file
+     * @param file        GML input file
      * @param withIndex   flag: return indexed collection
      * @return feature collection
      * @throws IOException
@@ -214,7 +220,7 @@ public class GMLParser extends GTFeatureParser {
      * parse GML from URL
      *
      * @param resourceURL input URL
-     * @param file      GML input file
+     * @param file        GML input file
      * @param withIndex   flag: return indexed collection
      * @return feature collection
      */
@@ -244,7 +250,7 @@ public class GMLParser extends GTFeatureParser {
      * parse GML version 3.2
      *
      * @param resourceURL input URL
-     * @param file      GML input file
+     * @param file        GML input file
      * @param withIndex   flag: return indexed collection
      * @return feature collection
      * @throws IOException
@@ -252,14 +258,14 @@ public class GMLParser extends GTFeatureParser {
      * @throws SAXException
      */
     private GTFeatureCollection parseGML32(URL resourceURL, File file, boolean withIndex) throws IOException, XMLStreamException, SAXException {
-        return parseGML(resourceURL, file, new org.geotools.gml3.v3_2.GMLConfiguration(), withIndex);
+        return parseGML(resourceURL.toString(), new FileInputStream(file), new org.geotools.gml3.v3_2.GMLConfiguration(), withIndex);
     }
 
     /**
      * parse GML version 3
      *
      * @param resourceURL input URL
-     * @param file      GML input file
+     * @param file        GML input file
      * @param withIndex   flag: return indexed collection
      * @return feature collection
      * @throws IOException
@@ -267,14 +273,14 @@ public class GMLParser extends GTFeatureParser {
      * @throws SAXException
      */
     private GTFeatureCollection parseGML3(URL resourceURL, File file, boolean withIndex) throws IOException, XMLStreamException, SAXException {
-        return parseGML(resourceURL, file, new org.geotools.gml3.GMLConfiguration(), withIndex);
+        return parseGML(resourceURL.toString(), new FileInputStream(file), new org.geotools.gml3.GMLConfiguration(), withIndex);
     }
 
     /**
      * parse GML version 2
      *
      * @param resourceURL input URL
-     * @param file      GML input file
+     * @param file        GML input file
      * @param withIndex   flag: return indexed collection
      * @return feature collection
      * @throws IOException
@@ -282,31 +288,43 @@ public class GMLParser extends GTFeatureParser {
      * @throws SAXException
      */
     private GTFeatureCollection parseGML2(URL resourceURL, File file, boolean withIndex) throws IOException, XMLStreamException, SAXException {
-        return parseGML(resourceURL, file, new org.geotools.gml2.GMLConfiguration(), withIndex);
+        return parseGML(resourceURL.toString(), new FileInputStream(file), new org.geotools.gml2.GMLConfiguration(), withIndex);
     }
 
     /**
      * parse GML from XML stream
      *
-     * @param resourceURL   input URL
-     * @param file        GML input file
+     * @param collectionId   collection identifier URL
+     * @param input          GML input stream
      * @param configuration XML parser configuration
      * @param withIndex     flag: return indexed collection
      * @return feature collection
-     * @throws XMLStreamException
-     * @throws IOException
-     * @throws SAXException
      */
-    private GTFeatureCollection parseGML(URL resourceURL, File file, Configuration configuration, boolean withIndex) throws XMLStreamException, IOException, SAXException {
-        IIdentifier identifier = new Identifier(resourceURL.toString());
+    public static GTFeatureCollection parseGML(String collectionId, InputStream input, Configuration configuration, boolean withIndex) throws XMLStreamException, IOException, SAXException {
         Collection<GTVectorFeature> features = new HashSet<>();
-        PullParser gmlParser = new PullParser(configuration, new FileInputStream(file), SimpleFeature.class);
+        PullParser gmlParser = new PullParser(configuration, input, SimpleFeature.class);
         SimpleFeature feature;
+        IIdentifier resourceId = new Identifier(collectionId);
         while ((feature = (SimpleFeature) gmlParser.parse()) != null) {
-            String featureID = identifier + "#" + feature.getID();
-            features.add(new GTVectorFeature(new Identifier(featureID), feature, null));
+            String featureID = feature.getID();
+            Metadata metadata = new Metadata();
+            metadata.addElement(new MetadataElement(DC_Metadata.DC_TITLE.getResource(), featureID));
+            metadata.addElement(new MetadataElement(DC_Metadata.DC_SOURCE.getResource(), resourceId.toString()));
+            features.add(new GTVectorFeature(new Identifier(featureID), feature, metadata));
         }
-        return withIndex ? new GTFeatureCollection(identifier, features, null) : new GTIndexedFeatureCollection(identifier, features, null);
+        return withIndex ? new GTFeatureCollection(resourceId, features, null) : new GTIndexedFeatureCollection(resourceId, features, null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

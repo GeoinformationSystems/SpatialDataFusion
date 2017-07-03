@@ -1,7 +1,10 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.operation.*;
+import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
+import de.tudresden.geoinfo.fusion.operation.IInputConnector;
+import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
+import de.tudresden.geoinfo.fusion.operation.IWorkflowConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,33 +38,39 @@ public class WorkflowConnection extends AbstractWorkflowElement implements IWork
      * @param output output connector
      */
     public WorkflowConnection(@NotNull IInputConnector input, @NotNull IOutputConnector output) {
-        this(null, null, null, input, output);
+        this(null, output.getTitle() + "_" + input.getTitle(), null, input, output);
     }
 
     @NotNull
     @Override
-    public IInputConnector getInput() {
+    public IInputConnector getInputConnector() {
         return input;
     }
 
     @NotNull
     @Override
-    public IOutputConnector getOutput() {
+    public IOutputConnector getOutputConnector() {
         return output;
     }
 
     @Override
-    public void updateState() {
-        this.setState(ElementState.READY);
+    public boolean isReady() {
         for (IConnectionConstraint connectionConstraint : this.input.getConnectionConstraints()) {
             if (!connectionConstraint.compliantWith(this.output)) {
-                this.setState(ElementState.IMPROPER_CONFIGURATION);
+                return false;
             }
         }
         for (IConnectionConstraint connectionConstraint : this.output.getConnectionConstraints()) {
             if (!connectionConstraint.compliantWith(this.input)) {
-                this.setState(ElementState.IMPROPER_CONFIGURATION);
+                return false;
             }
         }
+        return true;
     }
+
+    @Override
+    public void reset() {
+        // do nothing
+    }
+
 }

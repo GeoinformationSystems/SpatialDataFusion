@@ -2,11 +2,14 @@ package de.tudresden.geoinfo.fusion.operation.measurement;
 
 import com.vividsolutions.jts.geom.*;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.IntegerLiteral;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
@@ -15,7 +18,6 @@ import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurementCollection;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.coverage.grid.GridCoverage2D;
@@ -28,6 +30,8 @@ import org.jaitools.media.jai.zonalstats.Result;
 import org.jaitools.media.jai.zonalstats.ZonalStats;
 import org.jaitools.media.jai.zonalstats.ZonalStatsDescriptor;
 import org.jaitools.numeric.Statistic;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.metadata.spatial.PixelOrientation;
@@ -47,7 +51,7 @@ import java.util.Set;
  */
 public class ZonalStatistics extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = ZonalStatistics.class.getSimpleName();
+    private static final String PROCESS_TITLE = ZonalStatistics.class.getName();
     private static final String PROCESS_DESCRIPTION = "Determines relations based on zonal statistics for domain polygons on range raster";
 
     private final static String IN_DOMAIN_TITLE = "IN_DOMAIN";
@@ -73,7 +77,9 @@ public class ZonalStatistics extends AbstractOperation {
     private static final String MEASUREMENT_SDEV_TITLE = "SDev";
     private static final String MEASUREMENT_SDEV_DESCRIPTION = "Zonal standard deviation";
 
-    Statistic[] statistics = new Statistic[]{
+    private IMetadata measurementMetadata_MIN, measurementMetadata_MAX, measurementMetadata_MEAN, measurementMetadata_SDEV;
+
+    private Statistic[] statistics = new Statistic[]{
             Statistic.MIN,
             Statistic.MAX,
             Statistic.MEAN,
@@ -83,12 +89,16 @@ public class ZonalStatistics extends AbstractOperation {
     /**
      * constructor
      */
-    public ZonalStatistics() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public ZonalStatistics(@Nullable IIdentifier identifier) {
+        super(identifier);
+        this.measurementMetadata_MIN = new Metadata(MEASUREMENT_MIN_TITLE, MEASUREMENT_MIN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+        this.measurementMetadata_MAX = new Metadata(MEASUREMENT_MAX_TITLE, MEASUREMENT_MAX_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+        this.measurementMetadata_MEAN = new Metadata(MEASUREMENT_MEAN_TITLE, MEASUREMENT_MEAN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+        this.measurementMetadata_SDEV = new Metadata(MEASUREMENT_SDEV_TITLE, MEASUREMENT_SDEV_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector domainConnector = getInputConnector(IN_DOMAIN_TITLE);
         IInputConnector rangeConnector = getInputConnector(IN_RANGE_TITLE);
@@ -182,13 +192,13 @@ public class ZonalStatistics extends AbstractOperation {
         ZonalStats stats = (ZonalStats) zsCoverage.getProperty(ZonalStatsDescriptor.ZONAL_STATS_PROPERTY);
         for (Result r : stats.results()) {
             if (r.getStatistic() == Statistic.MEAN)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), MEASUREMENT_MEAN_TITLE, MEASUREMENT_MEAN_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT));
+                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MEAN, this));
             else if (r.getStatistic() == Statistic.MIN)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), MEASUREMENT_MIN_TITLE, MEASUREMENT_MIN_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT));
+                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MIN, this));
             else if (r.getStatistic() == Statistic.MAX)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), MEASUREMENT_MAX_TITLE, MEASUREMENT_MAX_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT));
+                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MAX, this));
             else if (r.getStatistic() == Statistic.SDEV)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), MEASUREMENT_SDEV_TITLE, MEASUREMENT_SDEV_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT));
+                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_SDEV, this));
         }
         return measurements;
     }
@@ -227,37 +237,49 @@ public class ZonalStatistics extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTGridFeature.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_BAND_TITLE, IN_BAND_DESCRIPTION,
+        addInputConnector(null, IN_BAND_TITLE, IN_BAND_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(IntegerLiteral.class)},
                 null,
-                new InputData(new IntegerLiteral(0)).getOutputConnector());
-        addInputConnector(IN_BUFFER_TITLE, IN_BUFFER_DESCRIPTION,
+                new IntegerLiteral(0));
+        addInputConnector(null, IN_BUFFER_TITLE, IN_BUFFER_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
-                new InputData(new DecimalLiteral(0)).getOutputConnector());
+                new DecimalLiteral(0));
     }
 
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
+        addOutputConnector(null, OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(RelationMeasurementCollection.class)},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

@@ -9,8 +9,9 @@ import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Relations;
 import de.tudresden.geoinfo.fusion.data.relation.*;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +22,7 @@ import java.util.Set;
  */
 public class TopologyRelation extends AbstractFeatureMapping {
 
-    private static final String PROCESS_TITLE = TopologyRelation.class.getSimpleName();
+    private static final String PROCESS_TITLE = TopologyRelation.class.getName();
     private static final String PROCESS_DESCRIPTION = "Determines feature relation based on topology relation of geometries";
 
     private static final String IN_EXPLICIT_DISJOINT_TITLE = "IN_EXPLICIT_DISJOINT";
@@ -58,15 +59,15 @@ public class TopologyRelation extends AbstractFeatureMapping {
     /**
      * constructor
      */
-    public TopologyRelation() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public TopologyRelation(@Nullable IIdentifier identifier) {
+        super(identifier);
         initRelationTypes();
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         this.bExplicitDisjoint = ((BooleanLiteral) getInputConnector(IN_EXPLICIT_DISJOINT_TITLE).getData()).resolve();
-        super.execute();
+        super.executeOperation();
     }
 
     @Override
@@ -109,11 +110,11 @@ public class TopologyRelation extends AbstractFeatureMapping {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(IN_EXPLICIT_DISJOINT_TITLE, IN_EXPLICIT_DISJOINT_DESCRIPTION,
+        addInputConnector(null, IN_EXPLICIT_DISJOINT_TITLE, IN_EXPLICIT_DISJOINT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new InputData(new BooleanLiteral(false)).getOutputConnector());
+                new BooleanLiteral(false));
     }
 
     /**
@@ -121,34 +122,44 @@ public class TopologyRelation extends AbstractFeatureMapping {
      */
     private void initRelationTypes() {
         relationTypes = new HashMap<>();
-        relationTypes.put(RELATION_EQUALS_TITLE, getRelationType(RELATION_EQUALS_IDENTIFIER, RELATION_EQUALS_TITLE, RELATION_EQUALS_DESCRIPTION, true, true, true));
-        relationTypes.put(RELATION_DISJOINT_TITLE, getRelationType(RELATION_DISJOINT_IDENTIFIER, RELATION_DISJOINT_TITLE, RELATION_DISJOINT_DESCRIPTION, true, false, false));
-        relationTypes.put(RELATION_TOUCHES_TITLE, getRelationType(RELATION_TOUCHES_IDENTIFIER, RELATION_TOUCHES_TITLE, RELATION_TOUCHES_DESCRIPTION, true, false, false));
-        relationTypes.put(RELATION_WITHIN_TITLE, getRelationType(RELATION_WITHIN_IDENTIFIER, RELATION_WITHIN_TITLE, RELATION_WITHIN_DESCRIPTION, false, true, true));
-        relationTypes.put(RELATION_CONTAINS_TITLE, getRelationType(RELATION_CONTAINS_IDENTIFIER, RELATION_CONTAINS_TITLE, RELATION_CONTAINS_DESCRIPTION, false, true, true));
-        relationTypes.put(RELATION_OVERLAPS_TITLE, getRelationType(RELATION_OVERLAPS_IDENTIFIER, RELATION_OVERLAPS_TITLE, RELATION_OVERLAPS_DESCRIPTION, true, false, true));
-        relationTypes.put(RELATION_CROSSES_TITLE, getRelationType(RELATION_CROSSES_IDENTIFIER, RELATION_CROSSES_TITLE, RELATION_CROSSES_DESCRIPTION, false, true, true));
+        relationTypes.put(RELATION_EQUALS_TITLE, getRelationType(RELATION_EQUALS_IDENTIFIER, true, true, true));
+        relationTypes.put(RELATION_DISJOINT_TITLE, getRelationType(RELATION_DISJOINT_IDENTIFIER, true, false, false));
+        relationTypes.put(RELATION_TOUCHES_TITLE, getRelationType(RELATION_TOUCHES_IDENTIFIER, true, false, false));
+        relationTypes.put(RELATION_WITHIN_TITLE, getRelationType(RELATION_WITHIN_IDENTIFIER, false, true, true));
+        relationTypes.put(RELATION_CONTAINS_TITLE, getRelationType(RELATION_CONTAINS_IDENTIFIER, false, true, true));
+        relationTypes.put(RELATION_OVERLAPS_TITLE, getRelationType(RELATION_OVERLAPS_IDENTIFIER, true, false, true));
+        relationTypes.put(RELATION_CROSSES_TITLE, getRelationType(RELATION_CROSSES_IDENTIFIER, false, true, true));
     }
 
     /**
      * get topology relation type
      *
      * @param identifier   relation type identifier
-     * @param title        relation type title
-     * @param description  relation type description
      * @param isSymmetric  flag: relation type is symmetric
      * @param isTransitive flag: relation type is transitive
      * @param isReflexive  flag: relation type is reflexive
      * @return binary relation type
      */
-    private IBinaryRelationType getRelationType(IIdentifier identifier, String title, String description, boolean isSymmetric, boolean isTransitive, boolean isReflexive) {
+    private IBinaryRelationType getRelationType(IIdentifier identifier, boolean isSymmetric, boolean isTransitive, boolean isReflexive) {
         return new BinaryRelationType(
-                identifier, title, description,
+                identifier,
                 new Role(ROLE_DOMAIN.getIdentifier()),
                 new Role(ROLE_RANGE.getIdentifier()),
                 isSymmetric,
                 isTransitive,
                 isReflexive);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

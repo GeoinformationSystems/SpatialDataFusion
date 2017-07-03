@@ -7,14 +7,17 @@ import de.tudresden.geoinfo.fusion.data.rdf.ISubject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * RDF subject implementation
  */
 public class Subject extends Resource implements ISubject {
 
-    private HashMap<IResource, Set<INode>> objectSet;
+    private HashMap<IResource, Set<INode>> objectSet = new HashMap<>();
 
     /**
      * constructor, calls initializeObjectSet() to initialize associated object set
@@ -23,17 +26,6 @@ public class Subject extends Resource implements ISubject {
      */
     public Subject(@Nullable IIdentifier identifier) {
         super(identifier);
-        resetObjectSet();
-    }
-
-    /**
-     * initialize object set associated to subject
-     *
-     * @return associated object set
-     */
-    @NotNull
-    protected HashMap<IResource, Set<INode>> initializeObjectSet() {
-        return new HashMap<>();
     }
 
     /**
@@ -44,13 +36,6 @@ public class Subject extends Resource implements ISubject {
     @NotNull
     private HashMap<IResource, Set<INode>> getObjectSet() {
         return this.objectSet;
-    }
-
-    /**
-     * reset object set (reset objectSet with value returned by initializeObjectSet())
-     */
-    protected void resetObjectSet() {
-        this.objectSet = initializeObjectSet();
     }
 
     @NotNull
@@ -66,44 +51,28 @@ public class Subject extends Resource implements ISubject {
     }
 
     /**
-     * get single object from object set
-     * if multiple objects exist, only the first object is returned
-     *
-     * @param predicate input predicate
-     * @return single object
-     */
-    @Nullable
-    public INode getObject(@NotNull IResource predicate) {
-        if (!this.getObjectSet().containsKey(predicate))
-            return null;
-        Set<INode> nodeSet = this.getObjectSet().get(predicate);
-        return nodeSet.isEmpty() ? null : nodeSet.iterator().next();
-    }
-
-    /**
-     * put single INode object to object map
+     * setRDFProperty single INode object to object map
      *
      * @param predicate input predicate
      * @param object    input object
      */
-    protected void put(@NotNull IResource predicate, @NotNull INode object) {
+    public void put(@NotNull IResource predicate, @NotNull INode object) {
         if (this.getObjectSet().containsKey(predicate))
             this.getObjectSet().get(predicate).add(object);
         else {
-            Set<INode> set = new HashSet<>(Collections.singletonList(object));
+            Set<INode> set = new HashSet<>();
+            set.add(object);
             this.getObjectSet().put(predicate, set);
         }
     }
 
     /**
-     * put node set into object map
+     * setRDFProperty node set into object map
      *
      * @param predicate input predicate
      * @param objectSet input node set
      */
-    protected void put(@NotNull IResource predicate, @NotNull Collection<INode> objectSet) {
-        if (objectSet.isEmpty())
-            return;
+    public void put(@NotNull IResource predicate, @NotNull Collection<? extends INode> objectSet) {
         for (INode object : objectSet) {
             this.put(predicate, object);
         }

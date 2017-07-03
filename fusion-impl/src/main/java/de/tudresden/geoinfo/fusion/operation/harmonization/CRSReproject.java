@@ -5,6 +5,7 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
@@ -16,6 +17,8 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.GeometryAttribute;
 import org.opengis.feature.Property;
 import org.opengis.feature.simple.SimpleFeature;
@@ -31,7 +34,7 @@ import java.util.List;
 
 public class CRSReproject extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = CRSReproject.class.getSimpleName();
+    private static final String PROCESS_TITLE = CRSReproject.class.getName();
     private static final String PROCESS_DESCRIPTION = "Reprojects coordinate reference system of the input features";
 
     private final static String IN_DOMAIN_TITLE = "IN_DOMAIN";
@@ -48,12 +51,12 @@ public class CRSReproject extends AbstractOperation {
     /**
      * constructor
      */
-    public CRSReproject() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public CRSReproject(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector domainConnector = getInputConnector(IN_DOMAIN_TITLE);
         IInputConnector rangeConnector = getInputConnector(IN_RANGE_TITLE);
@@ -243,7 +246,7 @@ public class CRSReproject extends AbstractOperation {
     private CoordinateReferenceSystem decodeCRSDetails(CoordinateReferenceSystem inCRS) throws FactoryException {
         String identifier = CRS.lookupIdentifier(inCRS, true);
         CoordinateReferenceSystem outCRS = CRS.decode(identifier);
-        //check axis order, if they don't match, put longitude first (WGS84 issue)
+        //check axis order, if they don't match, setRDFProperty longitude first (WGS84 issue)
         if (CRS.getAxisOrder(inCRS) != CRS.getAxisOrder(outCRS))
             outCRS = CRS.decode(identifier, true);
         //recheck axis order
@@ -254,18 +257,18 @@ public class CRSReproject extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class)},
                 null,
                 null);
-        addInputConnector(IN_CRS_TITLE, IN_CRS_DESCRIPTION,
+        addInputConnector(null, IN_CRS_TITLE, IN_CRS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null,
@@ -274,15 +277,27 @@ public class CRSReproject extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_DOMAIN_TITLE, OUT_DOMAIN_DESCRIPTION,
+        addOutputConnector(null, OUT_DOMAIN_TITLE, OUT_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
-        addOutputConnector(OUT_RANGE_TITLE, OUT_RANGE_DESCRIPTION,
+        addOutputConnector(null, OUT_RANGE_TITLE, OUT_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class)},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

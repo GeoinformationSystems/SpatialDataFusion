@@ -1,7 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.rdf;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * RDF Resource
@@ -17,23 +16,7 @@ public interface IResource extends INode {
     IIdentifier getIdentifier();
 
     /**
-     * get title of this resource (must be locally unique)
-     *
-     * @return resource title
-     */
-    @NotNull
-    String getTitle();
-
-    /**
-     * get description of this resource
-     *
-     * @return resource description
-     */
-    @Nullable
-    String getDescription();
-
-    /**
-     * check, if resource is blank node
+     * check, if resource is a blank node (identifier does not refer to an actual online resource)
      *
      * @return true, if node is blank
      */

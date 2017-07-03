@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * basic workflow element
@@ -9,11 +9,31 @@ import org.jetbrains.annotations.NotNull;
 public interface IWorkflowElement extends IResource {
 
     /**
-     * get current state of the workflow element
+     * get title of this element (must be locally unique)
      *
-     * @return current state of the workflow element
+     * @return element title
      */
-    @NotNull
-    ElementState getState();
+    @Nullable
+    String getTitle();
+
+    /**
+     * get description of this element
+     *
+     * @return element description
+     */
+    @Nullable
+    String getDescription();
+
+    /**
+     * check if element is properly configured and ready to be used in a workflow
+     *
+     * @return true, if node is ready to be used
+     */
+    boolean isReady();
+
+    /**
+     * reset workflow element to original state
+     */
+    void reset();
 
 }

@@ -3,10 +3,10 @@ package de.tudresden.geoinfo.fusion.operation.retrieval;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.jetbrains.annotations.Nullable;
@@ -27,12 +27,12 @@ public abstract class GTFeatureParser extends AbstractOperation {
     private final static String OUT_FEATURES_TITLE = "OUT_FEATURES";
     private final static String OUT_FEATURES_DESCRIPTION = "Parsed feature collection";
 
-    protected GTFeatureParser(@Nullable String title, @Nullable String description) {
-        super(title, description);
+    GTFeatureParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector resourceConnector = getInputConnector(IN_RESOURCE_TITLE);
         IInputConnector indexConnector = getInputConnector(IN_WITH_INDEX_TITLE);
@@ -61,22 +61,22 @@ public abstract class GTFeatureParser extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_WITH_INDEX_TITLE, IN_WITH_INDEX_DESCRIPTION,
+        addInputConnector(null, IN_WITH_INDEX_TITLE, IN_WITH_INDEX_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new InputData<>(new BooleanLiteral(false)).getOutputConnector());
+                new BooleanLiteral(false));
     }
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},

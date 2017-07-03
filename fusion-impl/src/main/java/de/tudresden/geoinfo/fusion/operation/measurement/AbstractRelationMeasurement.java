@@ -1,16 +1,18 @@
 package de.tudresden.geoinfo.fusion.operation.measurement;
 
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.IFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.*;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractRelationMeasurement extends AbstractOperation {
 
@@ -28,17 +30,19 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
     private final static String OUT_RELATIONS_TITLE = "OUT_RELATIONS";
     private final static String OUT_RELATIONS_DESCRIPTION = "Feature relations with attached measurements";
 
+    private IMetadata measurementMetadata;
+
     /**
      * constructor
      *
-     * @param title operation title
      */
-    public AbstractRelationMeasurement(String title, String description) {
-        super(title, description);
+    public AbstractRelationMeasurement(@Nullable IIdentifier identifier) {
+        super(identifier);
+        this.measurementMetadata = initMeasurementMetadata();
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector sourceConnector = getInputConnector(IN_DOMAIN_TITLE);
         IInputConnector targetConnector = getInputConnector(IN_RANGE_TITLE);
@@ -115,40 +119,56 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
+        addInputConnector(null, IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BinaryFeatureRelationCollection.class)},
                 null,
                 null);
-        addInputConnector(IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
+        addInputConnector(null, IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new InputData(new BooleanLiteral(false)).getOutputConnector());
+                new BooleanLiteral(false));
     }
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
+        addOutputConnector(null, OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(RelationMeasurementCollection.class)},
                 null);
-        addOutputConnector(OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
+        addOutputConnector(null, OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BinaryFeatureRelationCollection.class)},
                 null);
+    }
+
+    /**
+     * initialize measurement metadata (called from constructor)
+     *
+     * @return measurement metadata
+     */
+    abstract IMetadata initMeasurementMetadata();
+
+    /**
+     * get initialized measurement metadata
+     *
+     * @return measurement metadata
+     */
+    final IMetadata getMeasurementMetadata() {
+        return this.measurementMetadata;
     }
 
 }

@@ -74,4 +74,10 @@ public class Identifier implements IIdentifier {
     public boolean equals(@NotNull IIdentifier identifier) {
         return this.sIdentifier.equals(identifier.toString());
     }
+
+    @Override
+    public boolean equals(@NotNull Object resource) {
+        return resource instanceof IIdentifier && this.equals((IIdentifier) resource);
+    }
+
 }

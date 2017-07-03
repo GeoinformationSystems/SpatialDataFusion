@@ -20,6 +20,7 @@ public interface IWorkflow extends IWorkflowNode {
 
     /**
      * get all connections of the workflow
+     *
      * @return set of workflow connections
      */
     @NotNull

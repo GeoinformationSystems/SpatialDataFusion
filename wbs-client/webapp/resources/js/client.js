@@ -155,3 +155,9 @@ f_registerWFSLayer("predefinedOverlay_03", olMap, "http://localhost:8081/geoserv
 
 //register interactions
 olMap.f_registerInteractions();
+
+//append a processing result
+f_appendResultMessage = function(message) {
+    var results = $(document.getElementById(":form:div_results")).innerHTML;
+    $(document.getElementById("div_results")).html(results + message);
+};

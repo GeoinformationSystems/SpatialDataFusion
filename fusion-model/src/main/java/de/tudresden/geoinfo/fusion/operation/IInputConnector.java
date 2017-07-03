@@ -1,9 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation;
 
-import org.jetbrains.annotations.NotNull;
+import de.tudresden.geoinfo.fusion.data.IData;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
 
 /**
  * Workflow input connection
@@ -11,20 +9,11 @@ import java.util.Collection;
 public interface IInputConnector extends IWorkflowConnector {
 
     /**
-     * get associated output connectors
+     * add an output connector to this connector
      *
-     * @return output connectors associated with this connector
+     * @param outputConnector output connector
      */
-    @NotNull
-    Collection<IOutputConnector> getOutputConnectors();
-
-    /**
-     * add output connectors
-     *
-     * @param connector output connector
-     * @return true, if connector has been set
-     */
-    boolean addOutputConnector(@NotNull IOutputConnector connector);
+    void connect(IOutputConnector outputConnector);
 
     /**
      * get default output connector for this connector
@@ -32,6 +21,6 @@ public interface IInputConnector extends IWorkflowConnector {
      * @return default output connector , null if no default is specified
      */
     @Nullable
-    IOutputConnector getDefault();
+    IData getDefaultData();
 
 }

@@ -10,7 +10,7 @@
 
     <properties>
         <camunda.version>7.6.0</camunda.version>
-        <geotools.version>16.1</geotools.version>
+        <geotools.version>17.1</geotools.version>
     </properties>
 
     <repositories>
@@ -54,6 +54,11 @@
             <version>${geotools.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-coverage</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
             <groupId>xml-apis</groupId>
             <artifactId>xml-apis</artifactId>
             <version>1.4.01</version>
@@ -93,9 +98,24 @@
             <artifactId>fusion-model</artifactId>
         </dependency>
         <dependency>
-            <groupId>de.tudresden.geoinfo</groupId>
-            <artifactId>fusion-webapp</artifactId>
-            <scope>test</scope>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>Rserve</artifactId>
+            <version>1.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.rosuda.REngine</groupId>
+            <artifactId>REngine</artifactId>
+            <version>2.1.0</version>
         </dependency>
     </dependencies>
 </project>

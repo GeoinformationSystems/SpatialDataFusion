@@ -72,6 +72,8 @@ public class GTGridFeature extends AbstractFeature {
      */
     @NotNull
     public static GridCoverage2D getCoverage(@NotNull File file) throws IOException {
+        if(!file.exists() || file.isDirectory())
+            throw new IOException("Coverage file does not exist");
         AbstractGridFormat format = GridFormatFinder.findFormat(file);
         if (format == null)
             throw new IOException("No applicable coverage reader found");

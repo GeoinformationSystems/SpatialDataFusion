@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.GeometryCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
@@ -12,6 +13,8 @@ import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.io.IOException;
@@ -21,7 +24,7 @@ import java.util.List;
 
 public class MultiToSinglepart extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = MultiToSinglepart.class.getSimpleName();
+    private static final String PROCESS_TITLE = MultiToSinglepart.class.getName();
     private static final String PROCESS_DESCRIPTION = "Splits multipart features into singlepart features";
 
     private final static String IN_FEATURES_TITLE = "IN_FEATURES";
@@ -32,12 +35,12 @@ public class MultiToSinglepart extends AbstractOperation {
     /**
      * constructor
      */
-    public MultiToSinglepart() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public MultiToSinglepart(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector featureConnector = getInputConnector(IN_FEATURES_TITLE);
         //get input
@@ -107,7 +110,7 @@ public class MultiToSinglepart extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -117,11 +120,23 @@ public class MultiToSinglepart extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

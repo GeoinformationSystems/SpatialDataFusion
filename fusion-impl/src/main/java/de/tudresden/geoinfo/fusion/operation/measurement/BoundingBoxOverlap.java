@@ -3,19 +3,23 @@ package de.tudresden.geoinfo.fusion.operation.measurement;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurementCollection;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -24,7 +28,7 @@ import java.util.List;
  */
 public class BoundingBoxOverlap extends AbstractRelationMeasurement {
 
-    private static final String PROCESS_TITLE = BoundingBoxOverlap.class.getSimpleName();
+    private static final String PROCESS_TITLE = BoundingBoxOverlap.class.getName();
     private static final String PROCESS_DESCRIPTION = "Determines feature relation based on bounding box overlap";
 
     private static final IMeasurementRange<Boolean> MEASUREMENT_RANGE = BooleanLiteral.getMaxRange();
@@ -40,14 +44,14 @@ public class BoundingBoxOverlap extends AbstractRelationMeasurement {
     /**
      * constructor
      */
-    public BoundingBoxOverlap() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public BoundingBoxOverlap(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         this.dThreshold = ((DecimalLiteral) getInputConnector(IN_THRESHOLD_TITLE).getData()).resolve();
-        super.execute();
+        super.executeOperation();
     }
 
     @Override
@@ -63,7 +67,7 @@ public class BoundingBoxOverlap extends AbstractRelationMeasurement {
         for (GTVectorFeature range : rangeFeatures) {
             List<GTVectorFeature> intersections = indexedDomainFeatures.boundsIntersect(range.resolve(), dThreshold);
             for (GTVectorFeature domain : intersections) {
-                measurements.add(new RelationMeasurement<>(null, domain, range, true, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT));
+                measurements.add(new RelationMeasurement<>(null, domain, range, true, this.getMeasurementMetadata(), this));
             }
         }
         return measurements;
@@ -80,7 +84,7 @@ public class BoundingBoxOverlap extends AbstractRelationMeasurement {
         boolean bIntersect = getIntersect(eDomain, eRange, dThreshold);
         //check for overlap
         if (bIntersect)
-            return new RelationMeasurement<>(null, domainFeature, rangeFeature, bIntersect, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT);
+            return new RelationMeasurement<>(null, domainFeature, rangeFeature, bIntersect, this.initMeasurementMetadata(), this);
         else
             return null;
     }
@@ -102,11 +106,28 @@ public class BoundingBoxOverlap extends AbstractRelationMeasurement {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+        addInputConnector(null, IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
-                new InputData(new DecimalLiteral(0)).getOutputConnector());
+                new DecimalLiteral(0));
+    }
+
+    @Override
+    public IMetadata initMeasurementMetadata() {
+        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

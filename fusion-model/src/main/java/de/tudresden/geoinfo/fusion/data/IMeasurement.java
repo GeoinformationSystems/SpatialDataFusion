@@ -26,7 +26,7 @@ public interface IMeasurement<T extends Comparable<T>> extends IData, ITypedLite
      *
      * @return measurement range
      */
-    @NotNull
+    @Nullable
     IMeasurementRange<T> getMeasurementRange();
 
     /**
@@ -34,7 +34,7 @@ public interface IMeasurement<T extends Comparable<T>> extends IData, ITypedLite
      *
      * @return measurement unit identifier
      */
-    @NotNull
+    @Nullable
     IResource getUnitOfMeasurement();
 
 }

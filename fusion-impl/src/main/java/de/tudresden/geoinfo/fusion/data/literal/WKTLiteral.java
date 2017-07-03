@@ -2,7 +2,6 @@ package de.tudresden.geoinfo.fusion.data.literal;
 
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
-import de.tudresden.geoinfo.fusion.data.Metadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
@@ -17,8 +16,6 @@ public class WKTLiteral extends LiteralData<String> {
     private static IResource TYPE = Objects.WKT_LITERAL.getResource();
 
     /**
-     * constructor
-     *
      * @param identifier literal identifier
      * @param value      literal value
      * @param metadata   literal metadata
@@ -30,23 +27,12 @@ public class WKTLiteral extends LiteralData<String> {
     /**
      * constructor
      *
-     * @param identifier  literal identifier
-     * @param value       literal value
-     * @param title       literal title
-     * @param description literal description
-     */
-    public WKTLiteral(@Nullable IIdentifier identifier, @NotNull String title, @Nullable String description, @NotNull String value) {
-        this(identifier, value, new Metadata(title, description));
-    }
-
-    /**
-     * constructor, creates random identifier
-     *
-     * @param value integer value
+     * @param value literal value
      */
     public WKTLiteral(@NotNull String value) {
         this(null, value, null);
     }
+
 
     @NotNull
     @Override

@@ -3,7 +3,13 @@ package de.tud.fusion;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.Feature;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Set of utility methods
@@ -33,28 +39,16 @@ public class Utilities {
     }
 
     /**
-     * create set from array
-     *
-     * @param array      input array
-     * @param returnNull flag: return null; is false null returns an empty set
-     * @param <T>        array type
-     * @return set from array
+     * create a temporary file
+     * @param name file name
+     * @param suffix file suffix
+     * @return file object
+     * @throws IOException if file could not be created
      */
-//    public static <T> Set<T> arrayToSet(T[] array, boolean returnNull) {
-//        if (array == null)
-//            return returnNull ? null : new HashSet<>();
-//        return Sets.newHashSet(array);
-//    }
-
-    /**
-     * create set from array
-     *
-     * @param array input array
-     * @param <T>   array type
-     * @return set from array
-     */
-//    public static <T> Set<T> arrayToSet(T[] array) {
-//        return arrayToSet(array, true);
-//    }
+    public static @NotNull File createTempFile(@Nullable String name, @Nullable String suffix) throws IOException {
+        return File.createTempFile(
+                name != null ? name : UUID.randomUUID().toString(),
+                suffix != null ? (suffix.startsWith(".") ? suffix : "." + suffix) : ".tmp");
+    }
 
 }

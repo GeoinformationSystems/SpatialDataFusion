@@ -1,8 +1,8 @@
 package de.tudresden.geoinfo.client.beans;
 
-import de.tudresden.geoinfo.client.handler.AbstractOWSHandler;
 import de.tudresden.geoinfo.client.handler.MessageHandler;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
+import de.tudresden.geoinfo.fusion.operation.ows.OWSServiceOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,19 +18,27 @@ public abstract class AbstractOWSBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Map<String, AbstractOWSHandler> handler;
+    private Map<String, OWSServiceOperation> handler;
     private Map<String, String> offerings;
     private Set<String> selectedOfferings;
+    /**
+     * variables and methods for client-side handler initialization
+     */
+
+    private String tmp_owsBase;
+    private String tmp_selectedOffering;
+    private OWSServiceOperation tmp_handler;
 
     /**
      * flag: multiple OWS handlers can be selected by client
+     *
      * @return true, if multiple handlers can be selected
      */
     abstract boolean multiSelect();
 
-    abstract AbstractOWSHandler initOWSHandler(String uid, String sBaseURL) throws IOException;
+    abstract OWSServiceOperation initOWSHandler(String uid, String sBaseURL) throws IOException;
 
-    public Map<String,String> getOfferings() {
+    public Map<String, String> getOfferings() {
         return this.offerings;
     }
 
@@ -44,6 +52,11 @@ public abstract class AbstractOWSBean implements Serializable {
         return this.selectedOfferings;
     }
 
+    public void setSelectedOfferings(Set<String> selectedOfferings) {
+        this.selectedOfferings = selectedOfferings;
+        update();
+    }
+
     public String getSingleSelectedOffering() {
         return this.selectedOfferings == null || this.selectedOfferings.isEmpty() ? null : this.selectedOfferings.iterator().next();
     }
@@ -52,49 +65,43 @@ public abstract class AbstractOWSBean implements Serializable {
         this.setSelectedOffering(selection);
     }
 
-    public @Nullable AbstractOWSHandler getHandler(@NotNull String uid) {
-        return this.handler != null ? this.handler.get(uid) : null;
-    }
-
-    public void setSelectedOfferings(Set<String> selectedOfferings) {
-        this.selectedOfferings = selectedOfferings;
-        update();
+    public @Nullable OWSServiceOperation getHandler(@NotNull String uid) {
+        return this.handler.get(uid);
     }
 
     public void setSelectedOffering(String selection) {
         if (this.selectedOfferings == null)
             this.selectedOfferings = new HashSet<>();
-        if(!multiSelect())
+        if (!multiSelect())
             this.selectedOfferings.clear();
         this.selectedOfferings.add(selection);
         update();
     }
 
-    private void addOWSHandler(AbstractOWSHandler handler) {
+    private void addOWSHandler(OWSServiceOperation handler) {
         if (this.handler == null)
             this.handler = new HashMap<>();
-        this.handler.put(handler.getIdentifier(), handler);
-        this.addOffering(handler.getIdentifier(), handler.getSelectedOffering());
+        this.handler.put(handler.getIdentifier().toString(), handler);
+        this.addOffering(handler.getIdentifier().toString(), handler.getSelectedOffering());
     }
 
-    public Set<AbstractOWSHandler> getSelectedOWSHandler() {
-        Set<AbstractOWSHandler> handlers = new HashSet<>();
-        for(AbstractOWSHandler handler : this.handler.values()){
-            if(this.getSelectedOfferings().contains(handler.getIdentifier()))
+    Set<OWSServiceOperation> getSelectedOWSHandler() {
+        Set<OWSServiceOperation> handlers = new HashSet<>();
+        for (OWSServiceOperation handler : this.handler.values()) {
+            if (this.getSelectedOfferings().contains(handler.getIdentifier().toString()))
                 handlers.add(handler);
         }
         return handlers;
     }
 
     /**
-     *
-     * @param uid OWS proxy id
-     * @param url OWS base url
+     * @param uid      OWS proxy id
+     * @param url      OWS base url
      * @param offering selected offering
      * @param selected flag: offering is selected
      */
     public void registerOWSHandler(final String uid, final String url, final String offering, final boolean selected) {
-        AbstractOWSHandler handler = null;
+        OWSServiceOperation handler = null;
         try {
             handler = this.initOWSHandler(uid, url);
         } catch (Exception e) {
@@ -105,40 +112,35 @@ public abstract class AbstractOWSBean implements Serializable {
     }
 
     /**
-     * @param handler OWS handler
+     * @param handler  OWS handler
      * @param offering selected offering
      * @param selected flag: offering is selected
      */
-    public void registerOWSHandler(AbstractOWSHandler handler, String offering, final boolean selected) {
+    public void registerOWSHandler(OWSServiceOperation handler, String offering, final boolean selected) {
         handler.setSelectedOffering(offering);
         this.addOWSHandler(handler);
-        this.addOffering(handler.getIdentifier(), offering);
+        this.addOffering(handler.getIdentifier().toString(), offering);
         if (selected)
-            this.setSelectedOffering(handler.getIdentifier());
+            this.setSelectedOffering(handler.getIdentifier().toString());
     }
 
-    /**
-     * variables and methods for client-side handler initialization
-     */
-
-    private String tmp_owsBase;
     public @Nullable String getTmp_owsBase() {
         return this.tmp_owsBase;
     }
+
     public void setTmp_owsBase(@Nullable String tmp_owsBase) {
         this.tmp_owsBase = tmp_owsBase;
     }
 
-    private String tmp_selectedOffering;
     public @Nullable String getTmp_selectedOffering() {
         return this.tmp_selectedOffering;
     }
+
     public void setTmp_selectedOffering(@Nullable String tmp_selectedOffering) {
         this.tmp_selectedOffering = tmp_selectedOffering;
     }
 
-    private AbstractOWSHandler tmp_handler;
-    private void setTmp_handler(@Nullable AbstractOWSHandler tmp_handler) {
+    private void setTmp_handler(@Nullable OWSServiceOperation tmp_handler) {
         this.tmp_handler = tmp_handler;
     }
 
@@ -157,9 +159,9 @@ public abstract class AbstractOWSBean implements Serializable {
             MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "No valid URL", "The OWS endpoint is not a valid URL");
             return;
         }
-        //try to create WFS handler
+        //try to create OWS handler
         try {
-            setTmp_handler(this.initOWSHandler("wfs_" + UUID.randomUUID(), tmp_owsBase));
+            setTmp_handler(this.initOWSHandler("_" + UUID.randomUUID(), tmp_owsBase));
         } catch (IOException e) {
             MessageHandler.sendMessage(FacesMessage.SEVERITY_ERROR, "OWS initialization error", e.getLocalizedMessage());
         }
@@ -179,10 +181,11 @@ public abstract class AbstractOWSBean implements Serializable {
 
     /**
      * register OWS offering on client, update display
-     * @param handler OWS handler
+     *
+     * @param handler          OWS handler
      * @param selectedOffering OWS selected offering
      */
-    public abstract void registerOWSOffering(AbstractOWSHandler handler, String selectedOffering);
+    public abstract void registerOWSOffering(OWSServiceOperation handler, String selectedOffering);
 
     /**
      * update client-side selectedOfferings display

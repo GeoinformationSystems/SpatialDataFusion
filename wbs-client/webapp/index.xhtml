@@ -23,6 +23,11 @@
         <!-- main menu -->
         <div id="container_menu">
             <div id="caption">WBS Web Client</div>
+            <p:commandLink id="m_results" styleClass="menuItem"
+                           oncomplete="PF('d_results').isVisible() ? PF('d_results').hide() : PF('d_results').show();">
+                <h:graphicImage name="images/results.png" width="32" height="32"/>
+            </p:commandLink>
+            <p:tooltip for="m_results" value="Processing results" position="bottom"/>
             <p:commandLink id="m_pattern" styleClass="menuItem"
                            oncomplete="PF('d_pattern').isVisible() ? PF('d_pattern').hide() : PF('d_pattern').show();">
                 <h:graphicImage name="images/pattern.png" width="32" height="32"/>
@@ -46,13 +51,19 @@
         </div>
 
         <div id="container_map">
-            <div id="map"></div>
+            <div id="map" />
         </div>
+
+        <!-- results -->
+        <p:dialog id="d_results" header="Results" widgetVar="d_results" position="right,top" resizable="false">
+            <div id="div_results" />
+        </p:dialog>
 
         <!-- basemap selectedOfferings -->
         <p:dialog id="d_basemaps" header="Basemaps" widgetVar="d_basemap" position="right,top" resizable="false">
             <p:selectManyCheckbox id="basemaps" value="#{basemap.selectedOfferings}" layout="pageDirection" columns="1">
-                <f:selectItems value="#{basemap.offerings.entrySet()}" var="basemap" itemLabel="#{basemap.value}" itemValue="#{basemap.key}"/>
+                <f:selectItems value="#{basemap.offerings.entrySet()}" var="basemap" itemLabel="#{basemap.value}"
+                               itemValue="#{basemap.key}"/>
                 <f:ajax/>
             </p:selectManyCheckbox>
             <p:commandLink id="add_basemap" oncomplete="PF('d_addBasemap').show();">
@@ -74,7 +85,8 @@
         <!-- layer selectedOfferings -->
         <p:dialog id="d_layers" header="Overlays" widgetVar="d_layer" position="right,top" resizable="false">
             <p:selectManyCheckbox id="layers" value="#{layer.selectedOfferings}" layout="pageDirection" columns="1">
-                <f:selectItems value="#{layer.offerings.entrySet()}" var="layer" itemLabel="#{layer.value}" itemValue="#{layer.key}"/>
+                <f:selectItems value="#{layer.offerings.entrySet()}" var="layer" itemLabel="#{layer.value}"
+                               itemValue="#{layer.key}"/>
                 <f:ajax/>
             </p:selectManyCheckbox>
             <p:commandLink id="add_layer" oncomplete="PF('d_addLayer').show();">
@@ -102,7 +114,8 @@
 
         <!-- processing service selectedOfferings -->
         <p:dialog id="d_processes" header="Processes" widgetVar="d_process" position="right,top" resizable="false">
-            <p:selectOneRadio id="processes" value="#{process.singleSelectedOffering}" layout="pageDirection" columns="1">
+            <p:selectOneRadio id="processes" value="#{process.singleSelectedOffering}" layout="pageDirection"
+                              columns="1">
                 <f:selectItems value="#{process.offerings.entrySet()}" var="process" itemLabel="#{process.value}"
                                itemValue="#{process.key}"/>
                 <p:ajax update="init_process" event="valueChange"/>
@@ -111,7 +124,8 @@
                 <h:graphicImage name="images/add_process.png" width="32" height="32" style="margin:10px 4px;"/>
             </p:commandLink>
             <p:tooltip for="add_process" value="Add process" position="bottom"/>
-            <p:commandLink id="init_process" disabled="#{process.singleSelectedOffering eq null}" style="display:block;float:right;"
+            <p:commandLink id="init_process" disabled="#{process.singleSelectedOffering eq null}"
+                           style="display:block;float:right;"
                            oncomplete="PF('d_executeProcess').show();">
                 <h:graphicImage name="images/init_process.png" width="32" height="32" style="margin:10px 4px;"/>
                 <f:actionListener binding="#{process.initJSPlumb()}"/>
@@ -131,7 +145,8 @@
 
         <!-- pattern selectedOfferings -->
         <p:dialog id="d_patterns" header="Patterns" widgetVar="d_pattern" position="right,top" resizable="false">
-            <p:selectOneRadio id="patterns" value="#{pattern.singleSelectedOffering}" layout="pageDirection" columns="1">
+            <p:selectOneRadio id="patterns" value="#{pattern.singleSelectedOffering}" layout="pageDirection"
+                              columns="1">
                 <f:selectItems value="#{pattern.patterns}" var="pattern" itemLabel="#{pattern}" itemValue="#{pattern}"/>
             </p:selectOneRadio>
             <p:commandLink id="add_pattern" oncomplete="PF('d_addPattern').show();">
@@ -156,11 +171,11 @@
         </pe:remoteCommand>
 
         <!-- coordinate display -->
-        <div id="coord"></div>
+        <div id="coord" />
 
         <!-- info display -->
-        <div id="info_hover"></div>
-        <div id="info_select"></div>
+        <div id="info_hover" />
+        <div id="info_select" />
 
         <!-- swipe control -->
         <div id="d_swipe"><input id="swipe" type="range"/></div>
@@ -173,7 +188,8 @@
             <h:panelGrid columns="3">
                 <p:inputText id="basemap_url" placeholder="WMS endpoint URL" value="#{basemap.tmp_owsBase}"
                              style="width:400px;"/>
-                <p:commandButton id="basemap_getCapabilities" value="get capabilities" action="#{basemap.initOWSHandler}"
+                <p:commandButton id="basemap_getCapabilities" value="get capabilities"
+                                 action="#{basemap.initOWSHandler}"
                                  update=":form:message basemap_layer basemap_addLayer" icon="ui-icon-check"/>
                 <p:tooltip for="basemap_getCapabilities" value="Retrieve WMS capabilities from server"
                            position="bottom"/>
@@ -228,7 +244,8 @@
             <h:panelGrid columns="3">
                 <p:inputText id="process_url" placeholder="WPS endpoint URL" value="#{process.tmp_owsBase}"
                              style="width:400px;"/>
-                <p:commandButton id="process_getCapabilities" value="get capabilities" action="#{process.initOWSHandler}"
+                <p:commandButton id="process_getCapabilities" value="get capabilities"
+                                 action="#{process.initOWSHandler}"
                                  update=":form:message process_process process_addProcess" icon="ui-icon-check"/>
                 <p:tooltip for="process_getCapabilities" value="Retrieve WPS capabilities from server"
                            position="bottom"/>
@@ -251,29 +268,33 @@
     </p:dialog>
 
     <!-- initialize WPS process -->
-    <p:dialog header="Initialize WPS process" id="d_process_dialog" widgetVar="d_executeProcess" modal="true" width="60%">
+    <p:dialog header="Initialize WPS process" id="d_process_dialog" widgetVar="d_executeProcess" modal="true"
+              width="60%">
         <p:ajax event="close" update=":form_wps_execute" listener="#{process.clearJSPlumb()}"/>
         <h:form id="form_wps_execute">
             <div id="plumb_main_single">
                 <div style="position:absolute; right:0.5em; bottom:0;">
-                    <p:inputText widgetVar="process_literal" placeholder="literal" style="float:left;width:80px;margin:3px 10px;"/>
+                    <p:inputText widgetVar="process_literal" placeholder="literal"
+                                 style="float:left;width:80px;margin:3px 10px;"/>
                     <p:commandLink id="process_addLiteral" onclick="f_addLiteral(PF('process_literal').jq.val())"
                                    style="margin-right:10px;display:block;float:left;">
                         <h:graphicImage name="images/add_literal.png" width="32" height="32"/>
                     </p:commandLink>
                     <p:tooltip for="process_addLiteral" value="Add literal" position="bottom"/>
                     <p:commandLink id="process_execute" oncomplete="PF('d_executeProcess').hide();"
-                                   update=":form:message" style="display:block;float:left;" disabled="#{not process.validWorkflow()}">
+                                   update=":form:message :form:d_results" style="display:block;float:left;"
+                                   disabled="#{not process.validWorkflow()}">
                         <h:graphicImage name="images/execute_process.png" width="32" height="32"/>
                         <f:actionListener binding="#{process.executeProcess()}"/>
                     </p:commandLink>
                     <p:tooltip for="process_execute" value="Execute process" position="bottom"/>
+                    <p:blockUI block="form_wps_execute" trigger="process_execute" />
                 </div>
             </div>
             <div id="plumb_desc_single" class="ui-tooltip ui-widget ui-tooltip-bottom">
-                <div id="plumb_desc_text_single" class="ui-tooltip-text ui-shadow ui-corner-all"></div>
+                <div id="plumb_desc_text_single" class="ui-tooltip-text ui-shadow ui-corner-all" />
             </div>
-            <div id="plumb_validation_single"></div>
+            <div id="plumb_validation_single" />
             <!-- remote command: update connections -->
             <pe:remoteCommand id="pf_updateWorkflow_single" name="pf_updateWorkflow_single" process="@this"
                               actionListener="#{process.setWorkflow}" update="process_execute">
@@ -290,8 +311,8 @@
         </h:form>
     </p:dialog>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol.js" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.2.9/jsplumb.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.20.1/ol.js" type="text/javascript" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPlumb/2.2.9/jsplumb.js" type="text/javascript" />
 
     <h:outputScript name="js/olMap.js"/>
     <h:outputScript name="js/client.js"/>

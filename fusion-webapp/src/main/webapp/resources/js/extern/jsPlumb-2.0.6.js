@@ -1121,7 +1121,8 @@
             var eventToBind = (isTouchDevice && !isMouseDevice && touchMap[event]) ? touchMap[event] : event,
                 bindingAMouseEvent = !(isTouchDevice && !isMouseDevice && touchMap[event]);
 
-            var pl = _pageLocation(originalEvent), sl = _screenLocation(originalEvent), cl = _clientLocation(originalEvent);
+            var pl = _pageLocation(originalEvent), sl = _screenLocation(originalEvent),
+                cl = _clientLocation(originalEvent);
             _each(el, function () {
                 var _el = _gel(this), evt;
                 originalEvent = originalEvent || {
@@ -1518,13 +1519,13 @@
         };
 
         this.constrain = typeof this.params.constrain === "function" ? this.params.constrain : (this.params.constrain || this.params.containment) ? function (pos) {
-                    return [
-                        Math.max(0, Math.min(constrainRect.w - this.size[0], pos[0])),
-                        Math.max(0, Math.min(constrainRect.h - this.size[1], pos[1]))
-                    ];
-                } : function (pos) {
-                    return pos;
-                };
+            return [
+                Math.max(0, Math.min(constrainRect.w - this.size[0], pos[0])),
+                Math.max(0, Math.min(constrainRect.h - this.size[1], pos[1]))
+            ];
+        } : function (pos) {
+            return pos;
+        };
 
         var _assignId = function (obj) {
                 if (typeof obj == "function") {
@@ -4307,11 +4308,11 @@
             var connType = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType(),
                 argIsConnection = jpc.constructor == connType,
                 params = argIsConnection ? {
-                        connection: jpc,
-                        source: jpc.source, target: jpc.target,
-                        sourceId: jpc.sourceId, targetId: jpc.targetId,
-                        sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
-                    } : jpc;
+                    connection: jpc,
+                    source: jpc.source, target: jpc.target,
+                    sourceId: jpc.sourceId, targetId: jpc.targetId,
+                    sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
+                } : jpc;
 
             if (doFireEvent)
                 _currentInstance.fire("connectionDetached", params, originalEvent);
@@ -5068,8 +5069,8 @@
                     if (newEndpoint == null || newEndpoint._jsPlumb == null) {
                         var eps = _currentInstance.deriveEndpointAndAnchorSpec(jpc.getType().join(" "), true);
                         var pp = eps.endpoints ? jsPlumb.extend(p, {
-                                endpoint: elInfo.def.def.endpoint || eps.endpoints[1]
-                            }) : p;
+                            endpoint: elInfo.def.def.endpoint || eps.endpoints[1]
+                        }) : p;
                         if (eps.anchors) {
                             pp = jsPlumb.extend(pp, {
                                 anchor: elInfo.def.def.anchor || eps.anchors[1]
@@ -5760,7 +5761,8 @@
         this.setDraggable = _setDraggable;
 
         this.deriveEndpointAndAnchorSpec = function (type, dontPrependDefault) {
-            var bits = ((dontPrependDefault ? "" : "default ") + type).split(/[\s]/), eps = null, ep = null, a = null, as = null;
+            var bits = ((dontPrependDefault ? "" : "default ") + type).split(/[\s]/), eps = null, ep = null, a = null,
+                as = null;
             for (var i = 0; i < bits.length; i++) {
                 var _t = _currentInstance.getType(bits[i], "connection");
                 if (_t) {
@@ -6450,11 +6452,11 @@
         //
         getPositionOnElement: function (evt, el, zoom) {
             var box = typeof el.getBoundingClientRect !== "undefined" ? el.getBoundingClientRect() : {
-                        left: 0,
-                        top: 0,
-                        width: 0,
-                        height: 0
-                    },
+                    left: 0,
+                    top: 0,
+                    width: 0,
+                    height: 0
+                },
                 body = document.body,
                 docElem = document.documentElement,
                 scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop,
@@ -8794,7 +8796,8 @@
                             };
 
                             for (var i = 0; i < anchors.length; i++) {
-                                var c = anchors[i][4], weAreSource = c.endpoints[0].elementId === elementId, weAreTarget = c.endpoints[1].elementId === elementId;
+                                var c = anchors[i][4], weAreSource = c.endpoints[0].elementId === elementId,
+                                    weAreTarget = c.endpoints[1].elementId === elementId;
                                 if (weAreSource)
                                     _setAnchorLocation(c.endpoints[0], anchors[i]);
                                 if (weAreTarget)

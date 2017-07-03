@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * basic workflow entity (object that provides/generates data)
@@ -19,14 +18,6 @@ public interface IWorkflowNode extends IWorkflowElement {
      */
     @NotNull
     Collection<IInputConnector> getInputConnectors();
-
-    /**
-     * get set of input connector identifiers
-     *
-     * @return input connector identifiers
-     */
-    @NotNull
-    Set<IIdentifier> getInputIdentifiers();
 
     /**
      * get input connector by id
@@ -53,14 +44,6 @@ public interface IWorkflowNode extends IWorkflowElement {
      */
     @NotNull
     Collection<IOutputConnector> getOutputConnectors();
-
-    /**
-     * get set of output connector identifiers
-     *
-     * @return output connector identifiers
-     */
-    @NotNull
-    Set<IIdentifier> getOutputIdentifiers();
 
     /**
      * get output connector by id
@@ -97,8 +80,15 @@ public interface IWorkflowNode extends IWorkflowElement {
     Collection<IWorkflowNode> getSuccessors();
 
     /**
-     * performs entity action
+     * execute action associated with element
      */
-    void performAction();
+    void execute();
+
+    /**
+     * check if node has been executed successfully (all output connectors must be ready)
+     *
+     * @return true, if node has been executed successfully
+     */
+    boolean isSuccess();
 
 }

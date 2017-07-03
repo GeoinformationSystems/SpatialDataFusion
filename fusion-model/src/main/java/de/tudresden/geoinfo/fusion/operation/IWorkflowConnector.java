@@ -29,9 +29,8 @@ public interface IWorkflowConnector extends IResource, IWorkflowElement {
      * add a workflow connection
      *
      * @param connection connection to add
-     * @return true if connection has been added
      */
-    boolean addConnection(@NotNull IWorkflowConnection connection);
+    void addConnection(@NotNull IWorkflowConnection connection);
 
     /**
      * get connector runtime constraints
@@ -59,9 +58,7 @@ public interface IWorkflowConnector extends IResource, IWorkflowElement {
 
     /**
      * associate data object with connector
-     *
-     * @return true if data has been set
      */
-    boolean setData(@NotNull IData data);
+    void setData(@Nullable IData data);
 
 }

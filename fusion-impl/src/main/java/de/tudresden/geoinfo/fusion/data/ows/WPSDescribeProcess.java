@@ -272,7 +272,7 @@ public class WPSDescribeProcess extends XMLResponse {
                         //check for data type
                         if (element.getNodeName().matches(IO_LITERAL_TYPE)) {
                             String ref = getAttributeValue(IO_LITERAL_REF, element.getAttributes());
-                            if(ref != null)
+                            if (ref != null)
                                 format.setType(ref);
                         }
                     }
@@ -348,9 +348,10 @@ public class WPSDescribeProcess extends XMLResponse {
 
             /**
              * get io connection constraints
+             *
              * @return connection constraints
              */
-            public final @NotNull Set<IConnectionConstraint> getConnectionConstraints(){
+            public final @NotNull Set<IConnectionConstraint> getConnectionConstraints() {
                 Set<IConnectionConstraint> connectionConstraints = new HashSet<>();
                 connectionConstraints.add(new IOFormatConstraint(this.getSupportedFormats()));
                 return connectionConstraints;
@@ -358,9 +359,10 @@ public class WPSDescribeProcess extends XMLResponse {
 
             /**
              * get io runtime constraints
+             *
              * @return runtime constraints
              */
-            public final @NotNull Set<IRuntimeConstraint> getRuntimeConstraints(){
+            public final @NotNull Set<IRuntimeConstraint> getRuntimeConstraints() {
                 Set<IRuntimeConstraint> runtimeConstraints = new HashSet<>();
                 if (this.getMinOccurs() > 0)
                     runtimeConstraints.add(new MandatoryDataConstraint());

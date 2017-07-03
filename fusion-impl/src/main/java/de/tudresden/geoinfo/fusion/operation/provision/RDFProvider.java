@@ -13,10 +13,11 @@ import de.tudresden.geoinfo.fusion.data.rdf.*;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.PatternConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -30,10 +31,10 @@ import java.util.*;
 
 public class RDFProvider extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = RDFProvider.class.getSimpleName();
+    private static final String PROCESS_TITLE = RDFProvider.class.getName();
     private static final String PROCESS_DESCRIPTION = "Generator for W3C RDF format";
 
-    private final static String IN_RDF_TITLE = "IN_RDF";
+    private final static String IN_RDF_TITLE = "IN_TRIPLES";
     private final static String IN_RDF_DESCRIPTION = "Input triples";
     private final static String IN_URI_BASE_TITLE = "IN_URI_BASE";
     private final static String IN_URI_BASE_DESCRIPTION = "RDF Base URI";
@@ -49,12 +50,12 @@ public class RDFProvider extends AbstractOperation {
     private final static String OUT_RESOURCE_TITLE = "OUT_RESOURCE";
     private final static String OUT_RESOURCE_DESCRIPTION = "Link to RDF encoded file or SPARQL Endpoint";
 
-    public RDFProvider() {
-        super(null, PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public RDFProvider(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector rdfConnector = getInputConnector(IN_RDF_TITLE);
         IInputConnector baseConnector = getInputConnector(IN_URI_BASE_TITLE);
@@ -352,11 +353,11 @@ public class RDFProvider extends AbstractOperation {
             if (((ISubject) object).getPredicates().size() > 0) {
                 if (((IResource) object).isBlank()) {
                     sTriple.append(" [\n");
-                    sTriple.append(encodeTripleResource((ISubject) object, base, prefixes, indent, false, false, sTripleRoot));
+                    sTriple.append(encodeTripleResource(object, base, prefixes, indent, false, false, sTripleRoot));
                     sTriple.append(indent).append("]").append(close ? " ." : " ;").append("\n");
                 } else {
                     sTriple.append(" ").append(encodeResource((IResource) object, base, prefixes)).append(close ? " ." : " ;").append("\n");
-                    sTripleRoot.append(encodeTripleResource((ISubject) object, base, prefixes, "", true, true, sTripleRoot));
+                    sTripleRoot.append(encodeTripleResource(object, base, prefixes, "", true, true, sTripleRoot));
                 }
             } else
                 sTriple.append(" ").append(encodeResource((IResource) object, base, prefixes)).append(" ;\n");
@@ -500,47 +501,60 @@ public class RDFProvider extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_RDF_TITLE, IN_RDF_DESCRIPTION,
+        addInputConnector(null, IN_RDF_TITLE, IN_RDF_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(ISubject.class, IData.class),
+                        new BindingConstraint(ISubject.class),
+                        new BindingConstraint(IData.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_URI_BASE_TITLE, IN_URI_BASE_DESCRIPTION,
+        addInputConnector(null, IN_URI_BASE_TITLE, IN_URI_BASE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null,
                 null);
-        addInputConnector(IN_URI_PREFIXES_TITLE, IN_URI_PREFIXES_DESCRIPTION,
+        addInputConnector(null, IN_URI_PREFIXES_TITLE, IN_URI_PREFIXES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new PatternConstraint("^(" + URLLiteral.getURLRegex() + ",([a-z]+);)+$")},
                 null,
                 null);
-        addInputConnector(IN_TRIPLE_STORE_TITLE, IN_TRIPLE_STORE_DESCRIPTION,
+        addInputConnector(null, IN_TRIPLE_STORE_TITLE, IN_TRIPLE_STORE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null,
                 null);
-        addInputConnector(IN_CLEAR_STORE_TITLE, IN_CLEAR_STORE_DESCRIPTION,
+        addInputConnector(null, IN_CLEAR_STORE_TITLE, IN_CLEAR_STORE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class),
                         new MandatoryDataConstraint()},
                 null,
-                new InputData(new BooleanLiteral(false)).getOutputConnector());
-        addInputConnector(IN_TRIPLE_BAG_SIZE_TITLE, IN_TRIPLE_BAG_SIZE_DESCRIPTION,
+                new BooleanLiteral(false));
+        addInputConnector(null, IN_TRIPLE_BAG_SIZE_TITLE, IN_TRIPLE_BAG_SIZE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(IntegerLiteral.class)},
                 null,
-                new InputData(new IntegerLiteral(1000)).getOutputConnector());
+                new IntegerLiteral(1000));
     }
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
+        addOutputConnector(null, OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

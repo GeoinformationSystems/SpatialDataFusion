@@ -6,6 +6,8 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollect
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geojson.feature.FeatureJSON;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,14 +18,14 @@ import java.net.URL;
 
 public class JSONParser extends GTFeatureParser {
 
-    private static final String PROCESS_TITLE = JSONParser.class.getSimpleName();
+    private static final String PROCESS_TITLE = JSONParser.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for GeoJSON format";
 
     /**
      * constructor
      */
-    public JSONParser() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public JSONParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
@@ -84,6 +86,29 @@ public class JSONParser extends GTFeatureParser {
             return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, collection), null);
         else
             return new GTFeatureCollection(identifier, collection, null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
+    }
+
+    /**
+     * read json
+     *
+     * @param url   json URL
+     * @param index flag: read with index
+     * @return feature collection from json
+     */
+    public static GTFeatureCollection readJSON(URL url, boolean index) throws IOException {
+        return new JSONParser(null).getFeatures(url, index);
     }
 
 }

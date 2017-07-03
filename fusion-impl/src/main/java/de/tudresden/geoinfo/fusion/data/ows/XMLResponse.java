@@ -100,11 +100,12 @@ public class XMLResponse extends Data<Document> {
 
     /**
      * get attribute value from set of attributes
-     * @param regex input regex
+     *
+     * @param regex      input regex
      * @param attributes input attribute map
      * @return attribute value or null, if no attribute matched regex
      */
-    public @Nullable String getAttributeValue(@NotNull String regex, NamedNodeMap attributes){
+    public @Nullable String getAttributeValue(@NotNull String regex, NamedNodeMap attributes) {
         for (int i = 0; i < attributes.getLength(); i++) {
             Node attribute = attributes.item(i);
             if (attribute.getNodeName().matches(regex))

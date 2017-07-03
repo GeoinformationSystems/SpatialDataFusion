@@ -26,9 +26,7 @@ public class PatternConstraint implements IRuntimeConstraint {
 
     @Override
     public boolean compliantWith(@Nullable IData data) {
-        if (data == null)
-            return true;
-        return data instanceof ILiteral && ((ILiteral) data).getLiteral().matches(pattern);
+        return data == null || data instanceof ILiteral && ((ILiteral) data).getLiteral().matches(pattern);
     }
 
 }

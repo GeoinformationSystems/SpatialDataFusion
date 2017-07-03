@@ -154,7 +154,7 @@ html body {
 #plumb_validation_single {
     width: 100%;
     max-height: 200px;
-    overflow-y:auto;
+    overflow-y: auto;
     clear: both;
 }
 
@@ -171,9 +171,9 @@ html body {
 }
 
 #plumb_desc_single {
-    display:none;
+    display: none;
     font-size: 0.8em;
-    z-index:2000;
+    z-index: 2000;
 }
 
 .plumb_process {
@@ -225,7 +225,7 @@ html body {
 .io_description {
     font-size: 1.2em;
     color: #FFFFFF;
-    margin-bottom:5px;
+    margin-bottom: 5px;
 }
 
 .io_format_title {

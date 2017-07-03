@@ -4,13 +4,11 @@ import com.google.common.collect.Sets;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Predicates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * feature relation implementation
@@ -33,7 +31,13 @@ public class BinaryRelation<T extends IResource> extends Relation<T> implements 
         super(identifier, type, getMembers(domain, range, type), metadata);
         this.domain = domain;
         this.range = range;
-        this.measurements = measurements;
+        this.measurements = measurements != null ? measurements : new HashSet<>();
+        this.initRDFSubject();
+    }
+
+    protected void initRDFSubject() {
+        super.initRDFSubject();
+        this.setRDFProperty(Predicates.MEASUREMENTS.getResource(), this.getMeasurements());
     }
 
     /**

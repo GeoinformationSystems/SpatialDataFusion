@@ -8,6 +8,8 @@ import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
@@ -15,14 +17,14 @@ import java.nio.charset.StandardCharsets;
 
 public class ShapefileParser extends GTFeatureParser {
 
-    private static final String PROCESS_TITLE = ShapefileParser.class.getSimpleName();
+    private static final String PROCESS_TITLE = ShapefileParser.class.getName();
     private static final String PROCESS_DESCRIPTION = "Parser for Esri Shapefile format";
 
     /**
      * constructor
      */
-    public ShapefileParser() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public ShapefileParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     /**
@@ -45,6 +47,29 @@ public class ShapefileParser extends GTFeatureParser {
             return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, shapeFC), null);
         else
             return new GTFeatureCollection(identifier, shapeFC, null);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
+    }
+
+    /**
+     * read shapefile
+     *
+     * @param url   shapefile URL
+     * @param index flag: read with index
+     * @return feature collection from shapefile
+     */
+    public static GTFeatureCollection readShapefile(URL url, boolean index) throws IOException {
+        return new ShapefileParser(null).getFeatures(url, index);
     }
 
 }

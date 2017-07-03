@@ -62,7 +62,7 @@ public class WFSCapabilities extends OWSCapabilities {
     /**
      * initialize output description
      */
-    private void initOutputDescription(){
+    private void initOutputDescription() {
         this.outputDescription = new WFSOutputDescription(this.getOperationsMetadata());
     }
 
@@ -115,6 +115,7 @@ public class WFSCapabilities extends OWSCapabilities {
 
     /**
      * get WFS output description
+     *
      * @return WFS output description
      */
     public @NotNull WFSOutputDescription getOutputDescription() {
@@ -240,15 +241,15 @@ public class WFSCapabilities extends OWSCapabilities {
         WFSOutputDescription(OperationsMetadata operationsMetadata) {
             this.supportedFormats = new HashSet<>();
             Set<String> formats = operationsMetadata.getOperationMetadata(OPERATION_GETFEATURE).getParameterValues(GETFEATURE_IOFORMATS);
-            for(String format : formats){
+            for (String format : formats) {
                 this.supportedFormats.add(new IOFormat(format, null, null));
             }
             this.defaultFormat = initDefaultFormat();
         }
 
         private IOFormat initDefaultFormat() {
-            for(IOFormat format : this.supportedFormats){
-                if(format.getMimetype() != null && format.getMimetype().matches(DEFAULT_FORMAT))
+            for (IOFormat format : this.supportedFormats) {
+                if (format.getMimetype() != null && format.getMimetype().matches(DEFAULT_FORMAT))
                     return format;
             }
             return this.supportedFormats.iterator().next();
@@ -256,6 +257,7 @@ public class WFSCapabilities extends OWSCapabilities {
 
         /**
          * get default format
+         *
          * @return default format
          */
         public @NotNull IOFormat getDefaultFormat() {
@@ -264,6 +266,7 @@ public class WFSCapabilities extends OWSCapabilities {
 
         /**
          * get supported formats
+         *
          * @return supported formats
          */
         public @NotNull Set<IOFormat> getSupportedFormats() {

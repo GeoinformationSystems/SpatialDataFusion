@@ -14,9 +14,10 @@ public class IOFormat implements Comparable<IOFormat> {
 
     /**
      * constructor
+     *
      * @param mimetype format mimetype
-     * @param schema format schema
-     * @param type format type
+     * @param schema   format schema
+     * @param type     format type
      */
     public IOFormat(@Nullable String mimetype, @Nullable String schema, @Nullable String type) {
         this.mimetype = mimetype;
@@ -59,11 +60,12 @@ public class IOFormat implements Comparable<IOFormat> {
 
     /**
      * check if two strings are equal, allows null values
+     *
      * @param io1 first string
      * @param io2 second string
      * @return true, if io1 equals io2
      */
-    private boolean equals(@Nullable String io1, @Nullable String io2){
+    private boolean equals(@Nullable String io1, @Nullable String io2) {
         return io1 != null ? io1.equalsIgnoreCase(io2) : io2 == null;
     }
 

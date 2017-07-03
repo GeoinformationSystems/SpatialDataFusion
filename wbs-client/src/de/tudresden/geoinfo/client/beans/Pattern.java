@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.client.beans;
 
-import de.tudresden.geoinfo.client.handler.AbstractOWSHandler;
-import de.tudresden.geoinfo.client.handler.WPSHandler;
+import de.tudresden.geoinfo.fusion.operation.ows.OWSServiceOperation;
+import de.tudresden.geoinfo.fusion.operation.ows.WPSProxy;
 
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
@@ -11,13 +11,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@ManagedBean(name="pattern")
+@ManagedBean(name = "pattern")
 @SessionScoped
 public class Pattern extends AbstractOWSBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private Map<String, WPSHandler> gppHandler;
+    private Map<String, WPSProxy> gppHandler;
     private Set<String> patterns;
     private String selection;
 
@@ -49,12 +49,12 @@ public class Pattern extends AbstractOWSBean implements Serializable {
     }
 
     @Override
-    AbstractOWSHandler initOWSHandler(String uid, String sBaseURL) throws IOException {
+    WPSProxy initOWSHandler(String uid, String sBaseURL) throws IOException {
         return null;
     }
 
     @Override
-    public void registerOWSOffering(AbstractOWSHandler handler, String selectedOffering) {
+    public void registerOWSOffering(OWSServiceOperation handler, String selectedOffering) {
 
     }
 

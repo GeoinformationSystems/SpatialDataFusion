@@ -1,10 +1,12 @@
 package de.tudresden.geoinfo.fusion.data.literal;
 
-import de.tudresden.geoinfo.fusion.data.*;
+import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
+import de.tudresden.geoinfo.fusion.data.Measurement;
+import de.tudresden.geoinfo.fusion.data.MeasurementRange;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,48 +21,31 @@ public class BooleanLiteral extends Measurement<Boolean> {
     private static IResource TYPE = Objects.BOOLEAN.getResource();
 
     /**
+     * @param identifier literal identifier
+     * @param value      literal value
+     * @param metadata   literal metadata
+     */
+    public BooleanLiteral(@Nullable IIdentifier identifier, boolean value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation) {
+        super(identifier, value, metadata, TYPE, measurementOperation);
+    }
+
+    /**
      * constructor
      *
-     * @param identifier           data identifier
-     * @param value                boolean value
+     * @param value                literal value
      * @param measurementOperation associated measurement operation
-     * @param measurementRange     associated measurement range
-     * @param uom                  associated unit of measurement
      */
-    public BooleanLiteral(@Nullable IIdentifier identifier, boolean value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<Boolean> measurementRange, @NotNull IResource uom) {
-        super(identifier, value, metadata, TYPE, measurementOperation, measurementRange, uom);
+    public BooleanLiteral(boolean value, @Nullable IResource measurementOperation) {
+        this(null, value, null, measurementOperation);
     }
 
     /**
      * constructor
      *
-     * @param identifier           data identifier
-     * @param value                boolean value
-     * @param measurementOperation associated measurement operation
-     * @param measurementRange     associated measurement range
-     * @param uom                  associated unit of measurement
-     */
-    public BooleanLiteral(@Nullable IIdentifier identifier, @NotNull String title, @Nullable String description, boolean value, @Nullable IResource measurementOperation, @NotNull IMeasurementRange<Boolean> measurementRange, @NotNull IResource uom) {
-        super(identifier, value, new Metadata(title, description), TYPE, measurementOperation, measurementRange, uom);
-    }
-
-    /**
-     * constructor
-     *
-     * @param identifier data identifier
-     * @param value      boolean value
-     */
-    public BooleanLiteral(@Nullable IIdentifier identifier, boolean value) {
-        this(identifier, value, null, null, BooleanLiteral.getMaxRange(), Units.UNKNOWN.getResource());
-    }
-
-    /**
-     * constructor, creates random identifier
-     *
-     * @param value boolean value
+     * @param value literal value
      */
     public BooleanLiteral(boolean value) {
-        this(null, value);
+        this(value, null);
     }
 
     /**

@@ -1,5 +1,6 @@
 package de.tudresden.geoinfo.fusion.data;
 
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,7 @@ public class Data<T> extends Resource implements IData {
      * @param metadata   data metadata
      */
     public Data(@Nullable IIdentifier identifier, @NotNull T object, @Nullable IMetadata metadata) {
-        super(identifier, metadata != null ? metadata.getTitle() : null, metadata != null ? metadata.getDescription() : null);
+        super(identifier);
         this.setObject(object);
         this.setMetadata(metadata);
     }
@@ -28,13 +29,11 @@ public class Data<T> extends Resource implements IData {
     /**
      * constructor
      *
-     * @param identifier  data identifier
-     * @param object      data object
-     * @param title       data title
-     * @param description data description
+     * @param identifier data identifier
+     * @param object     data object
      */
-    public Data(@Nullable IIdentifier identifier, @NotNull T object, @NotNull String title, @Nullable String description) {
-        this(identifier, object, new Metadata(title, description));
+    public Data(@Nullable IIdentifier identifier, @NotNull T object) {
+        this(identifier, object, null);
     }
 
     @NotNull
@@ -45,13 +44,14 @@ public class Data<T> extends Resource implements IData {
 
     /**
      * set object instance
+     *
      * @param object input object
      */
-    protected void setObject(T object){
+    protected void setObject(T object) {
         this.object = object;
     }
 
-    @Nullable
+    @NotNull
     @Override
     public IMetadata getMetadata() {
         return metadata;
@@ -59,10 +59,20 @@ public class Data<T> extends Resource implements IData {
 
     /**
      * set object metadata
+     *
      * @param metadata metadata object
      */
-    protected void setMetadata(IMetadata metadata){
-        this.metadata = metadata;
+    protected void setMetadata(@Nullable IMetadata metadata) {
+        this.metadata = metadata != null ? metadata : new Metadata();
+    }
+
+    /**
+     * add a metadata element
+     *
+     * @param element metadata element
+     */
+    protected void addMetadataElement(IMetadataElement element) {
+        this.metadata.addElement(element);
     }
 
 }

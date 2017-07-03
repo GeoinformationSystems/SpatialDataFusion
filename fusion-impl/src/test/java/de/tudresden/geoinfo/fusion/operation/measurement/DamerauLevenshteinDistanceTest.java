@@ -3,16 +3,15 @@ package de.tudresden.geoinfo.fusion.operation.measurement;
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.IntegerLiteral;
-import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurementCollection;
+import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import org.junit.Assert;
+import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
 import org.junit.Test;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,60 +27,51 @@ public class DamerauLevenshteinDistanceTest extends AbstractTest {
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
-    public void getDamLevDistance() throws MalformedURLException {
+    public void getDamLevDistance() throws IOException {
         getDamLevDistance(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
-                new StringLiteral("GN"),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
                 new StringLiteral("name"),
+                new StringLiteral("GN"),
                 null);
     }
 
     @Test
-    public void getDamLevDistanceWithThreshold() throws MalformedURLException {
+    public void getDamLevDistanceWithThreshold0() throws IOException {
         getDamLevDistance(
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "atkis_dd.shp").toURI(), true),
-                readShapefile(new File("D:/Geodaten/Testdaten/shape", "osm_dd.shp").toURI(), true),
-                new StringLiteral("GN"),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
                 new StringLiteral("name"),
+                new StringLiteral("GN"),
                 new IntegerLiteral(0));
     }
 
-    public void getDamLevDistance(GTFeatureCollection domain, GTFeatureCollection range, StringLiteral sAttDomain, StringLiteral sAttRange, IntegerLiteral threshold) {
+    @Test
+    public void getDamLevDistanceWithThreshold10() throws IOException {
+        getDamLevDistance(
+                ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
+                new StringLiteral("name"),
+                new StringLiteral("GN"),
+                new IntegerLiteral(10));
+    }
 
-        DamerauLevenshteinDistance process = new DamerauLevenshteinDistance();
-        IIdentifier ID_IN_DOMAIN = process.getInputConnector(IN_DOMAIN).getIdentifier();
-        IIdentifier ID_IN_RANGE = process.getInputConnector(IN_RANGE).getIdentifier();
-        IIdentifier ID_IN_DOMAIN_ATTRIBUTE = process.getInputConnector(IN_DOMAIN_ATTRIBUTE).getIdentifier();
-        IIdentifier ID_IN_RANGE_ATTRIBUTE = process.getInputConnector(IN_RANGE_ATTRIBUTE).getIdentifier();
-        IIdentifier ID_IN_THRESHOLD = process.getInputConnector(IN_THRESHOLD).getIdentifier();
-        IIdentifier ID_OUT_RUNTIME = process.getOutputConnector(OUT_RUNTIME).getIdentifier();
-        IIdentifier ID_OUT_MEASUREMENTS = process.getOutputConnector(OUT_MEASUREMENTS).getIdentifier();
+    private void getDamLevDistance(GTFeatureCollection domain, GTFeatureCollection range, StringLiteral sAttDomain, StringLiteral sAttRange, IntegerLiteral threshold) {
 
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_DOMAIN, domain);
-        input.put(ID_IN_RANGE, range);
-        input.put(ID_IN_DOMAIN_ATTRIBUTE, sAttDomain);
-        input.put(ID_IN_RANGE_ATTRIBUTE, sAttRange);
-        if (threshold != null)
-            input.put(ID_IN_THRESHOLD, threshold);
+        AbstractOperation operation = new DamerauLevenshteinDistance(null);
 
-        Map<IIdentifier, IData> output = process.execute(input);
+        Map<String,IData> inputs = new HashMap<>();
+        inputs.put(IN_DOMAIN, domain);
+        inputs.put(IN_RANGE, range);
+        inputs.put(IN_DOMAIN_ATTRIBUTE, sAttDomain);
+        inputs.put(IN_RANGE_ATTRIBUTE, sAttRange);
+        inputs.put(IN_THRESHOLD, threshold);
 
-        Assert.assertNotNull(output);
-        Assert.assertTrue(output.containsKey(ID_OUT_MEASUREMENTS));
-        Assert.assertTrue(output.get(ID_OUT_MEASUREMENTS) instanceof RelationMeasurementCollection);
+        Map<String,Class<? extends IData>> outputs = new HashMap<>();
+        outputs.put(OUT_MEASUREMENTS, RelationMeasurementCollection.class);
 
-        RelationMeasurementCollection measurements = (RelationMeasurementCollection) output.get(ID_OUT_MEASUREMENTS);
+        this.execute(operation, inputs, outputs);
 
-        Runtime runtime = Runtime.getRuntime();
-        runtime.gc();
-        System.out.print("TEST: " + process.getIdentifier() + "\n\t" +
-                "number of reference features: " + domain.size() + "\n\t" +
-                "number of target features: " + range.size() + "\n\t" +
-                "number of measurements: " + measurements.resolve().size() + "\n\t" +
-                "process runtime (ms): " + ((LongLiteral) output.get(ID_OUT_RUNTIME)).resolve() + "\n\t" +
-                "memory usage (mb): " + ((runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024L)) + "\n");
     }
 
 }

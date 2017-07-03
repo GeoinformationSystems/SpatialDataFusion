@@ -34,13 +34,11 @@ public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
     /**
      * constructor
      *
-     * @param identifier  literal identifier
-     * @param value       literal value
-     * @param title       literal title
-     * @param description literal description
+     * @param value    literal value
+     * @param dataType literal data type
      */
-    public LiteralData(@Nullable IIdentifier identifier, @NotNull T value, @NotNull String title, @Nullable String description, IResource dataType) {
-        this(identifier, value, new Metadata(title, description), dataType);
+    public LiteralData(@NotNull T value, IResource dataType) {
+        this(null, value, null, dataType);
     }
 
     /**

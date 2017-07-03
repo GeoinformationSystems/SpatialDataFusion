@@ -24,8 +24,8 @@ public class BinaryRelationType extends RelationType implements IBinaryRelationT
      * @param transitive   flag: relation is transitive
      * @param reflexive    flag: relation is reflexive
      */
-    public BinaryRelationType(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
-        super(identifier, title, description, Arrays.asList(roleOfDomain, roleOfRange));
+    public BinaryRelationType(@Nullable IIdentifier identifier, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
+        super(identifier, Arrays.asList(roleOfDomain, roleOfRange));
         this.roleOfDomain = roleOfDomain;
         this.roleOfRange = roleOfRange;
         this.symmetric = symmetric;
@@ -36,29 +36,14 @@ public class BinaryRelationType extends RelationType implements IBinaryRelationT
     /**
      * constructor
      *
-     * @param identifier   type identifier
      * @param roleOfDomain reference role
      * @param roleOfRange  target role
      * @param symmetric    flag: relation is symmetric
      * @param transitive   flag: relation is transitive
      * @param reflexive    flag: relation is reflexive
      */
-    public BinaryRelationType(@NotNull IIdentifier identifier, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
-        this(identifier, null, null, roleOfDomain, roleOfRange, symmetric, transitive, reflexive);
-    }
-
-    /**
-     * constructor
-     *
-     * @param title        type title
-     * @param roleOfDomain reference role
-     * @param roleOfRange  target role
-     * @param symmetric    flag: relation is symmetric
-     * @param transitive   flag: relation is transitive
-     * @param reflexive    flag: relation is reflexive
-     */
-    public BinaryRelationType(@NotNull String title, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
-        this(null, title, null, roleOfDomain, roleOfRange, symmetric, transitive, reflexive);
+    public BinaryRelationType(@NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
+        this(null, roleOfDomain, roleOfRange, symmetric, transitive, reflexive);
     }
 
     @NotNull

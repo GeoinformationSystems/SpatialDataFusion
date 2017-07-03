@@ -1102,7 +1102,8 @@
          */
         this.trigger = function (el, event, originalEvent, payload) {
             var eventToBind = (isTouchDevice && touchMap[event]) ? touchMap[event] : event;
-            var pl = _pageLocation(originalEvent), sl = _screenLocation(originalEvent), cl = _clientLocation(originalEvent);
+            var pl = _pageLocation(originalEvent), sl = _screenLocation(originalEvent),
+                cl = _clientLocation(originalEvent);
             _each(el, function () {
                 var _el = _gel(this), evt;
                 originalEvent = originalEvent || {
@@ -1147,7 +1148,8 @@
                 };
 
                 if (document.createEvent) {
-                    var ite = (isTouchDevice && touchMap[event] && !Sniff.android), evtName = ite ? "TouchEvent" : "MouseEvents";
+                    var ite = (isTouchDevice && touchMap[event] && !Sniff.android),
+                        evtName = ite ? "TouchEvent" : "MouseEvents";
                     evt = document.createEvent(evtName);
                     eventGenerators[evtName](evt);
                     _decorate(evt);
@@ -1413,13 +1415,13 @@
         };
 
         this.constrain = typeof this.params.constrain === "function" ? this.params.constrain : (this.params.constrain || this.params.containment) ? function (pos) {
-                    return [
-                        Math.max(0, Math.min(constrainRect.w - this.size[0], pos[0])),
-                        Math.max(0, Math.min(constrainRect.h - this.size[1], pos[1]))
-                    ];
-                } : function (pos) {
-                    return pos;
-                };
+            return [
+                Math.max(0, Math.min(constrainRect.w - this.size[0], pos[0])),
+                Math.max(0, Math.min(constrainRect.h - this.size[1], pos[1]))
+            ];
+        } : function (pos) {
+            return pos;
+        };
 
         var filter = _true,
             filterSpec = "",
@@ -2151,8 +2153,8 @@
         },
         indexOf: function (l, v) {
             return l.indexOf ? l.indexOf(v) : exports.findWithFunction(l, function (_v) {
-                    return _v == v;
-                });
+                return _v == v;
+            });
         },
         removeWithFunction: function (a, f) {
             var idx = exports.findWithFunction(a, f);
@@ -2891,7 +2893,8 @@
         getOffset: function (el, _instance, relativeToRoot) {
             el = jsPlumb.getDOMElement(el);
             var container = _instance.getContainer();
-            var l = el.offsetLeft, t = el.offsetTop, op = (relativeToRoot || (container != null && el.offsetParent != container)) ? el.offsetParent : null;
+            var l = el.offsetLeft, t = el.offsetTop,
+                op = (relativeToRoot || (container != null && el.offsetParent != container)) ? el.offsetParent : null;
             while (op != null) {
                 l += op.offsetLeft;
                 t += op.offsetTop;
@@ -2907,11 +2910,11 @@
         //
         getPositionOnElement: function (evt, el, zoom) {
             var box = typeof el.getBoundingClientRect !== "undefined" ? el.getBoundingClientRect() : {
-                        left: 0,
-                        top: 0,
-                        width: 0,
-                        height: 0
-                    },
+                    left: 0,
+                    top: 0,
+                    width: 0,
+                    height: 0
+                },
                 body = document.body,
                 docElem = document.documentElement,
                 offPar = el.offsetParent,
@@ -4490,11 +4493,11 @@
             var connType = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType(),
                 argIsConnection = jpc.constructor == connType,
                 params = argIsConnection ? {
-                        connection: jpc,
-                        source: jpc.source, target: jpc.target,
-                        sourceId: jpc.sourceId, targetId: jpc.targetId,
-                        sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
-                    } : jpc;
+                    connection: jpc,
+                    source: jpc.source, target: jpc.target,
+                    sourceId: jpc.sourceId, targetId: jpc.targetId,
+                    sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
+                } : jpc;
 
             if (doFireEvent)
                 _currentInstance.fire("connectionDetached", params, originalEvent);
@@ -7812,7 +7815,8 @@
                             };
 
                             for (var i = 0; i < anchors.length; i++) {
-                                var c = anchors[i][4], weAreSource = c.endpoints[0].elementId === elementId, weAreTarget = c.endpoints[1].elementId === elementId;
+                                var c = anchors[i][4], weAreSource = c.endpoints[0].elementId === elementId,
+                                    weAreTarget = c.endpoints[1].elementId === elementId;
                                 if (weAreSource)
                                     _setAnchorLocation(c.endpoints[0], anchors[i]);
                                 else if (weAreTarget)
@@ -10873,7 +10877,8 @@
             }
             else {
                 // a loopback connector.  draw an arc from one anchor to the other.
-                var x1 = params.sourcePos[0], x2 = params.sourcePos[0], y1 = params.sourcePos[1] - margin, y2 = params.sourcePos[1] - margin,
+                var x1 = params.sourcePos[0], x2 = params.sourcePos[0], y1 = params.sourcePos[1] - margin,
+                    y2 = params.sourcePos[1] - margin,
                     cx = x1, cy = y1 - loopbackRadius,
                     // canvas sizing stuff, to ensure the whole painted area is visible.
                     _w = 2 * loopbackRadius,

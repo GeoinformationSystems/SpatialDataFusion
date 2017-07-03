@@ -12,7 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 /**
- * proxy for accessing external OWS from openlayers
+ * proxy for accessing external OWS from OpenLayers
  */
 public class ProxyServlet extends HttpServlet {
 

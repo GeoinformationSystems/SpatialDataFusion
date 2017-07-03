@@ -1,10 +1,12 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -25,11 +27,9 @@ public abstract class OWSXMLParser extends AbstractOperation {
     /**
      * constructor
      *
-     * @param title       process title
-     * @param description process description
      */
-    public OWSXMLParser(String title, String description) {
-        super(null, title, description);
+    public OWSXMLParser(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     public Document getDocument() throws SAXException, IOException, ParserConfigurationException {
@@ -77,7 +77,7 @@ public abstract class OWSXMLParser extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},

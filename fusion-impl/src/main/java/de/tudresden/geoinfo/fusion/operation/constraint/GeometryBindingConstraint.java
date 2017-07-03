@@ -30,7 +30,7 @@ public class GeometryBindingConstraint implements IRuntimeConstraint {
      *
      * @param geometryBindings supported bindings
      */
-    public GeometryBindingConstraint(@NotNull Class<?>[] geometryBindings) {
+    public GeometryBindingConstraint(@NotNull Class<?>... geometryBindings) {
         this(Sets.newHashSet(geometryBindings));
     }
 
@@ -49,9 +49,9 @@ public class GeometryBindingConstraint implements IRuntimeConstraint {
             return true;
         if (target instanceof IFeature) {
             IFeature feature = (IFeature) target;
-            if(feature.getRepresentation() != null) {
+            if (feature.getRepresentation() != null) {
                 Object geometry = feature.getRepresentation().getDefaultGeometry();
-                if(geometry != null) {
+                if (geometry != null) {
                     for (Class<?> binding : geometryBindings) {
                         if (binding.isAssignableFrom(geometry.getClass()))
                             return true;

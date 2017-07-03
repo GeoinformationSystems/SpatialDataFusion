@@ -4,6 +4,9 @@ import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeature;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureCollection;
+import de.tudresden.geoinfo.fusion.data.metadata.DC_Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataElement;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -61,8 +64,12 @@ public class GTFeatureCollection extends AbstractFeatureCollection<GTVectorFeatu
         try (FeatureIterator iterator = featureCollection.features()) {
             while (iterator.hasNext()) {
                 Feature feature = iterator.next();
-                IIdentifier featureID = collectionId == null ? new Identifier(feature.getIdentifier().getID()) : new Identifier((collectionId + "#" + feature.getIdentifier().getID()));
-                collection.add(new GTVectorFeature(featureID, feature, null));
+                String featureID = feature.getIdentifier().getID();
+                Metadata metadata = new Metadata();
+                metadata.addElement(new MetadataElement(DC_Metadata.DC_TITLE.getResource(), featureID));
+                if (collectionId != null)
+                    metadata.addElement(new MetadataElement(DC_Metadata.DC_SOURCE.getResource(), collectionId.toString()));
+                collection.add(new GTVectorFeature(new Identifier(featureID), feature, metadata));
             }
         }
         return collection;

@@ -1,17 +1,11 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
-import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
+import de.tudresden.geoinfo.fusion.data.IDataCollection;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.operation.retrieval.GridCoverageParser;
-import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
+import org.junit.Assert;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,62 +14,47 @@ import java.util.Map;
  */
 public abstract class AbstractTest {
 
-    private final static String IN_RESOURCE = "IN_RESOURCE";
-    private final static String IN_WITH_INDEX = "IN_WITH_INDEX";
+    public void execute(AbstractOperation operation, Map<String,IData> inputs, Map<String,Class<? extends IData>> outputs) {
 
-    private final static String OUT_FEATURES = "OUT_FEATURES";
-    private final static String OUT_COVERAGE = "OUT_COVERAGE";
+        this.logOperation(operation);
 
-    /**
-     * read shapefile
-     *
-     * @param url   shapefile URL
-     * @param index flag: read with index
-     * @return feature collection from shapefile
-     */
-    protected GTFeatureCollection readShapefile(URL url, boolean index) {
+        Map<IIdentifier, IData> operationInputs = new HashMap<>();
+        for(Map.Entry<String,IData> input : inputs.entrySet()){
+            IIdentifier id = operation.getInputConnector(input.getKey()).getIdentifier();
+            operationInputs.put(id, input.getValue());
+        }
 
-        ShapefileParser parser = new ShapefileParser();
-        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();
-        IIdentifier ID_IN_WITH_INDEX = parser.getInputConnector(IN_WITH_INDEX).getIdentifier();
-        IIdentifier ID_OUT_FEATURES = parser.getOutputConnector(OUT_FEATURES).getIdentifier();
+        Map<IIdentifier, IData> operationOutput = operation.execute(operationInputs);
 
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_RESOURCE, new URLLiteral(url));
-        input.put(ID_IN_WITH_INDEX, new BooleanLiteral(index));
+        Assert.assertTrue(operation.isSuccess());
+        Assert.assertNotNull(operationOutput);
 
-        Map<IIdentifier, IData> output = parser.execute(input);
-        return (GTFeatureCollection) output.get(ID_OUT_FEATURES);
+        for(Map.Entry<String,Class<? extends IData>> output : outputs.entrySet()){
+            IIdentifier id = operation.getOutputConnector(output.getKey()).getIdentifier();
+            Assert.assertTrue(operationOutput.containsKey(id));
+            IData outputData = operationOutput.get(id);
+            Assert.assertTrue(output.getValue().isAssignableFrom(outputData.getClass()));
+            if(outputData instanceof IDataCollection)
+                Assert.assertTrue(((IDataCollection) outputData).resolve().size() > 0);
+            this.logOutput(output.getKey(), outputData);
+        }
+
+        this.logRuntime(operation);
+
     }
 
-    /**
-     * read shapefile
-     *
-     * @param uri   shapefile URI
-     * @param index flag: read with index
-     * @return feature collection from shapefile
-     */
-    protected GTFeatureCollection readShapefile(URI uri, boolean index) throws MalformedURLException {
-        return this.readShapefile(uri.toURL(), index);
+    private void logOperation(AbstractOperation operation) {
+        System.out.println("TEST: " + operation.getTitle());
     }
 
-    /**
-     * read shapefile
-     *
-     * @param url grid URL
-     * @return grid file
-     */
-    protected GTGridFeature readGrid(URL url) {
+    private void logOutput(String key, IData result) {
+        System.out.print("\t" + "result: " + key + " (type=" + result.getClass().getName() +
+                (result instanceof URLLiteral ? ", url=" + ((URLLiteral) result).resolve() : "") +
+                (result instanceof IDataCollection ? ", size=" + ((IDataCollection) result).resolve().size() : "") + ")\n");
+    }
 
-        GridCoverageParser parser = new GridCoverageParser();
-        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();
-        IIdentifier ID_OUT_COVERAGE = parser.getOutputConnector(OUT_COVERAGE).getIdentifier();
-
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_RESOURCE, new URLLiteral(url));
-
-        Map<IIdentifier, IData> output = parser.execute(input);
-        return (GTGridFeature) output.get(ID_OUT_COVERAGE);
+    private void logRuntime(AbstractOperation operation) {
+        System.out.println("\t" + "process runtime (ms): " + operation.getRuntime().resolve());
     }
 
 }

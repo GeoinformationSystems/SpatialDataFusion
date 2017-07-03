@@ -21,14 +21,14 @@ public class IOFormatConstraint implements IConnectionConstraint {
      * constructor
      *
      * @param supportedFormats supported formats
-     * @param defaultFormat default format
+     * @param defaultFormat    default format
      */
-    public IOFormatConstraint(@NotNull Set<IOFormat> supportedFormats, @Nullable IOFormat defaultFormat) {
-        if(supportedFormats.isEmpty())
+    private IOFormatConstraint(@NotNull Set<IOFormat> supportedFormats, @Nullable IOFormat defaultFormat) {
+        if (supportedFormats.isEmpty())
             throw new IllegalArgumentException("At least one supported format must be specified");
         this.supportedFormats = supportedFormats;
         this.defaultFormat = defaultFormat != null ? defaultFormat : supportedFormats.iterator().next();
-        if(defaultFormat != null && !supportedFormats.contains(defaultFormat))
+        if (defaultFormat != null && !supportedFormats.contains(defaultFormat))
             this.supportedFormats.add(defaultFormat);
     }
 

@@ -1,7 +1,10 @@
 package de.tudresden.geoinfo.fusion.data;
 
+import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 /**
  * Metadata
@@ -10,19 +13,35 @@ import org.jetbrains.annotations.Nullable;
 public interface IMetadata {
 
     /**
-     * get title (http://purl.org/dc/terms/title)
+     * get associated metadata elements
      *
-     * @return data title
+     * @return metadata elements
      */
     @NotNull
-    String getTitle();
+    Collection<IMetadataElement> getElements();
 
     /**
-     * get abstract description (http://purl.org/dc/terms/description)
+     * get metadata element associated with input resource
      *
-     * @return data description
+     * @param resource input resource
+     * @return metadata element associated with input resource
      */
     @Nullable
-    String getDescription();
+    IMetadataElement getElement(IResource resource);
+
+    /**
+     * flag: metadata provides entry for input resource
+     *
+     * @param resource input resource
+     * @return true, if metadata contains entry for input resource
+     */
+    boolean hasElement(IResource resource);
+
+    /**
+     * add a metadata element
+     *
+     * @param element input element
+     */
+    void addElement(@NotNull IMetadataElement element);
 
 }

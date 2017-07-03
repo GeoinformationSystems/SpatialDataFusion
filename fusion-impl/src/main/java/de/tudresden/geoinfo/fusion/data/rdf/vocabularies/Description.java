@@ -11,14 +11,6 @@ import java.net.URI;
 public enum Description implements IRDFVocabulary {
 
     /**
-     * Dublin Core
-     */
-
-    DC_DESCRIPTION("http://purl.org/dc/terms/description"),
-    DC_TITLE("http://purl.org/dc/elements/1.1/title"),
-    DC_ABSTRACT("http://purl.org/dc/terms/abstract"),
-
-    /**
      * Darwin Core
      */
 

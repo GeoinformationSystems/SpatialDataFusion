@@ -3,13 +3,14 @@ package de.tudresden.geoinfo.fusion.operation.mapping;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.*;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -35,14 +36,13 @@ public abstract class AbstractFeatureMapping extends AbstractOperation {
     /**
      * constructor
      *
-     * @param title operation title
      */
-    public AbstractFeatureMapping(String title, String description) {
-        super(title, description);
+    public AbstractFeatureMapping(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         //get input connectors
         IInputConnector sourceConnector = getInputConnector(IN_DOMAIN_TITLE);
         IInputConnector targetConnector = getInputConnector(IN_RANGE_TITLE);
@@ -139,38 +139,38 @@ public abstract class AbstractFeatureMapping extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_MEASUREMENTS_TITLE, IN_MEASUREMENTS_DESCRIPTION,
+        addInputConnector(null, IN_MEASUREMENTS_TITLE, IN_MEASUREMENTS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(RelationMeasurementCollection.class)},
                 null,
                 null);
-        addInputConnector(IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
+        addInputConnector(null, IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BinaryFeatureRelationCollection.class)},
                 null,
                 null);
-        addInputConnector(IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
+        addInputConnector(null, IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
-                new InputData<>(new BooleanLiteral(false)).getOutputConnector());
+                new BooleanLiteral(false));
     }
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(OUT_RELATIONS_TITLE,
+        addOutputConnector(null, OUT_RELATIONS_TITLE,
                 OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BinaryFeatureRelationCollection.class)

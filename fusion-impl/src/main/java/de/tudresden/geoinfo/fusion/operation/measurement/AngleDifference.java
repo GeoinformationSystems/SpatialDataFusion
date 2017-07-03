@@ -6,16 +6,20 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.math.Vector3D;
 import de.tud.fusion.Utilities;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.Feature;
 
 /**
@@ -23,7 +27,7 @@ import org.opengis.feature.Feature;
  */
 public class AngleDifference extends AbstractRelationMeasurement {
 
-    private static final String PROCESS_TITLE = AngleDifference.class.getSimpleName();
+    private static final String PROCESS_TITLE = AngleDifference.class.getName();
     private static final String PROCESS_DESCRIPTION = "Angle difference between linear geometries";
 
     private static final IMeasurementRange<Double> MEASUREMENT_RANGE = DecimalLiteral.getRange(0d, Math.PI / 2);
@@ -39,14 +43,14 @@ public class AngleDifference extends AbstractRelationMeasurement {
     /**
      * constructor
      */
-    public AngleDifference() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public AngleDifference(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
-        this.dThreshold = ((DecimalLiteral) getInputConnector(IN_THRESHOLD_TITLE).getData()).resolve();
-        super.execute();
+    public void executeOperation() {
+        this.dThreshold = ((DecimalLiteral) getInputData(IN_THRESHOLD_TITLE)).resolve();
+        super.executeOperation();
     }
 
     @Override
@@ -60,7 +64,7 @@ public class AngleDifference extends AbstractRelationMeasurement {
         double dAngle = getAngle(gDomain, gRange);
         //check for difference
         if (dAngle <= dThreshold) {
-            return new RelationMeasurement<>(null, domainFeature, rangeFeature, dAngle, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT);
+            return new RelationMeasurement<>(null, domainFeature, rangeFeature, dAngle, this.getMeasurementMetadata(), this);
         } else return null;
     }
 
@@ -128,11 +132,28 @@ public class AngleDifference extends AbstractRelationMeasurement {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+        addInputConnector(null, IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
-                new InputData(new DecimalLiteral(Math.PI / 8)).getOutputConnector());
+                new DecimalLiteral(Math.PI / 8));
+    }
+
+    @Override
+    public IMetadata initMeasurementMetadata() {
+        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
     }
 
 }

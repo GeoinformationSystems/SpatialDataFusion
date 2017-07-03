@@ -1,17 +1,21 @@
 package de.tudresden.geoinfo.fusion.operation.measurement;
 
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
+import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.IntegerLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
-import de.tudresden.geoinfo.fusion.operation.InputData;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -20,7 +24,7 @@ import java.util.Arrays;
  */
 public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
 
-    private static final String PROCESS_TITLE = GeometryDistance.class.getSimpleName();
+    private static final String PROCESS_TITLE = GeometryDistance.class.getName();
     private static final String PROCESS_DESCRIPTION = "Calculates feature relation based on Damerau-Levenshtein distance between specified attributes";
 
     private static final IMeasurementRange<Integer> MEASUREMENT_RANGE = IntegerLiteral.getPositiveRange();
@@ -42,16 +46,16 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
     /**
      * constructor
      */
-    public DamerauLevenshteinDistance() {
-        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+    public DamerauLevenshteinDistance(@Nullable IIdentifier identifier) {
+        super(identifier);
     }
 
     @Override
-    public void execute() {
+    public void executeOperation() {
         this.iThreshold = ((IntegerLiteral) getInputConnector(IN_THRESHOLD_TITLE).getData()).resolve();
         this.sAttributeNameDomain = ((StringLiteral) getInputConnector(IN_DOMAIN_ATTRIBUTE_TITLE).getData()).resolve();
         this.sAttributeNameRange = ((StringLiteral) getInputConnector(IN_RANGE_ATTRIBUTE_TITLE).getData()).resolve();
-        super.execute();
+        super.executeOperation();
     }
 
     @Override
@@ -68,7 +72,7 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
         //calculate distance
         int iDistance = getDamerauLevenshteinDistance(sAttributeValueDomain, sAttributeValueRange);
         if (iDistance <= iThreshold)
-            return new RelationMeasurement<>(null, domainFeature, rangeFeature, iDistance, MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, this, MEASUREMENT_RANGE, MEASUREMENT_UNIT);
+            return new RelationMeasurement<>(null, domainFeature, rangeFeature, iDistance, this.getMeasurementMetadata(), this);
             //return null if distance > threshold
         else
             return null;
@@ -124,18 +128,18 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+        addInputConnector(null, IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(IntegerLiteral.class)},
                 null,
-                new InputData(new IntegerLiteral(2)).getOutputConnector());
-        addInputConnector(IN_DOMAIN_ATTRIBUTE_TITLE, IN_DOMAIN_ATTRIBUTE_DESCRIPTION,
+                new IntegerLiteral(2));
+        addInputConnector(null, IN_DOMAIN_ATTRIBUTE_TITLE, IN_DOMAIN_ATTRIBUTE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(IN_RANGE_ATTRIBUTE_TITLE, IN_RANGE_ATTRIBUTE_DESCRIPTION,
+        addInputConnector(null, IN_RANGE_ATTRIBUTE_TITLE, IN_RANGE_ATTRIBUTE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new MandatoryDataConstraint()},
@@ -143,4 +147,20 @@ public class DamerauLevenshteinDistance extends AbstractRelationMeasurement {
                 null);
     }
 
+    @Override
+    public IMetadata initMeasurementMetadata() {
+        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+    }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @NotNull
+    @Override
+    public String getDescription() {
+        return PROCESS_DESCRIPTION;
+    }
 }

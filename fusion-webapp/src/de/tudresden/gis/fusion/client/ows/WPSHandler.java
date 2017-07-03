@@ -66,9 +66,21 @@
 //
 //	*/
 /**
-//	 * call javascript function that updates jsPlumb processes
-//	 * @param event
-//	 *//*
+ * //	 * call javascript function that updates jsPlumb processes
+ * //	 * @param event
+ * //
+ * //	 * get JSON description for single process
+ * //	 * @param process process name
+ * //	 * @return JSON description
+ * //
+ * //	 * get process description for specified identifier
+ * //	 * @param identifier identifier
+ * //	 * @return process description
+ * //
+ * //	 * get selected processes as IOProcess for chaining purposes
+ * //	 * @return io processes
+ * //
+ *//*
 
 //	@SuppressWarnings("unchecked")
 //	public void updateProcesses(ValueChangeEvent event) {
@@ -94,10 +106,10 @@
 //
 //	*/
 /**
-//	 * get JSON description for single process
-//	 * @param process process name
-//	 * @return JSON description
-//	 *//*
+ //	 * get JSON description for single process
+ //	 * @param process process name
+ //	 * @return JSON description
+ //	 *//*
 
 //	public String getJSONDescription(String process) {
 //		if(process == null || descriptions == null)
@@ -112,10 +124,10 @@
 //
 //	*/
 /**
-//	 * get process description for specified identifier
-//	 * @param identifier identifier
-//	 * @return process description
-//	 *//*
+ //	 * get process description for specified identifier
+ //	 * @param identifier identifier
+ //	 * @return process description
+ //	 *//*
 
 //	public WPSProcessDescription getProcessDescription(String identifier){
 //		if(descriptions != null)
@@ -150,9 +162,9 @@
 //
 //	*/
 /**
-//	 * get selected processes as IOProcess for chaining purposes
-//	 * @return io processes
-//	 *//*
+ //	 * get selected processes as IOProcess for chaining purposes
+ //	 * @return io processes
+ //	 *//*
 
 //	public Set<IOProcess> getIOProcesses(){
 //		if(descriptions == null)

@@ -1,26 +1,26 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
+import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * standard workflow operation
  */
 public class Workflow extends AbstractOperation implements IWorkflow {
 
-    private static final String PROCESS_TITLE = Workflow.class.getSimpleName();
+    private static final String PROCESS_TITLE = Workflow.class.getName();
 
-    private Collection<IWorkflowNode> nodes;
+    private Map<String,IWorkflowNode> nodes;
 
     /**
      * empty constructor, if used initializeConnectors() must be called after setting workflow nodes
      */
-    Workflow() {
-        super(PROCESS_TITLE, false);
+    Workflow(IIdentifier identifier) {
+        super(identifier);
     }
 
     /**
@@ -28,50 +28,81 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param nodes workflow nodes
      */
-    public Workflow(Collection<IWorkflowNode> nodes) {
-        this();
+    public Workflow(IIdentifier identifier, Collection<IWorkflowNode> nodes) {
+        this(identifier);
         this.setNodes(nodes);
+        super.initializeConnectors();
     }
 
     @Override
     protected void initializeInputConnectors() {
+        Set<IInputConnector> inputConnectors = new HashSet<>();
         for (IWorkflowNode node : this.getWorkflowNodes()) {
             for (IInputConnector connector : node.getInputConnectors()) {
                 if (connector.getConnections().isEmpty())
-                    this.addInputConnector(connector);
+                    inputConnectors.add(connector);
             }
+        }
+        this.initializeInputConnectors(inputConnectors);
+    }
+
+    /**
+     * add input connectors to workflow
+     *
+     * @param inputConnectors input connectors
+     */
+    public void initializeInputConnectors(Set<IInputConnector> inputConnectors) {
+        super.clearInputConnectors();
+        for (IInputConnector inputConnector : inputConnectors) {
+            this.addInputConnector(inputConnector);
         }
     }
 
     @Override
-    protected void initializeOutputConnectors() {
+    public void initializeOutputConnectors() {
+        Set<IOutputConnector> outputConnectors = new HashSet<>();
         for (IWorkflowNode node : this.getWorkflowNodes()) {
             for (IOutputConnector connector : node.getOutputConnectors()) {
                 if (connector.getConnections().isEmpty())
-                    this.addOutputConnector(connector);
+                    outputConnectors.add(connector);
             }
+        }
+        this.initializeOutputConnectors(outputConnectors);
+    }
+
+    /**
+     * add output connectors to workflow
+     *
+     * @param outputConnectors output connectors
+     */
+    public void initializeOutputConnectors(Set<IOutputConnector> outputConnectors) {
+        super.clearOutputConnectors();
+        for (IOutputConnector outputConnector : outputConnectors) {
+            this.addOutputConnector(outputConnector);
         }
     }
 
     @Override
-    public void execute() {
-        executeNode(this.nodes.iterator().next());
+    public void executeOperation() {
+        executeNode(this.getWorkflowNodes().iterator().next());
     }
 
     @NotNull
     @Override
     public Collection<IWorkflowNode> getWorkflowNodes() {
-        return this.nodes;
+        if(this.nodes == null)
+            this.nodes = new HashMap<>();
+        return this.nodes.values();
     }
 
     @Override
     public @NotNull Set<IWorkflowConnection> getWorkflowConnections() {
         Set<IWorkflowConnection> connections = new HashSet<>();
-        for(IWorkflowNode node : this.getWorkflowNodes()){
-            for(IInputConnector inConnector : node.getInputConnectors()){
+        for (IWorkflowNode node : this.getWorkflowNodes()) {
+            for (IInputConnector inConnector : node.getInputConnectors()) {
                 connections.addAll(inConnector.getConnections());
             }
-            for(IOutputConnector outConnector : node.getOutputConnectors()){
+            for (IOutputConnector outConnector : node.getOutputConnectors()) {
                 connections.addAll(outConnector.getConnections());
             }
         }
@@ -83,11 +114,26 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param node input workflow node
      */
-    protected void addNode(IWorkflowNode node) {
-        if (this.nodes == null)
-            this.nodes = new HashSet<>();
-        this.nodes.add(node);
-        initializeConnectors();
+    protected void addNode(@NotNull IWorkflowNode node) {
+        this.nodes.put(node.getIdentifier().toString(), node);
+    }
+
+    /**
+     * get a workflow node by id
+     *
+     * @param identifier node id
+     */
+    protected @Nullable IWorkflowNode getNode(@NotNull IIdentifier identifier) {
+        return this.getNode(identifier.toString());
+    }
+
+    /**
+     * get a workflow node by id
+     *
+     * @param sIdentifier node id
+     */
+    protected @Nullable IWorkflowNode getNode(@NotNull String sIdentifier) {
+        return this.nodes.get(sIdentifier);
     }
 
     /**
@@ -95,34 +141,46 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param nodes input workflow nodes
      */
-    protected void setNodes(Collection<IWorkflowNode> nodes) {
-        this.nodes = nodes;
-        initializeConnectors();
+    protected void setNodes(@NotNull Collection<IWorkflowNode> nodes) {
+        for (IWorkflowNode node : nodes)
+            this.addNode(node);
     }
 
     /**
      * recursively execute nodes (execute ancestor nodes first, then perform operation, finally call successor node)
      *
      * @param node node to execute
-     * @return true, if node has been executed
      */
-    public void executeNode(IWorkflowNode node) {
+    private void executeNode(IWorkflowNode node) {
         //execute ancestors and self, if this node has not been executed yet
-        if (!node.getState().equals(ElementState.SUCCESS)) {
+        if (!node.isSuccess()) {
             //execute ancestors, if have not been executed yet
             for (IWorkflowNode ancestor : node.getAncestors()) {
-                if (!ancestor.getState().equals(ElementState.SUCCESS))
+                if (!ancestor.isSuccess())
                     executeNode(ancestor);
             }
             //execute self
-            node.performAction();
-            if (!node.getState().equals(ElementState.SUCCESS))
+            node.execute();
+            if (!node.isSuccess())
                 throw new RuntimeException("Workflow node " + node.getIdentifier() + " did not succeed");
         }
         //execute successor nodes, if have not been executed yet
         for (IWorkflowNode successor : node.getSuccessors()) {
-            if (!successor.getState().equals(ElementState.SUCCESS))
+            if (!successor.isSuccess())
                 executeNode(successor);
         }
     }
+
+    @NotNull
+    @Override
+    public String getTitle() {
+        return PROCESS_TITLE;
+    }
+
+    @Nullable
+    @Override
+    public String getDescription() {
+        return null;
+    }
+
 }

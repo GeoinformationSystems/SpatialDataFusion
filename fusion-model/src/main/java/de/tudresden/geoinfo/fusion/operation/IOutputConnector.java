@@ -1,28 +1,15 @@
 package de.tudresden.geoinfo.fusion.operation;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-
 /**
  * Workflow output connector
  */
 public interface IOutputConnector extends IWorkflowConnector {
 
     /**
-     * get associated input connectors
+     * add an input connector to this connector
      *
-     * @return input connectors associated with this connector
+     * @param inputConnector input connector
      */
-    @NotNull
-    Collection<IInputConnector> getInputConnectors();
-
-    /**
-     * add input connectors
-     *
-     * @param connector input connector
-     * @return true, if connector has been set
-     */
-    boolean addInputConnector(@NotNull IInputConnector connector);
+    void connect(IInputConnector inputConnector);
 
 }
