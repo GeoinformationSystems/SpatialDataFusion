@@ -25,7 +25,7 @@ public class JSONParserTest extends AbstractTest {
 
     private void readJSON(URLLiteral resource) {
 
-        AbstractOperation operation = new OSMXMLParser(null);
+        AbstractOperation operation = new JSONParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

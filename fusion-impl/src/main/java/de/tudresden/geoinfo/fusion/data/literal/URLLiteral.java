@@ -1,10 +1,11 @@
 package de.tudresden.geoinfo.fusion.data.literal;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,15 +18,15 @@ import java.net.URL;
  */
 public class URLLiteral extends LiteralData<URL> {
 
-    private static IResource TYPE = Objects.ANYURI.getResource();
+    public final static IRDFProperty TYPE = Objects.ANYURI.getResource();
     private IOFormat format;
 
     /**
-     * @param identifier literal identifier
+     * @param identifier identifier
      * @param value      literal value
      * @param metadata   literal metadata
      */
-    public URLLiteral(@Nullable IIdentifier identifier, @NotNull URL value, @Nullable IMetadata metadata, @Nullable IOFormat format) {
+    public URLLiteral(@NotNull IIdentifier identifier, @NotNull URL value, @Nullable IMetadata metadata, @Nullable IOFormat format) {
         super(identifier, value, metadata, TYPE);
         this.format = format;
     }
@@ -36,7 +37,7 @@ public class URLLiteral extends LiteralData<URL> {
      * @param value literal value
      */
     public URLLiteral(@NotNull URL value, @Nullable IOFormat format) {
-        this(null, value, null, format);
+        this(new ResourceIdentifier(), value, null, format);
     }
 
     /**
@@ -67,20 +68,6 @@ public class URLLiteral extends LiteralData<URL> {
     }
 
     /**
-     * get RegEx for URL validation; !note: the RegEx is rather permissive!
-     *
-     * @return URL regex string
-     */
-    public static @NotNull String getURLRegex() {
-        return "" +
-                "(https?|file|ftp):" +    //scheme
-                "//[^\\?#]*" +            //authority
-                "[^\\?#]*" +            //path
-                "(\\?[^#]*)?" +            //query
-                "(#\\w*)?";                //fragment
-    }
-
-    /**
      * create URL from String
      *
      * @param sURL input URL String
@@ -93,11 +80,6 @@ public class URLLiteral extends LiteralData<URL> {
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException(sURL + " is not a valid URL");
         }
-    }
-
-    @Override
-    public @NotNull IResource getLiteralType() {
-        return TYPE;
     }
 
     /**
@@ -123,8 +105,22 @@ public class URLLiteral extends LiteralData<URL> {
     }
 
     @Override
-    public String toString() {
-        return this.resolve().toString();
+    public @Nullable String getLanguage() {
+        return null;
+    }
+
+    /**
+     * get RegEx for URL validation; !note: the RegEx is rather permissive!
+     *
+     * @return URL regex string
+     */
+    public static @NotNull String getURLRegex() {
+        return "" +
+                "(https?|file|ftp):" +    //scheme
+                "//[^\\?#]*" +            //authority
+                "[^\\?#]*" +               //path
+                "(\\?[^#]*)?" +            //query
+                "(#\\w*)?";                //fragment
     }
 
 }

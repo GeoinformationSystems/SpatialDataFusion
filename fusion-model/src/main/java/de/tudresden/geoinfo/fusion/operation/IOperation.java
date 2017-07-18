@@ -1,8 +1,9 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -18,6 +19,6 @@ public interface IOperation extends IWorkflowNode {
      * @return operation output
      */
     @NotNull
-    Map<IIdentifier, IData> execute(@NotNull Map<IIdentifier, IData> input);
+    Map<IIdentifier, IData> execute(@Nullable Map<IIdentifier, IData> input);
 
 }

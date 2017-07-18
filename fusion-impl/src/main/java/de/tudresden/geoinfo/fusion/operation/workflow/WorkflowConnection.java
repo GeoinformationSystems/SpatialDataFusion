@@ -1,6 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
@@ -23,8 +24,8 @@ public class WorkflowConnection extends AbstractWorkflowElement implements IWork
      * @param input      connection input
      * @param output     connection output
      */
-    public WorkflowConnection(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IInputConnector input, @NotNull IOutputConnector output) {
-        super(identifier, title, description);
+    public WorkflowConnection(@NotNull IIdentifier identifier, @Nullable String description, @NotNull IInputConnector input, @NotNull IOutputConnector output) {
+        super(identifier, description);
         this.input = input;
         this.output = output;
         this.input.addConnection(this);
@@ -38,7 +39,7 @@ public class WorkflowConnection extends AbstractWorkflowElement implements IWork
      * @param output output connector
      */
     public WorkflowConnection(@NotNull IInputConnector input, @NotNull IOutputConnector output) {
-        this(null, output.getTitle() + "_" + input.getTitle(), null, input, output);
+        this(new ResourceIdentifier(null, output.getIdentifier().getLocalIdentifier() + "_" + input.getIdentifier().getLocalIdentifier()), null, input, output);
     }
 
     @NotNull
@@ -54,7 +55,7 @@ public class WorkflowConnection extends AbstractWorkflowElement implements IWork
     }
 
     @Override
-    public boolean isReady() {
+    public boolean ready() {
         for (IConnectionConstraint connectionConstraint : this.input.getConnectionConstraints()) {
             if (!connectionConstraint.compliantWith(this.output)) {
                 return false;

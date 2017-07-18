@@ -45,7 +45,7 @@ public class SinuosityMatrixTest extends AbstractTest {
     }
 
     private void createSinuosityMatrix(GTFeatureCollection features, String featureId, @Nullable DecimalLiteral interval, boolean plot) {
-        GTVectorFeature feature = features.getFeatureById(featureId);
+        GTVectorFeature feature = features.getMember(featureId);
         if(feature == null)
             throw new IllegalArgumentException("Feature id " + featureId + " does not exist");
 	    createSinuosityMatrix(feature, interval, plot);
@@ -53,7 +53,7 @@ public class SinuosityMatrixTest extends AbstractTest {
 
     private void createSinuosityMatrix(@NotNull GTVectorFeature feature, @Nullable DecimalLiteral interval, boolean plot) {
 
-        AbstractOperation operation = new SinuosityMatrix(null);
+        AbstractOperation operation = new SinuosityMatrix();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_FEATURE, feature);

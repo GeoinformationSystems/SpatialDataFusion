@@ -2,22 +2,17 @@ package de.tudresden.geoinfo.fusion.operation.enhancement;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryCollection;
+import de.tud.fusion.Utilities;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
-import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,20 +30,18 @@ public class MultiToSinglepart extends AbstractOperation {
     /**
      * constructor
      */
-    public MultiToSinglepart(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public MultiToSinglepart() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
-        //get input connectors
-        IInputConnector featureConnector = getInputConnector(IN_FEATURES_TITLE);
         //get input
-        GTFeatureCollection features = (GTFeatureCollection) featureConnector.getData();
+        GTFeatureCollection features = (GTFeatureCollection) this.getMandatoryInputData(IN_FEATURES_TITLE);
         //intersect
         features = multiToSingle(features);
         //set output connector
-        connectOutput(OUT_FEATURES_TITLE, features);
+        setOutput(OUT_FEATURES_TITLE, features);
     }
 
     /**
@@ -56,7 +49,6 @@ public class MultiToSinglepart extends AbstractOperation {
      *
      * @param inFeatures input line features
      * @return intersected line features
-     * @throws IOException
      */
     private GTFeatureCollection multiToSingle(GTFeatureCollection inFeatures) {
         //init new collection
@@ -103,14 +95,14 @@ public class MultiToSinglepart extends AbstractOperation {
      */
     private boolean isMultiGeometry(GTVectorFeature feature) {
         //get default geometry from feature
-        Geometry geom = ((GTVectorRepresentation) feature.getRepresentation()).getDefaultGeometry();
+        Geometry geom = Utilities.getGeometry(feature);
         //check, if number of geometries > 1
         return (geom instanceof GeometryCollection);
     }
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -120,23 +112,11 @@ public class MultiToSinglepart extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

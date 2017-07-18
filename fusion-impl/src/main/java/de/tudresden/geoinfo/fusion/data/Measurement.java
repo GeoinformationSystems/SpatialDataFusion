@@ -1,103 +1,95 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.data.rdf.*;
+import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataElement;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFLiteral;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Predicates;
+import de.tudresden.geoinfo.fusion.operation.IOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * measurement data implementation
  *
  * @param <T> measurement data type
  */
-public class Measurement<T extends Comparable<T>> extends LiteralData<T> implements IMeasurement<T>, ISubject {
+public class Measurement<T extends Comparable<T>> extends DataSubject<T> implements IMeasurement<T> {
 
-    private IResource measurementOperation;
-    private Subject rdfSubject;
+    private final static IIdentifier MEASUREMENT_OPERATION = MetadataVocabulary.MEASUREMENT_OPERATION.getIdentifier();
+    private final static IIdentifier MEASUREMENT_VALUE_RANGE = MetadataVocabulary.MEASUREMENT_VALUE_RANGE.getIdentifier();
+    private final static IIdentifier MEASUREMENT_UOM = MetadataVocabulary.MEASUREMENT_UOM.getIdentifier();
+
+    private IRDFLiteral literal;
 
     /**
      * constructor
      *
-     * @param identifier           data identifier
-     * @param value                measurement value
+     * @param literal                measurement literal
      * @param metadata             measurement metadata
-     * @param measurementOperation measurement operation
      */
-    public Measurement(@Nullable IIdentifier identifier, @NotNull T value, @Nullable IMetadata metadata, @NotNull IResource dataType, @Nullable IResource measurementOperation) {
-        super(identifier, value, metadata, dataType);
-        this.measurementOperation = measurementOperation;
-    }
-
-    protected void initRDFSubject() {
-        this.rdfSubject = new Subject(null);
-        this.rdfSubject.put(Predicates.VALUE.getResource(), this.getLiteralObject());
-        if(measurementOperation != null)
-            this.rdfSubject.put(Predicates.OPERATION.getResource(), measurementOperation);
+    public Measurement(@NotNull LiteralData<T> literal, @Nullable IMetadata metadata) {
+        super(literal.getIdentifier(), literal.resolve(), literal.getMetadata());
+        this.literal = literal;
+        this.initRDFSubject();
     }
 
     /**
-     * create literal value as part of resource; prevents loop in RDF generation
-     * @return literal object (copy of this object not implementing ISubject)
+     * Constructor for default measurement metadata
+     * @param literal                measurement literal
+     * @param dc_title         dublin core title
+     * @param dc_abstract      dublin core description
+     * @param uom              unit of measurement
+     * @param measurementRange measurement range
      */
-    private @NotNull ILiteral getLiteralObject() {
-        return new LiteralData<>(null, this.resolve(), null, this.getLiteralType());
+    public Measurement(@NotNull LiteralData<T> literal, @Nullable String dc_title, @Nullable String dc_abstract, @Nullable IIdentifier uom, @Nullable IMeasurementRange measurementRange, @Nullable IOperation operation) {
+        this(literal, new Metadata(dc_title, dc_abstract));
+        if(uom != null)
+            this.addMetadataElement(new MetadataElement(MetadataVocabulary.MEASUREMENT_UOM.getIdentifier(), uom));
+        if(measurementRange != null)
+            this.addMetadataElement(new MetadataElement(MetadataVocabulary.MEASUREMENT_VALUE_RANGE.getIdentifier(), measurementRange));
+        if(operation != null)
+            this.addMetadataElement(new MetadataElement(MetadataVocabulary.MEASUREMENT_OPERATION.getIdentifier(), operation));
     }
 
-    @NotNull
-    @Override
-    public IResource getMeasurementOperation() {
-        return measurementOperation;
+    /**
+     * initialize RDF subject
+     */
+    private void initRDFSubject() {
+        this.addObject(Predicates.VALUE.getResource(), literal);
     }
 
     @Nullable
     @Override
-    public IMeasurementRange<T> getMeasurementRange() {
-        IMetadataElement md_element = this.getMetadata().getElement(Predicates.MEASUREMENT_VALUE_RANGE.getResource());
-        if (md_element != null && md_element instanceof IMeasurementRange)
-            //noinspection unchecked
-            return (IMeasurementRange<T>) md_element;
+    public IOperation getMeasurementOperation() {
+        Object md_uom = this.getMetadataObject(MEASUREMENT_OPERATION);
+        if (md_uom != null && md_uom instanceof IOperation)
+            return (IOperation) md_uom;
         return null;
     }
 
     @Nullable
     @Override
-    public IResource getUnitOfMeasurement() {
-        IMetadataElement md_element = this.getMetadata().getElement(Predicates.MEASUREMENT_UOM.getResource());
-        if (md_element != null && md_element instanceof IResource)
-            return (IResource) md_element;
+    public IMeasurementRange<T> getMeasurementRange() {
+        Object md_range = this.getMetadataObject(MEASUREMENT_VALUE_RANGE);
+        if (md_range != null && md_range instanceof IMeasurementRange)
+            //noinspection unchecked
+            return (IMeasurementRange<T>) md_range;
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public IIdentifier getUnitOfMeasurement() {
+        Object md_uom = this.getMetadataObject(MEASUREMENT_UOM);
+        if (md_uom != null && md_uom instanceof IIdentifier)
+            return (IIdentifier) md_uom;
         return null;
     }
 
     @Override
     public int compareTo(@NotNull IMeasurement<T> o) {
         return this.resolve().compareTo(o.resolve());
-    }
-
-    @Override
-    public @NotNull Set<IResource> getPredicates() {
-        return this.getRDFSubject().getPredicates();
-    }
-
-    @Override
-    public @Nullable Set<INode> getObjects(@NotNull IResource predicate) {
-        return this.getRDFSubject().getObjects(predicate);
-    }
-
-    protected void setRDFProperty(@NotNull IResource predicate, @NotNull INode object) {
-        this.getRDFSubject().put(predicate, object);
-    }
-
-    protected void setRDFProperty(@NotNull IResource predicate, @NotNull Collection<INode> objectSet) {
-        this.getRDFSubject().put(predicate, objectSet);
-    }
-
-    private Subject getRDFSubject() {
-        if(this.rdfSubject == null)
-            this.initRDFSubject();
-        return this.rdfSubject;
     }
 
 }

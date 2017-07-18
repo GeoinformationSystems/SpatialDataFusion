@@ -1,18 +1,16 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
-import de.tudresden.geoinfo.fusion.data.metadata.DC_Metadata;
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
 import de.tudresden.geoinfo.fusion.data.metadata.MetadataElement;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import org.apache.commons.io.FileUtils;
 import org.geotools.xml.Configuration;
 import org.geotools.xml.PullParser;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.SAXException;
 
@@ -36,8 +34,8 @@ public class GMLParser extends GTFeatureParser {
     /**
      * constructor
      */
-    public GMLParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public GMLParser() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     /**
@@ -304,27 +302,15 @@ public class GMLParser extends GTFeatureParser {
         Collection<GTVectorFeature> features = new HashSet<>();
         PullParser gmlParser = new PullParser(configuration, input, SimpleFeature.class);
         SimpleFeature feature;
-        IIdentifier resourceId = new Identifier(collectionId);
+        IIdentifier resourceId = new ResourceIdentifier(collectionId);
         while ((feature = (SimpleFeature) gmlParser.parse()) != null) {
             String featureID = feature.getID();
             Metadata metadata = new Metadata();
-            metadata.addElement(new MetadataElement(DC_Metadata.DC_TITLE.getResource(), featureID));
-            metadata.addElement(new MetadataElement(DC_Metadata.DC_SOURCE.getResource(), resourceId.toString()));
-            features.add(new GTVectorFeature(new Identifier(featureID), feature, metadata));
+            metadata.addElement(new MetadataElement(MetadataVocabulary.DC_TITLE.getIdentifier(), featureID));
+            metadata.addElement(new MetadataElement(MetadataVocabulary.DC_SOURCE.getIdentifier(), resourceId.toString()));
+            features.add(new GTVectorFeature(new ResourceIdentifier(featureID), feature, metadata, null));
         }
         return withIndex ? new GTFeatureCollection(resourceId, features, null) : new GTIndexedFeatureCollection(resourceId, features, null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

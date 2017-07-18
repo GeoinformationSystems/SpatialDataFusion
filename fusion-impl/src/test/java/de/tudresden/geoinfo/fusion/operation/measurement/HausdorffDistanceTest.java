@@ -23,7 +23,6 @@ public class HausdorffDistanceTest extends AbstractTest {
     private final static String IN_BIDIRECTIONAL = "IN_BIDIRECTIONAL";
     private final static String IN_POINTS_ONLY = "IN_POINTS_ONLY";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -48,7 +47,7 @@ public class HausdorffDistanceTest extends AbstractTest {
 
     private void calculateDistance(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold, BooleanLiteral bidirectional, BooleanLiteral pointsOnly) {
 
-        AbstractOperation operation = new HausdorffDistance(null);
+        AbstractOperation operation = new HausdorffDistance();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

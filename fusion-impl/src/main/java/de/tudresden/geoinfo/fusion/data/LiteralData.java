@@ -1,8 +1,7 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.ITypedLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFLiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,30 +14,20 @@ import java.util.Date;
 /**
  * LiteralData data implementation
  */
-public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
+public abstract class LiteralData<T> extends Data<T> implements IRDFLiteral {
 
-    private IResource dataType;
+    private IRDFProperty literalType;
 
     /**
      * constructor
      *
-     * @param identifier literal identifier
+     * @param identifier identifier
      * @param value      literal value
      * @param metadata   literal metadata
      */
-    public LiteralData(@Nullable IIdentifier identifier, @NotNull T value, @Nullable IMetadata metadata, IResource dataType) {
+    public LiteralData(@NotNull IIdentifier identifier, @NotNull T value, @Nullable IMetadata metadata, @NotNull IRDFProperty literalType) {
         super(identifier, value, metadata);
-        this.dataType = dataType;
-    }
-
-    /**
-     * constructor
-     *
-     * @param value    literal value
-     * @param dataType literal data type
-     */
-    public LiteralData(@NotNull T value, IResource dataType) {
-        this(null, value, null, dataType);
+        this.literalType = literalType;
     }
 
     /**
@@ -47,7 +36,7 @@ public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
      * @param sLiteral string representation of object
      * @return Java binding
      */
-    private static Class<?> getLiteralBindingFromString(@NotNull String sLiteral) {
+    private @NotNull static Class<?> getLiteralBinding(@NotNull String sLiteral) {
         //check boolean
         if (sLiteral.matches("^(?i)(true|false)$"))
             return Boolean.class;
@@ -78,8 +67,8 @@ public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
      * @return Java primitive
      */
     @NotNull
-    public static Object parseObjectFromString(@NotNull String sLiteral) {
-        Class<?> targetClass = getLiteralBindingFromString(sLiteral);
+    public static Object parseTypedLiteral(@NotNull String sLiteral) {
+        Class<?> targetClass = getLiteralBinding(sLiteral);
         try {
             // initialize primitive (constructor with String argument)
             return targetClass.getConstructor(new Class[]{String.class}).newInstance(sLiteral);
@@ -90,18 +79,19 @@ public class LiteralData<T> extends Data<T> implements ITypedLiteral<T> {
 
     @NotNull
     @Override
-    public String getLiteral() {
+    public String getLiteralValue() {
         return String.valueOf(this.resolve());
     }
 
     @NotNull
     @Override
-    public IResource getLiteralType() {
-        return this.dataType;
+    public IRDFProperty getLiteralType() {
+        return this.literalType;
     }
 
     @Override
     public String toString() {
-        return this.resolve().toString();
+        return this.getLiteralValue();
     }
+
 }

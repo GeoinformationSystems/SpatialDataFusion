@@ -4,22 +4,21 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+import de.tud.fusion.Utilities;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -34,7 +33,7 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
     private static final IMeasurementRange<Double> MEASUREMENT_RANGE = DecimalLiteral.getPositiveRange();
     private static final String MEASUREMENT_TITLE = "Hausdorff distance";
     private static final String MEASUREMENT_DESCRIPTION = "Hausdorff between geometries";
-    private static final IResource MEASUREMENT_UNIT = Units.MAP_UNITS.getResource();
+    private static final IIdentifier MEASUREMENT_UNIT = MetadataVocabulary.MAP_UNITS.getIdentifier();
 
     private static final String IN_THRESHOLD_TITLE = "IN_THRESHOLD";
     private static final String IN_THRESHOLD_DESCRIPTION = "Distance threshold for creating a relation, in map units";
@@ -51,34 +50,35 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
     /**
      * constructor
      */
-    public HausdorffDistance(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public HausdorffDistance() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
-        this.dThreshold = ((DecimalLiteral) getInputConnector(IN_THRESHOLD_TITLE).getData()).resolve();
-        this.bBidirectional = ((BooleanLiteral) getInputConnector(IN_BIDIRECTIONAL_TITLE).getData()).resolve();
-        this.bPointsOnly = ((BooleanLiteral) getInputConnector(IN_POINTS_ONLY_TITLE).getData()).resolve();
+        this.dThreshold = ((DecimalLiteral) this.getMandatoryInputData(IN_THRESHOLD_TITLE)).resolve();
+        this.bBidirectional = ((BooleanLiteral) this.getMandatoryInputData(IN_BIDIRECTIONAL_TITLE)).resolve();
+        this.bPointsOnly = ((BooleanLiteral) this.getMandatoryInputData(IN_POINTS_ONLY_TITLE)).resolve();
         super.executeOperation();
     }
 
     @Override
-    public IRelationMeasurement performRelationMeasurement(GTVectorFeature domainFeature, GTVectorFeature rangeFeature) {
+    public IRelationMeasurement performRelationMeasurement(@NotNull GTVectorFeature domainFeature, @NotNull GTVectorFeature rangeFeature) {
+
         //get geometries
-        Geometry gDomain = (Geometry) domainFeature.getRepresentation().getDefaultGeometry();
-        Geometry gRange = (Geometry) rangeFeature.getRepresentation().getDefaultGeometry();
+        Geometry gDomain = Utilities.getGeometry(domainFeature);
+        Geometry gRange = Utilities.getGeometry(rangeFeature);
         if (gDomain == null || gRange == null)
             return null;
 
         //check for overlap
         if (gDomain.intersects(gRange))
-            return new RelationMeasurement<>(null, domainFeature, rangeFeature, 0d, this.getMeasurementMetadata(), this);
+            return new RelationMeasurement<>(new DecimalLiteral(0d), domainFeature, rangeFeature, this.getMeasurementMetadata());
         else {
             //check distance
             double dDistance = getHDDistance(gDomain, gRange);
             if (dDistance <= dThreshold)
-                return new RelationMeasurement<>(null, domainFeature, rangeFeature, dDistance, this.getMeasurementMetadata(), this);
+                return new RelationMeasurement<>(new DecimalLiteral(dDistance), domainFeature, rangeFeature, this.getMeasurementMetadata());
                 //return null if distance > threshold
             else
                 return null;
@@ -154,17 +154,17 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(null, IN_BIDIRECTIONAL_TITLE, IN_BIDIRECTIONAL_DESCRIPTION,
+        addInputConnector(IN_BIDIRECTIONAL_TITLE, IN_BIDIRECTIONAL_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
                 new BooleanLiteral(false));
-        addInputConnector(null, IN_POINTS_ONLY_TITLE, IN_POINTS_ONLY_DESCRIPTION,
+        addInputConnector(IN_POINTS_ONLY_TITLE, IN_POINTS_ONLY_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
                 new BooleanLiteral(false));
-        addInputConnector(null, IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class),
                         new MandatoryDataConstraint()},
@@ -172,21 +172,10 @@ public class HausdorffDistance extends AbstractRelationMeasurement {
                 new DecimalLiteral(0));
     }
 
+    @NotNull
     @Override
     public IMetadata initMeasurementMetadata() {
-        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
+        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
     }
 
 }

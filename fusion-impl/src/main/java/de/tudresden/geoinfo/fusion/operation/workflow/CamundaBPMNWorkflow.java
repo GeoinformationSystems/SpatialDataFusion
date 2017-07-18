@@ -1,13 +1,12 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.camunda.bpm.model.bpmn.impl.instance.SourceRef;
 import org.camunda.bpm.model.bpmn.impl.instance.TargetRef;
 import org.camunda.bpm.model.bpmn.instance.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,8 +26,8 @@ public class CamundaBPMNWorkflow extends Workflow implements IWorkflow {
      *
      * @param model Camunda BPMN model
      */
-    public CamundaBPMNWorkflow(@Nullable IIdentifier identifier, CamundaBPMNModel model) {
-        super(identifier);
+    public CamundaBPMNWorkflow(@NotNull CamundaBPMNModel model) {
+        super();
         if(!model.isValid())
             throw new IllegalArgumentException("Model is not valid");
         this.model = model;
@@ -154,7 +153,7 @@ public class CamundaBPMNWorkflow extends Workflow implements IWorkflow {
     }
 
     private void initilizeScriptTask(ScriptTask task) {
-        IWorkflowNode node = this.getNodeFromClassName(task.getName(), new Identifier(task.getId()));
+        IWorkflowNode node = this.getNodeFromClassName(task.getName(), new ResourceIdentifier(task.getId()));
         this.addNode(node);
     }
 

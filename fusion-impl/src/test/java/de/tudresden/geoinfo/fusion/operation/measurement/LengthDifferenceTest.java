@@ -20,7 +20,6 @@ public class LengthDifferenceTest extends AbstractTest {
     private final static String IN_RANGE = "IN_RANGE";
     private final static String IN_THRESHOLD = "IN_THRESHOLD";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -28,17 +27,26 @@ public class LengthDifferenceTest extends AbstractTest {
         calculateDifference(
                 ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
                 ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
-                new DecimalLiteral(0.0005));
+                null);
+    }
+
+    @Test
+    public void getLengthDifferenceWithThreshold() throws IOException {
+        calculateDifference(
+                ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
+                ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
+                new DecimalLiteral(0.5));
     }
 
     private void calculateDifference(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
 
-        AbstractOperation operation = new LengthDifference(null);
+        AbstractOperation operation = new LengthDifference();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);
         inputs.put(IN_RANGE, range);
-        inputs.put(IN_THRESHOLD, threshold);
+        if(threshold != null)
+            inputs.put(IN_THRESHOLD, threshold);
 
         Map<String,Class<? extends IData>> outputs = new HashMap<>();
         outputs.put(OUT_MEASUREMENTS, RelationMeasurementCollection.class);

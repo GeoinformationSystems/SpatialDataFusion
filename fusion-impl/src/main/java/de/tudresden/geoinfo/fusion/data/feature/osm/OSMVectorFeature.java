@@ -2,7 +2,6 @@ package de.tudresden.geoinfo.fusion.data.feature.osm;
 
 import com.vividsolutions.jts.geom.Geometry;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.feature.IFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -31,7 +30,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
      * @param geometry    OSM feature geometry
      * @param relations   feature relations
      */
-    public OSMVectorFeature(@NotNull OSMPropertySet propertySet, @NotNull Geometry geometry, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public OSMVectorFeature(@NotNull OSMPropertySet propertySet, @NotNull Geometry geometry, @Nullable IMetadata metadata, @Nullable Set<IRelation> relations) {
         super(propertySet.getIdentifier(), initSimpleFeature(propertySet, geometry), metadata, relations);
         this.propertySet = propertySet;
     }
@@ -44,7 +43,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
      * @return GeoTools feature implementation
      */
     @NotNull
-    protected static SimpleFeature initSimpleFeature(@NotNull OSMPropertySet propertySet, @NotNull Geometry geometry) {
+    private static SimpleFeature initSimpleFeature(@NotNull OSMPropertySet propertySet, @NotNull Geometry geometry) {
         SimpleFeatureType type = initSimpleFeatureType(propertySet);
         SimpleFeatureBuilder builder = new SimpleFeatureBuilder(type);
         for (Map.Entry<String, Object> property : propertySet.getProperties().entrySet()) {
@@ -54,7 +53,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
             builder.set(tag.getKey(), tag.getValue());
         }
         builder.set(OSM_GEOMETRY_ID, geometry);
-        return builder.buildFeature(propertySet.getIdentifier().toString());
+        return builder.buildFeature(propertySet.getGlobalIdentifier());
     }
 
     /**
@@ -64,7 +63,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
      * @return GeoTools feature type implementation
      */
     @NotNull
-    protected static SimpleFeatureType initSimpleFeatureType(@NotNull OSMPropertySet propertySet) {
+    private static SimpleFeatureType initSimpleFeatureType(@NotNull OSMPropertySet propertySet) {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.setName("OSMFeatureType");
         builder.setSRS("EPSG:4326"); //default CRS for OSM
@@ -80,7 +79,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
 
     @Override
     public boolean equals(@NotNull Object node) {
-        return node instanceof OSMVectorFeature && getIdentifier().equals(((OSMVectorFeature) node).getIdentifier());
+        return node instanceof OSMVectorFeature && this.getIdentifier().equals(((OSMVectorFeature) node).getIdentifier());
     }
 
     /**
@@ -88,8 +87,7 @@ public abstract class OSMVectorFeature extends GTVectorFeature {
      *
      * @return property set
      */
-    @NotNull
-    protected OSMPropertySet getPropertySet() {
+    @NotNull OSMPropertySet getPropertySet() {
         return propertySet;
     }
 

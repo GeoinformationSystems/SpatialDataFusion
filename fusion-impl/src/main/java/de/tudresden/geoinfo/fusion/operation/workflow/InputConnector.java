@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,27 +21,25 @@ public class InputConnector extends AbstractWorkflowConnector implements IInputC
 
     /**
      * constructor
-     *
+     *@param identifier local element identifier
      * @param entity                associated workflow entity
-     * @param identifier            IO identifier
      * @param runtimeConstraints    connector runtime constraints
      * @param connectionConstraints connection constraints
      */
-    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, IData defaultData) {
-        super(identifier, title, description, entity, runtimeConstraints, connectionConstraints);
+    public InputConnector(@NotNull IIdentifier identifier, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, IData defaultData) {
+        super(identifier, description, entity, runtimeConstraints, connectionConstraints);
         this.defaultData = defaultData;
     }
 
     /**
      * constructor
-     *
+     * @param identifier element identifier
      * @param entity                associated workflow entity
-     * @param identifier            IO identifier
      * @param runtimeConstraints    connector runtime constraints
      * @param connectionConstraints connection constraints
      */
-    public InputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
-        this(identifier, title, description, entity, new HashSet<>(Arrays.asList(runtimeConstraints)), new HashSet<>(Arrays.asList(connectionConstraints)), defaultData);
+    public InputConnector(@NotNull IIdentifier identifier, @Nullable String description, @NotNull IWorkflowNode entity, @NotNull IRuntimeConstraint[] runtimeConstraints, @NotNull IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
+        this(identifier, description, entity, new HashSet<>(Arrays.asList(runtimeConstraints)), new HashSet<>(Arrays.asList(connectionConstraints)), defaultData);
     }
 
     /**

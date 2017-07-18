@@ -2,14 +2,12 @@ package de.tudresden.geoinfo.fusion.operation.ows;
 
 import de.tud.fusion.KVPRequestBuilder;
 import de.tudresden.geoinfo.fusion.data.IData;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
 import de.tudresden.geoinfo.fusion.data.ows.OWSCapabilities;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
-import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
+import de.tudresden.geoinfo.fusion.operation.*;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.IOFormatConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.PatternConstraint;
@@ -27,7 +25,7 @@ import java.util.Set;
  */
 public abstract class OWSServiceOperation extends AbstractOperation {
 
-    private final static String IN_VERSION_TITLE = "IN_VERSION";
+    private final static String IN_VERSION_CONNECTOR = "IN_VERSION";
     private final static String IN_VERSION_DESCRIPTION = "OWS version";
 
     private final static String PARAM_SERVICE = "service";
@@ -41,16 +39,14 @@ public abstract class OWSServiceOperation extends AbstractOperation {
     private KVPRequestBuilder requestBuilder;
     private OWSCapabilities capabilities;
 
-
     /**
      * constructor
      *
      * @param base        OSW base URL
      */
-    public OWSServiceOperation(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
-        super(identifier);
+    public OWSServiceOperation(@NotNull String localIdentifier, @Nullable String description, @NotNull URLLiteral base) {
+        super(localIdentifier, description);
         this.requestBuilder = new KVPRequestBuilder(base);
-        this.requestBuilder.setParameter(PARAM_VERSION, this.getDefaultVersion());
         this.requestBuilder.setParameter(PARAM_SERVICE, this.getService());
         this.initializeConnectors();
     }
@@ -97,19 +93,6 @@ public abstract class OWSServiceOperation extends AbstractOperation {
     }
 
     /**
-     * set OWS request parameter
-     *
-     * @param parameter OWS request parameter
-     * @param literal   OWS request parameter value
-     */
-    public void setParameter(@NotNull String parameter, @Nullable StringLiteral literal) {
-        if (literal == null)
-            this.requestBuilder.removeParameter(parameter);
-        else
-            this.setParameter(parameter, literal.resolve());
-    }
-
-    /**
      * get OWS service URL
      *
      * @return OWS service URL
@@ -132,14 +115,14 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      */
     public @NotNull String getVersion() {
         //noinspection ConstantConditions
-        return this.requestBuilder.getParameter(PARAM_VERSION);
+        return ((StringLiteral) this.getInputData(IN_VERSION_CONNECTOR)).resolve();
     }
 
     /**
      * set OWS version
      */
     public void setVersion() {
-        this.setParameter(PARAM_VERSION, (StringLiteral) this.getInputData(IN_VERSION_TITLE));
+        this.setParameter(PARAM_VERSION, getVersion());
     }
 
     /**
@@ -194,8 +177,7 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      * @return OWS service request
      */
     public @NotNull String getRequest() {
-        //noinspection ConstantConditions
-        return this.requestBuilder.getParameter(PARAM_VERSION);
+        return this.requestBuilder.getMandatoryParameter(PARAM_REQUEST);
     }
 
     /**
@@ -223,15 +205,15 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      */
     void setCapabilities() {
         //init parser
-        OWSCapabilitiesParser parser = new OWSCapabilitiesParser(null);
-        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(PARSER_IN_RESOURCE).getIdentifier();
-        IIdentifier ID_OUT_CAPABILITIES = parser.getOutputConnector(PARSER_OUT_CAPABILITIES).getIdentifier();
+        OWSCapabilitiesParser parser = new OWSCapabilitiesParser();
+        IInputConnector resourceConnector = parser.getInputConnector(PARSER_IN_RESOURCE);
+        IOutputConnector capabilitiesConnector = parser.getOutputConnector(PARSER_OUT_CAPABILITIES);
         Map<IIdentifier, IData> input = new HashMap<>();
         //set input, parse capabilities and connect output
         try {
-            input.put(ID_IN_RESOURCE, getCapabilitiesRequest());
+            input.put(resourceConnector.getIdentifier(), getCapabilitiesRequest());
             Map<IIdentifier, IData> output = parser.execute(input);
-            this.capabilities = (OWSCapabilities) output.get(ID_OUT_CAPABILITIES);
+            this.capabilities = (OWSCapabilities) output.get(capabilitiesConnector.getIdentifier());
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Could not parse capabilities", e);
         }
@@ -254,12 +236,13 @@ public abstract class OWSServiceOperation extends AbstractOperation {
      */
     private @NotNull URLLiteral getCapabilitiesRequest() throws MalformedURLException {
         this.setRequest(VALUE_GETCAPABILITIES);
+        this.setVersion();
         return this.requestBuilder.getKVPRequest(new String[]{PARAM_SERVICE, PARAM_REQUEST}, new String[]{PARAM_VERSION});
     }
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_VERSION_TITLE, IN_VERSION_DESCRIPTION,
+        addInputConnector(IN_VERSION_CONNECTOR, IN_VERSION_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new PatternConstraint("(" + String.join(")|(", this.getSupportedVersions()) + ")")},

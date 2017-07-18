@@ -1,7 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.feature.osm;
 
 import com.vividsolutions.jts.geom.Geometry;
-import de.tudresden.geoinfo.fusion.data.feature.IFeature;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.geotools.geometry.jts.GeometryBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,7 @@ public class OSMNode extends OSMVectorFeature {
      * @param propertySet OSM property set
      * @param relations   feature relations
      */
-    public OSMNode(@NotNull OSMPropertySet propertySet, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public OSMNode(@NotNull OSMPropertySet propertySet, @Nullable Set<IRelation> relations) {
         super(propertySet, getNodeGeometry(propertySet), null, relations);
     }
 

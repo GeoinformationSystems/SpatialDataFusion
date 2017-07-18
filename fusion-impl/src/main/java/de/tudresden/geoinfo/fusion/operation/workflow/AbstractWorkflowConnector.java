@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,13 +23,14 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
 
     /**
      * constructor
-     *
+     * @param identifier element identifier
+     * @param description element description
      * @param entity                associated entity
      * @param runtimeConstraints    IO connector data constraints
      * @param connectionConstraints IO connector data description constraints
      */
-    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
-        super(identifier, title, description);
+    public AbstractWorkflowConnector(@NotNull IIdentifier identifier, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
+        super(identifier, description);
         this.entity = entity;
         this.connections = new HashSet<>();
         this.runtimeConstraints = runtimeConstraints != null ? runtimeConstraints : new HashSet<>();
@@ -38,13 +39,14 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
 
     /**
      * constructor
-     *
+     * @param identifier element identifier
+     * @param description element description
      * @param entity                associated entity
      * @param runtimeConstraints    IO connector data constraints
      * @param connectionConstraints IO connector data description constraints
      */
-    public AbstractWorkflowConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
-        this(identifier, title, description, entity, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
+    public AbstractWorkflowConnector(@NotNull IIdentifier identifier, @Nullable String description, @NotNull IWorkflowNode entity, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
+        this(identifier, description, entity, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
     }
 
     @NotNull
@@ -87,11 +89,6 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
     }
 
     @Override
-    public boolean isReady() {
-        return validate(this.data);
-    }
-
-    @Override
     public @Nullable IData getData() {
         return this.data;
     }
@@ -113,11 +110,18 @@ public abstract class AbstractWorkflowConnector extends AbstractWorkflowElement 
         return this.entity;
     }
 
+    @Override
     public void reset() {
         for(IWorkflowConnection connection : this.getConnections()){
             connection.reset();
         }
         this.getConnections().clear();
+        this.data = null;
+    }
+
+    @Override
+    public boolean ready() {
+        return this.validate(this.getData());
     }
 
 }

@@ -1,39 +1,35 @@
 package de.tudresden.geoinfo.fusion.data;
 
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * abstract data object
  */
-public class Data<T> extends Resource implements IData {
+public class Data<T> implements IData {
 
+    private IIdentifier identifier;
     private T object;
     private IMetadata metadata;
 
     /**
      * constructor
      *
-     * @param identifier data identifier
+     * @param identifier identifier
      * @param object     data object
-     * @param metadata   data metadata
+     * @param metadata   metadata object
      */
-    public Data(@Nullable IIdentifier identifier, @NotNull T object, @Nullable IMetadata metadata) {
-        super(identifier);
+    public Data(@NotNull IIdentifier identifier, @NotNull T object, @Nullable IMetadata metadata) {
+        this.identifier = identifier;
         this.setObject(object);
         this.setMetadata(metadata);
     }
 
-    /**
-     * constructor
-     *
-     * @param identifier data identifier
-     * @param object     data object
-     */
-    public Data(@Nullable IIdentifier identifier, @NotNull T object) {
-        this(identifier, object, null);
+    @Override
+    @NotNull
+    public IIdentifier getIdentifier() {
+        return this.identifier;
     }
 
     @NotNull
@@ -73,6 +69,16 @@ public class Data<T> extends Resource implements IData {
      */
     protected void addMetadataElement(IMetadataElement element) {
         this.metadata.addElement(element);
+    }
+
+    /**
+     * add a metadata element
+     *
+     * @param identifier metadata identifier
+     */
+    public @Nullable Object getMetadataObject(IIdentifier identifier) {
+        IMetadataElement md_element = this.metadata.getElement(identifier);
+        return md_element != null ? md_element.getValue() : null;
     }
 
 }

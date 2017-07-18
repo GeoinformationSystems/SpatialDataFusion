@@ -1,8 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -17,14 +15,14 @@ public class BinaryRelationType extends RelationType implements IBinaryRelationT
     /**
      * constructor
      *
-     * @param identifier   type identifier
+     * @param identifier   type resource identifier
      * @param roleOfDomain reference role
      * @param roleOfRange  target role
      * @param symmetric    flag: relation is symmetric
      * @param transitive   flag: relation is transitive
      * @param reflexive    flag: relation is reflexive
      */
-    public BinaryRelationType(@Nullable IIdentifier identifier, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
+    public BinaryRelationType(@NotNull String identifier, @NotNull IRole roleOfDomain, @NotNull IRole roleOfRange, boolean symmetric, boolean transitive, boolean reflexive) {
         super(identifier, Arrays.asList(roleOfDomain, roleOfRange));
         this.roleOfDomain = roleOfDomain;
         this.roleOfRange = roleOfRange;

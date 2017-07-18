@@ -1,6 +1,5 @@
 package de.tudresden.geoinfo.client.beans;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.ows.OWSServiceOperation;
 import de.tudresden.geoinfo.fusion.operation.ows.WMSProxy;
@@ -24,7 +23,7 @@ public class WMSBean extends AbstractOWSBean implements Serializable {
 
     @Override
     WMSProxy initOWSHandler(String uid, String sBaseURL) throws IOException {
-        return new WMSProxy(new Identifier(uid), new URLLiteral(sBaseURL));
+        return new WMSProxy(new URLLiteral(sBaseURL));
     }
 
     @Override

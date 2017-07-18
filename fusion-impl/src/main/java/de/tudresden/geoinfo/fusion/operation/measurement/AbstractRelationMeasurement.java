@@ -1,17 +1,16 @@
 package de.tudresden.geoinfo.fusion.operation.measurement;
 
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.feature.IFeature;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.*;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractRelationMeasurement extends AbstractOperation {
@@ -36,29 +35,26 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
      * constructor
      *
      */
-    public AbstractRelationMeasurement(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public AbstractRelationMeasurement(String title, String description) {
+        super(title, description);
         this.measurementMetadata = initMeasurementMetadata();
     }
 
     @Override
     public void executeOperation() {
-        //get input connectors
-        IInputConnector sourceConnector = getInputConnector(IN_DOMAIN_TITLE);
-        IInputConnector targetConnector = getInputConnector(IN_RANGE_TITLE);
-        IInputConnector relationsConnector = getInputConnector(IN_RELATIONS_TITLE);
-        IInputConnector dropRelationConnector = getInputConnector(IN_DROP_RELATIONS_TITLE);
+
         //get inputs
-        GTFeatureCollection sourceFeatures = (GTFeatureCollection) sourceConnector.getData();
-        GTFeatureCollection targetFeatures = (GTFeatureCollection) targetConnector.getData();
-        BinaryFeatureRelationCollection relations = relationsConnector.getData() != null ? (BinaryFeatureRelationCollection) relationsConnector.getData() : null;
-        BooleanLiteral dropRelations = (BooleanLiteral) dropRelationConnector.getData();
+        GTFeatureCollection sourceFeatures = (GTFeatureCollection) this.getMandatoryInputData(IN_DOMAIN_TITLE);
+        GTFeatureCollection targetFeatures = (GTFeatureCollection) this.getMandatoryInputData(IN_RANGE_TITLE);
+        BinaryRelationCollection relations = (BinaryRelationCollection) this.getInputData(IN_RELATIONS_TITLE);
+        BooleanLiteral dropRelations = (BooleanLiteral) this.getMandatoryInputData(IN_DROP_RELATIONS_TITLE);
+
         //measurement without existing relations
         if (relations == null)
-            connectOutput(OUT_MEASUREMENTS_TITLE, performRelationMeasurement(sourceFeatures, targetFeatures));
+            setOutput(OUT_MEASUREMENTS_TITLE, performRelationMeasurement(sourceFeatures, targetFeatures));
             //measurement with existing relations
         else
-            connectOutput(OUT_RELATIONS_TITLE, performRelationMeasurement(sourceFeatures, targetFeatures, relations, dropRelations.resolve()));
+            setOutput(OUT_RELATIONS_TITLE, performRelationMeasurement(sourceFeatures, targetFeatures, relations, dropRelations.resolve()));
     }
 
     /**
@@ -68,8 +64,8 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
      * @param rangeFeatures  target features
      * @return result relations
      */
-    public RelationMeasurementCollection performRelationMeasurement(GTFeatureCollection domainFeatures, GTFeatureCollection rangeFeatures) {
-        RelationMeasurementCollection relationMeasurements = new RelationMeasurementCollection(null, null, null);
+    public @NotNull RelationMeasurementCollection performRelationMeasurement(@NotNull GTFeatureCollection domainFeatures, @NotNull GTFeatureCollection rangeFeatures) {
+        RelationMeasurementCollection relationMeasurements = new RelationMeasurementCollection(new ResourceIdentifier(), null, null);
         for (GTVectorFeature domain : domainFeatures) {
             for (GTVectorFeature range : rangeFeatures) {
                 IRelationMeasurement measurement = performRelationMeasurement(domain, range);
@@ -89,23 +85,26 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
      * @param dropRelations  flag: drop relations, if this measurement is above threshold
      * @return result relations
      */
-    public BinaryFeatureRelationCollection performRelationMeasurement(GTFeatureCollection domainFeatures, GTFeatureCollection rangeFeatures, BinaryFeatureRelationCollection relations, boolean dropRelations) {
-        for (IRelation<? extends IFeature> relation : relations) {
+    public @NotNull BinaryRelationCollection performRelationMeasurement(@NotNull GTFeatureCollection domainFeatures, @NotNull GTFeatureCollection rangeFeatures, @NotNull BinaryRelationCollection relations, boolean dropRelations) {
+        BinaryRelationCollection newRelations = new BinaryRelationCollection(relations.getIdentifier(), null, null);
+        for (IRelation relation : relations) {
             //continue in case of non-binary relation
-            if (!(relation instanceof BinaryFeatureRelation))
+            if (!(relation instanceof BinaryRelation))
                 continue;
             //check for feature identifier in domain and range features
-            GTVectorFeature domain = domainFeatures.getFeatureById(((BinaryFeatureRelation) relation).getDomain().getIdentifier());
-            GTVectorFeature range = rangeFeatures.getFeatureById(((BinaryFeatureRelation) relation).getRange().getIdentifier());
+            GTVectorFeature domain = domainFeatures.getMember(((BinaryRelation) relation).getDomain().getIRI());
+            GTVectorFeature range = rangeFeatures.getMember(((BinaryRelation) relation).getRange().getIRI());
             if (domain == null || range == null)
                 continue;
             //add relation measurement
             IRelationMeasurement measurement = performRelationMeasurement(domain, range);
-            if (measurement == null && dropRelations)
+            if (measurement != null)
+                ((BinaryRelation) relation).addMeasurement(measurement);
+            else if(dropRelations)
                 continue;
-            ((BinaryFeatureRelation) relation).addMeasurement(measurement);
+            newRelations.add((BinaryRelation) relation);
         }
-        return relations;
+        return newRelations;
     }
 
     /**
@@ -115,28 +114,28 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
      * @param rangeFeature  target feature
      * @return feature relation or null, if relation measurement is above threshold
      */
-    public abstract IRelationMeasurement performRelationMeasurement(GTVectorFeature domainFeature, GTVectorFeature rangeFeature);
+    public abstract @Nullable IRelationMeasurement performRelationMeasurement(@NotNull GTVectorFeature domainFeature, @NotNull GTVectorFeature rangeFeature);
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
+        addInputConnector(IN_RELATIONS_TITLE, IN_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(BinaryFeatureRelationCollection.class)},
+                        new BindingConstraint(BinaryRelationCollection.class)},
                 null,
                 null);
-        addInputConnector(null, IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
+        addInputConnector(IN_DROP_RELATIONS_TITLE, IN_DROP_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
@@ -145,30 +144,28 @@ public abstract class AbstractRelationMeasurement extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
+        addOutputConnector(OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(RelationMeasurementCollection.class)},
                 null);
-        addOutputConnector(null, OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
+        addOutputConnector(OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
-                        new BindingConstraint(BinaryFeatureRelationCollection.class)},
+                        new BindingConstraint(BinaryRelationCollection.class)},
                 null);
     }
-
-    /**
-     * initialize measurement metadata (called from constructor)
-     *
-     * @return measurement metadata
-     */
-    abstract IMetadata initMeasurementMetadata();
 
     /**
      * get initialized measurement metadata
      *
      * @return measurement metadata
      */
-    final IMetadata getMeasurementMetadata() {
+    final @NotNull IMetadata getMeasurementMetadata() {
+        if(this.measurementMetadata == null)
+            this.measurementMetadata = initMeasurementMetadata();
         return this.measurementMetadata;
     }
+
+    @NotNull
+    public abstract IMetadata initMeasurementMetadata();
 
 }

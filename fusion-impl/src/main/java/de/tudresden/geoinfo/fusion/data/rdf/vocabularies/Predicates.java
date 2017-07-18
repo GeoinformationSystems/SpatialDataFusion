@@ -1,12 +1,10 @@
 package de.tudresden.geoinfo.fusion.data.rdf.vocabularies;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.Resource;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.RDFProperty;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
-
-import java.net.URI;
 
 public enum Predicates implements IRDFVocabulary {
 
@@ -14,62 +12,52 @@ public enum Predicates implements IRDFVocabulary {
      * RDF predicates
      */
 
-    TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-    VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value"),
-    MEMBER("http://www.w3.org/1999/02/22-rdf-syntax-ns#li"),
+    TYPE("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "type"),
+    VALUE("http://www.w3.org/1999/02/22-rdf-syntax-ns#value", "value"),
+    MEMBER("http://www.w3.org/1999/02/22-rdf-syntax-ns#li", "list"),
 
     /**
      * GeoSPARQL predicates
      */
 
-    GEOMETRY("http://www.opengis.net/ont/geosparql#hasGeometry"),
-    DEFAULT_GEOMETRY("http://www.opengis.net/ont/geosparql#hasDefaultGeometry"),
-    SERIALIZATION("http://www.opengis.net/ont/geosparql#hasSerialization"),
-    asWKT("http://www.opengis.net/ont/geosparql#asWKT"),
-    asGML("http://www.opengis.net/ont/geosparql#asGML"),
-
-    /**
-     *
-     */
-
-    FEATURE_VIEW("http://tu-dresden.de/uw/geo/gis/fusion/relation#featureView"),
-
-    /**
-     * Measurement
-     */
-
-    MEASUREMENTS("http://tu-dresden.de/uw/geo/gis/fusion#hasMeasurements"),
-    MEASUREMENT_VALUE_RANGE("http://tu-dresden.de/uw/geo/gis/fusion#hasRange"),
-    HAS_RANGE_MEMBER("http://tu-dresden.de/uw/geo/gis/fusion#hasRangeMember"),
-    RANGE_IS_CONTINUOUS("http://tu-dresden.de/uw/geo/gis/fusion#isContinuous"),
-    MEASUREMENT_UOM("http://tu-dresden.de/uw/geo/gis/fusion/relation#uom"),
-    MEASUREMENT_PROCESS("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurementProcess"),
-    OPERATION("http://tu-dresden.de/uw/geo/gis/fusion/relation#operation"),
+    GEOMETRY("http://www.opengis.net/ont/geosparql#hasGeometry", "geometry"),
+    DEFAULT_GEOMETRY("http://www.opengis.net/ont/geosparql#hasDefaultGeometry", "default geometry"),
+    SERIALIZATION("http://www.opengis.net/ont/geosparql#hasSerialization", "serialization"),
+    asWKT("http://www.opengis.net/ont/geosparql#asWKT", "wkt"),
+    asGML("http://www.opengis.net/ont/geosparql#asGML", "gml"),
 
     /**
      * Measurements & Relations
      */
 
-    HAS_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation#domain"),
-    HAS_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#range"),
-    ROLE_OF_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfDomain"),
-    ROLE_OF_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfRange"),
-    RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type"),;
+    MEASUREMENT("http://tu-dresden.de/uw/geo/gis/fusion/relation#measurement", "relationMeasurement"),
+    HAS_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation#domain", "domain"),
+    HAS_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#range", "range"),
+    ROLE_OF_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfDomain", "domain role"),
+    ROLE_OF_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation#roleOfRange", "range role"),
+    RELATION_TYPE("http://tu-dresden.de/uw/geo/gis/fusion/relation#type", "relation type"),
 
-    private IResource resource;
+    ;
+
+    private RDFProperty identifier;
 
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param globalIdentifier global resource identifier
+     * @param localIdentifier local resource identifier
      */
-    Predicates(String identifier) {
-        this.resource = new Resource(new Identifier(URI.create(identifier)));
+    Predicates(String globalIdentifier, String localIdentifier) {
+        this.identifier = new RDFProperty(globalIdentifier, localIdentifier);
     }
 
     @NotNull
-    @Override
-    public IResource getResource() {
-        return resource;
+    public IIdentifier getIdentifier() {
+        return this.identifier;
+    }
+
+    @NotNull
+    public IRDFProperty getResource() {
+        return this.identifier;
     }
 }

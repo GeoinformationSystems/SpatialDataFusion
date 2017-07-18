@@ -1,6 +1,7 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
 import de.tudresden.geoinfo.fusion.data.IData;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFResource;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +11,7 @@ import java.util.Set;
 /**
  * feature implementation
  */
-public interface IFeature extends IData {
+public interface IFeature extends IData, IRDFResource {
 
     /**
      * get concept of this feature
@@ -50,6 +51,6 @@ public interface IFeature extends IData {
      * @return all feature relations
      */
     @NotNull
-    Set<IRelation<? extends IFeature>> getRelations();
+    Set<? extends IRelation> getRelations();
 
 }

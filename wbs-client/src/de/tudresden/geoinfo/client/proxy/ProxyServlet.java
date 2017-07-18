@@ -37,13 +37,11 @@ public class ProxyServlet extends HttpServlet {
         connection.setRequestMethod("GET");
         BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         String inputLine;
-        StringBuffer urlResponse = new StringBuffer();
 
         //write data to response
         response.setContentType("application/json");
         ServletOutputStream out = response.getOutputStream();
         while ((inputLine = in.readLine()) != null) {
-            urlResponse.append(inputLine);
             out.write(inputLine.getBytes());
         }
         in.close();

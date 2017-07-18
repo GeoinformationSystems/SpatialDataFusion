@@ -6,17 +6,13 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.*;
@@ -35,20 +31,18 @@ public class LineIntersection extends AbstractOperation {
     /**
      * constructor
      */
-    public LineIntersection(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public LineIntersection() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
-        //get input connectors
-        IInputConnector featureConnector = getInputConnector(IN_FEATURES_TITLE);
         //get input
-        GTFeatureCollection features = (GTFeatureCollection) featureConnector.getData();
+        GTFeatureCollection features = (GTFeatureCollection) this.getMandatoryInputData(IN_FEATURES_TITLE);
         //intersect
         features = runIntersection(features);
         //set output connector
-        connectOutput(OUT_FEATURES_TITLE, features);
+        setOutput(OUT_FEATURES_TITLE, features);
     }
 
     /**
@@ -57,7 +51,7 @@ public class LineIntersection extends AbstractOperation {
      * @param inFeatures input line features
      * @return intersected line features
      */
-    private GTFeatureCollection runIntersection(GTFeatureCollection inFeatures) {
+    private GTFeatureCollection runIntersection(@NotNull GTFeatureCollection inFeatures) {
         //build index
         GTIndexedFeatureCollection fc = new GTIndexedFeatureCollection(inFeatures.getIdentifier(), inFeatures.resolve(), inFeatures.getMetadata());
         //init new collection
@@ -77,8 +71,10 @@ public class LineIntersection extends AbstractOperation {
      * @param fc      intersection features
      * @return intersected line features
      */
-    private List<SimpleFeature> runIntersection(GTVectorFeature feature, GTIndexedFeatureCollection fc) {
+    private @NotNull List<SimpleFeature> runIntersection(@NotNull GTVectorFeature feature, @NotNull GTIndexedFeatureCollection fc) {
         //get potential intersections
+        if(feature.getRepresentation() == null)
+            return Collections.emptyList();
         List<GTVectorFeature> pIntersects = fc.boundsIntersect(((GTVectorRepresentation) feature.getRepresentation()).resolve());
         //get intersections
         return runIntersection((SimpleFeature) feature.getRepresentation().resolve(), pIntersects);
@@ -91,17 +87,17 @@ public class LineIntersection extends AbstractOperation {
      * @param pIntersects possibly intersecting features
      * @return intersected line features
      */
-    private List<SimpleFeature> runIntersection(SimpleFeature feature, List<GTVectorFeature> pIntersects) {
+    private List<SimpleFeature> runIntersection(@NotNull SimpleFeature feature, @NotNull List<GTVectorFeature> pIntersects) {
         List<SimpleFeature> sfCollection = new ArrayList<>();
         //get geometry and intersections
-        Geometry refGeometry = getGeometry(feature);
+        Geometry refGeometry = Utilities.getGeometry(feature, new BindingConstraint(LineString.class, Polygon.class), true);
         if (refGeometry == null)
             return sfCollection;
         List<Geometry> intersectingGeometries = new ArrayList<>();
         for (GTVectorFeature pIntersect : pIntersects) {
-            Geometry tarGeometry = getGeometry(((GTVectorRepresentation) pIntersect.getRepresentation()).resolve());
+            Geometry tarGeometry = Utilities.getGeometry(pIntersect, new BindingConstraint(LineString.class, Polygon.class), true);
             //continue, if lines do not intersect or lines are equal
-            if (!tarGeometry.intersects(refGeometry) || tarGeometry.equals(refGeometry))
+            if (tarGeometry == null || !tarGeometry.intersects(refGeometry) || tarGeometry.equals(refGeometry))
                 continue;
             intersectingGeometries.add(tarGeometry);
         }
@@ -133,7 +129,7 @@ public class LineIntersection extends AbstractOperation {
      * @param intersectingGeometries intersecting lines
      * @return intersected lines
      */
-    private List<LineString> runIntersection(Geometry refGeometry, List<Geometry> intersectingGeometries) {
+    private List<LineString> runIntersection(@NotNull Geometry refGeometry, @NotNull List<Geometry> intersectingGeometries) {
         //get intersection points
         CoordinateList intersections = new CoordinateList();
         for (Geometry geometry : intersectingGeometries) {
@@ -150,7 +146,7 @@ public class LineIntersection extends AbstractOperation {
      * @param intersections intersection points
      * @return line intersected at intersection points
      */
-    private List<LineString> splitLine(Geometry refGeometry, CoordinateList intersections) {
+    private List<LineString> splitLine(@NotNull Geometry refGeometry, @NotNull CoordinateList intersections) {
         List<LineString> geometries = new ArrayList<>();
         GeometryFactory factory = new GeometryFactory();
         //iterate coordinate array
@@ -188,7 +184,7 @@ public class LineIntersection extends AbstractOperation {
      * @param intersections possible intersections
      * @return intersections between start and end
      */
-    private Collection<Coordinate> pointsOnLine(Coordinate start, Coordinate end, CoordinateList intersections) {
+    private Collection<Coordinate> pointsOnLine(@NotNull Coordinate start, @NotNull Coordinate end, @NotNull CoordinateList intersections) {
         //iterate intersections and setRDFProperty into map (sorted by distance to start coordinate)
         SortedMap<Double, Coordinate> coordMap = new TreeMap<>();
         for (Coordinate coord : intersections.toCoordinateArray()) {
@@ -207,24 +203,14 @@ public class LineIntersection extends AbstractOperation {
      * @param coord input coordinate to check
      * @return true, if coord is located between start and end
      */
-    private boolean pointOnLine(Coordinate start, Coordinate end, Coordinate coord) {
+    private boolean pointOnLine(@NotNull Coordinate start, @NotNull Coordinate end, @NotNull Coordinate coord) {
         //check if point is between start and end
         return new Envelope(start, end).contains(coord);
     }
 
-    /**
-     * get linestring geometry from feature
-     *
-     * @param feature input feature
-     * @return linestring geometry
-     */
-    private Geometry getGeometry(Feature feature) {
-        return Utilities.getGeometryFromFeature(feature, new BindingConstraint(LineString.class, Polygon.class), true);
-    }
-
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -234,22 +220,11 @@ public class LineIntersection extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
     }
 
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
-    }
 }

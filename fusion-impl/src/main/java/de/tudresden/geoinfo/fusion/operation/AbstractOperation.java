@@ -1,12 +1,10 @@
 package de.tudresden.geoinfo.fusion.operation;
 
-import de.tudresden.geoinfo.fusion.data.IData;
+import de.tudresden.geoinfo.fusion.data.*;
 import de.tudresden.geoinfo.fusion.data.literal.LongLiteral;
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.IOFormatConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
@@ -23,33 +21,39 @@ import java.util.Map;
  */
 public abstract class AbstractOperation extends AbstractWorkflowNode implements IOperation, IWorkflowNode {
 
-    private static final String OUT_START = "OUT_START";
-    private static final String OUT_RUNTIME = "OUT_RUNTIME";
+    private static final IIdentifier UOM_TIME = MetadataVocabulary.MILLISECOND.getIdentifier();
+    private static final IMeasurementRange RANGE_TIME = LongLiteral.getPositiveRange();
 
-    private static IResource TIME_UNIT = Units.MILLISECOND.getResource();
+    private static final String OUT_START_CONNECTOR = "OUT_START";
+    private static final String OUT_START_TITLE = "Opertion start time";
+    private static final String OUT_START_DESCRIPTION = "Start time of the operation";
+
+    private static final String OUT_RUNTIME_CONNECTOR = "OUT_RUNTIME";
+    private static final String OUT_RUNTIME_TITLE = "Opertion runtime";
+    private static final String OUT_RUNTIME_DESCRIPTION = "Runtime of the operation";
 
     /**
      * constructor
      *
      */
-    public AbstractOperation(@Nullable IIdentifier identifier) {
-        super(identifier, null, null);
+    public AbstractOperation(@NotNull IIdentifier identifier, @Nullable String description) {
+        super(identifier, description);
     }
 
-    @NotNull
-    @Override
-    public abstract String getTitle();
-
-    @Nullable
-    @Override
-    public abstract String getDescription();
+    /**
+     * constructor
+     *
+     */
+    public AbstractOperation(@NotNull String localIdentifier, @Nullable String description) {
+        this(new ResourceIdentifier(null, localIdentifier), description);
+    }
 
     @NotNull
     @Override
     public Map<IIdentifier, IData> execute(@Nullable Map<IIdentifier, IData> inputs) {
         //set inputs from input map
         if(inputs != null)
-            super.connectInputs(inputs);
+            super.setInputs(inputs);
         //set inputs from connections
         for (IInputConnector input : this.getInputConnectors()) {
             Collection<IWorkflowConnection> connections = input.getConnections();
@@ -99,18 +103,18 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      */
     private void amendOutputConnectors() {
         //add process start time
-        this.addOutputConnector(null, OUT_START, "Start time of the operation",
+        this.addOutputConnector(OUT_START_CONNECTOR, OUT_START_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new MandatoryDataConstraint(),
-                        new BindingConstraint(LongLiteral.class)},
+                        new BindingConstraint(Measurement.class)},
                 new IConnectionConstraint[]{
                         new IOFormatConstraint(new IOFormat(null, null, "xs:double"))
                 });
         //add process runtime
-        this.addOutputConnector(null, OUT_RUNTIME, "Runtime of the operation",
+        this.addOutputConnector(OUT_RUNTIME_CONNECTOR, OUT_RUNTIME_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new MandatoryDataConstraint(),
-                        new BindingConstraint(LongLiteral.class)},
+                        new BindingConstraint(Measurement.class)},
                 new IConnectionConstraint[]{
                         new IOFormatConstraint(new IOFormat(null, null, "xs:double"))
                 });
@@ -120,11 +124,16 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      * set start time for this process
      */
     private void setStartTime() {
-        this.connectOutput(OUT_START, new LongLiteral(
-                null,
-                System.currentTimeMillis(),
-                new Metadata("Start time", "Start time of the operation in Unix time", TIME_UNIT, LongLiteral.getMaxRange()),
-                this));
+        this.setOutput(OUT_START_CONNECTOR, new Measurement<>(
+                new LongLiteral(System.currentTimeMillis()),
+                this.getStartTimeMetadata()));
+    }
+
+    private IMetadata md_startTime;
+    private IMetadata getStartTimeMetadata() {
+        if(md_startTime == null)
+            md_startTime = new Metadata(OUT_START_TITLE, OUT_START_DESCRIPTION, UOM_TIME, RANGE_TIME, this);
+        return md_startTime;
     }
 
     /**
@@ -132,19 +141,27 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      *
      * @return latest process start time
      */
-    private LongLiteral getStartTime() {
-        return (LongLiteral) getOutputConnector(OUT_START).getData();
+    private @Nullable Measurement getStartTime() {
+        //noinspection ConstantConditions
+        return (Measurement) getOutputConnector(OUT_START_CONNECTOR).getData();
     }
 
     /**
      * set runtime of the process
      */
     private void setRuntime() {
-        this.connectOutput(OUT_RUNTIME, new LongLiteral(
-                null,
-                System.currentTimeMillis() - this.getStartTime().resolve(),
-                new Metadata("Runtime", "Runtime of the operation in milliseconds", TIME_UNIT, LongLiteral.getPositiveRange()),
-                this));
+        //noinspection ConstantConditions
+        long runtime = System.currentTimeMillis() - (Long) this.getStartTime().resolve();
+        this.setOutput(OUT_RUNTIME_CONNECTOR, new Measurement<>(
+                new LongLiteral(runtime),
+                getRuntimeMetadata()));
+    }
+
+    private IMetadata md_runtime;
+    private IMetadata getRuntimeMetadata() {
+        if(md_runtime == null)
+            md_runtime = new Metadata(OUT_RUNTIME_TITLE, OUT_RUNTIME_DESCRIPTION, UOM_TIME, RANGE_TIME, this);
+        return md_runtime;
     }
 
     /**
@@ -152,8 +169,9 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      *
      * @return latest process start time
      */
-    public LongLiteral getRuntime() {
-        return (LongLiteral) getOutputConnector(OUT_RUNTIME).getData();
+    public @Nullable Measurement getRuntime() {
+        //noinspection ConstantConditions
+        return (Measurement) getOutputConnector(OUT_RUNTIME_CONNECTOR).getData();
     }
 
     /**
@@ -161,7 +179,7 @@ public abstract class AbstractOperation extends AbstractWorkflowNode implements 
      *
      * @return operation outputs
      */
-    private Map<IIdentifier, IData> getOutputs() {
+    private @NotNull Map<IIdentifier, IData> getOutputs() {
         Map<IIdentifier, IData> outputs = new HashMap<>();
         for (IOutputConnector outputConnector : this.getOutputConnectors()) {
             outputs.put(outputConnector.getIdentifier(), outputConnector.getData());

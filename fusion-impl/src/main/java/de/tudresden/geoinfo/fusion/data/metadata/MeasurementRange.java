@@ -1,5 +1,6 @@
-package de.tudresden.geoinfo.fusion.data;
+package de.tudresden.geoinfo.fusion.data.metadata;
 
+import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;

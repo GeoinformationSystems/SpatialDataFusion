@@ -63,7 +63,7 @@ public class IOFormat implements Comparable<IOFormat> {
      *
      * @param io1 first string
      * @param io2 second string
-     * @return true, if io1 equals io2
+     * @return true, if io1 globallyEquals io2
      */
     private boolean equals(@Nullable String io1, @Nullable String io2) {
         return io1 != null ? io1.equalsIgnoreCase(io2) : io2 == null;

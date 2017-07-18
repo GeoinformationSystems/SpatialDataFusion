@@ -1,6 +1,5 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,7 +7,6 @@ import java.util.Collection;
 
 /**
  * Metadata
- * TODO support additional metadata elements
  */
 public interface IMetadata {
 
@@ -23,19 +21,19 @@ public interface IMetadata {
     /**
      * get metadata element associated with input resource
      *
-     * @param resource input resource
+     * @param identifier element identifier
      * @return metadata element associated with input resource
      */
     @Nullable
-    IMetadataElement getElement(IResource resource);
+    IMetadataElement getElement(IIdentifier identifier);
 
     /**
      * flag: metadata provides entry for input resource
      *
-     * @param resource input resource
-     * @return true, if metadata contains entry for input resource
+     * @param identifier element identifier
+     * @return true, if metadata contains entry for input identifier
      */
-    boolean hasElement(IResource resource);
+    boolean hasElement(IIdentifier identifier);
 
     /**
      * add a metadata element

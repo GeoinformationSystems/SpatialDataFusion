@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.constraint;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.ILiteral;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFLiteral;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ public class PatternConstraint implements IRuntimeConstraint {
 
     @Override
     public boolean compliantWith(@Nullable IData data) {
-        return data == null || data instanceof ILiteral && ((ILiteral) data).getLiteral().matches(pattern);
+        return data == null || data instanceof IRDFLiteral && ((IRDFLiteral) data).getLiteralValue().matches(pattern);
     }
 
 }

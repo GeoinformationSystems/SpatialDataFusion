@@ -1,15 +1,13 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
@@ -23,8 +21,8 @@ public class ShapefileParser extends GTFeatureParser {
     /**
      * constructor
      */
-    public ShapefileParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public ShapefileParser() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     /**
@@ -42,23 +40,11 @@ public class ShapefileParser extends GTFeatureParser {
         SimpleFeatureSource source = store.getFeatureSource(name);
         SimpleFeatureCollection shapeFC = DataUtilities.collection(source.getFeatures().features());
         store.dispose();
-        IIdentifier identifier = new Identifier(resourceURL.toString());
+        IIdentifier identifier = new ResourceIdentifier(resourceURL.toString());
         if (withIndex)
             return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, shapeFC), null);
         else
             return new GTFeatureCollection(identifier, shapeFC, null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
     /**
@@ -69,7 +55,7 @@ public class ShapefileParser extends GTFeatureParser {
      * @return feature collection from shapefile
      */
     public static GTFeatureCollection readShapefile(URL url, boolean index) throws IOException {
-        return new ShapefileParser(null).getFeatures(url, index);
+        return new ShapefileParser().getFeatures(url, index);
     }
 
 }

@@ -1,54 +1,67 @@
 package de.tudresden.geoinfo.fusion.data.rdf.vocabularies;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.Resource;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.RDFProperty;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.data.rdf.IRDFVocabulary;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
-
-import java.net.URI;
 
 public enum Relations implements IRDFVocabulary {
 
     /**
-     * range - domain relation roles
+     * range & domain role of a relation
      */
-    ROLE_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation/role#domain"),
-    ROLE_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation/role#range"),
+    ROLE_DOMAIN("http://tu-dresden.de/uw/geo/gis/fusion/relation/role#domain", "domain"),
+    ROLE_RANGE("http://tu-dresden.de/uw/geo/gis/fusion/relation/role#range", "range"),
 
     /**
      * OGC GeoSPARQL topological relations
      */
 
-    SF_EQUALS("http://www.opengis.net/ont/geosparql#sfEquals"),
-    SF_DISJOINT("http://www.opengis.net/ont/geosparql#sfDisjoint"),
-    SF_INTERSECTS("http://www.opengis.net/ont/geosparql#sfIntersects"),
-    SF_TOUCHES("http://www.opengis.net/ont/geosparql#sfTouches"),
-    SF_WITHIN("http://www.opengis.net/ont/geosparql#sfWithin"),
-    SF_CONTAINS("http://www.opengis.net/ont/geosparql#sfContains"),
-    SF_OVERLAPS("http://www.opengis.net/ont/geosparql#sfOverlaps"),
-    SF_CROSSES("http://www.opengis.net/ont/geosparql#sfCrosses"),
+    SF_EQUALS("http://www.opengis.net/ont/geosparql#sfEquals", "equals"),
+    SF_DISJOINT("http://www.opengis.net/ont/geosparql#sfDisjoint", "disjoint"),
+    SF_INTERSECTS("http://www.opengis.net/ont/geosparql#sfIntersects", "intersects"),
+    SF_TOUCHES("http://www.opengis.net/ont/geosparql#sfTouches", "touches"),
+    SF_WITHIN("http://www.opengis.net/ont/geosparql#sfWithin", "within"),
+    SF_CONTAINS("http://www.opengis.net/ont/geosparql#sfContains", "contains"),
+    SF_OVERLAPS("http://www.opengis.net/ont/geosparql#sfOverlaps", "overlaps"),
+    SF_CROSSES("http://www.opengis.net/ont/geosparql#sfCrosses", "crosses"),
 
     /**
      * mereological relationships
      */
-    MEREOLOGY_HASPART("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#hasPart"),
-    MEREOLOGY_PARTOF("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#partOf"),;
+    MEREOLOGY_HASPART("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#hasPart", "hasPart"),
+    MEREOLOGY_PARTOF("https://www.w3.org/2001/sw/BestPractices/OEP/SimplePartWhole/part.owl#partOf", "partOf"),
 
-    private IResource resource;
+    /**
+     * position of features in a directed linear graph
+     */
+    GRAPH_EQUALS("http://tu-dresden.de/uw/geo/gis/fusion/relation#globallyEquals", "equals"),
+    GRAPH_DISJOINT("http://tu-dresden.de/uw/geo/gis/fusion/relation#disjoint", "disjoint"),
+    GRAPH_DOWNWARDS("http://tu-dresden.de/uw/geo/gis/fusion/relation#downwards", "downwards"),
+    GRAPH_UPWARDS("http://tu-dresden.de/uw/geo/gis/fusion/relation#upwards", "upwards"),
+
+    ;
+
+    private RDFProperty identifier;
 
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param globalIdentifier global resource identifier
+     * @param localIdentifier local resource identifier
      */
-    Relations(String identifier) {
-        this.resource = new Resource(new Identifier(URI.create(identifier)));
+    Relations(String globalIdentifier, String localIdentifier) {
+        this.identifier = new RDFProperty(globalIdentifier, localIdentifier);
     }
 
     @NotNull
-    @Override
-    public IResource getResource() {
-        return resource;
+    public IIdentifier getIdentifier() {
+        return this.identifier;
+    }
+
+    @NotNull
+    public IRDFProperty getResource() {
+        return this.identifier;
     }
 }

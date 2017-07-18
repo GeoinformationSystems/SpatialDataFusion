@@ -27,7 +27,7 @@ public class JSONProviderTest extends AbstractTest {
 
     private void writeJSON(GTFeatureCollection resource) {
 
-        AbstractOperation operation = new JSONProvider(null);
+        AbstractOperation operation = new JSONProvider();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_FEATURES, resource);

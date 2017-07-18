@@ -2,25 +2,20 @@ package de.tudresden.geoinfo.fusion.operation.measurement;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.math.Vector3D;
 import de.tud.fusion.Utilities;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
-import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.opengis.feature.Feature;
 
 /**
  * Angle difference between linestring geometries
@@ -33,7 +28,7 @@ public class AngleDifference extends AbstractRelationMeasurement {
     private static final IMeasurementRange<Double> MEASUREMENT_RANGE = DecimalLiteral.getRange(0d, Math.PI / 2);
     private static final String MEASUREMENT_TITLE = "Angle difference";
     private static final String MEASUREMENT_DESCRIPTION = "Angle difference between linear geometries";
-    private static final IResource MEASUREMENT_UNIT = Units.DEGREE_ANGLE.getResource();
+    private static final IIdentifier MEASUREMENT_UNIT = MetadataVocabulary.DEGREE_ANGLE.getIdentifier();
 
     private static final String IN_THRESHOLD_TITLE = "IN_THRESHOLD";
     private static final String IN_THRESHOLD_DESCRIPTION = "Measurement threshold for creating a relation, in degree";
@@ -43,39 +38,29 @@ public class AngleDifference extends AbstractRelationMeasurement {
     /**
      * constructor
      */
-    public AngleDifference(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public AngleDifference() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
-        this.dThreshold = ((DecimalLiteral) getInputData(IN_THRESHOLD_TITLE)).resolve();
+        this.dThreshold = ((DecimalLiteral) this.getMandatoryInputData(IN_THRESHOLD_TITLE)).resolve();
         super.executeOperation();
     }
 
     @Override
-    public IRelationMeasurement performRelationMeasurement(GTVectorFeature domainFeature, GTVectorFeature rangeFeature) {
+    public IRelationMeasurement performRelationMeasurement(@NotNull GTVectorFeature domainFeature, @NotNull GTVectorFeature rangeFeature) {
         //get geometries
-        Geometry gDomain = getGeometry(((GTVectorRepresentation) domainFeature.getRepresentation()).resolve());
-        Geometry gRange = getGeometry(((GTVectorRepresentation) rangeFeature.getRepresentation()).resolve());
+        Geometry gDomain = Utilities.getLineString(domainFeature);
+        Geometry gRange = Utilities.getLineString(rangeFeature);
         if (gDomain == null || gRange == null)
             return null;
         //get angle
         double dAngle = getAngle(gDomain, gRange);
         //check for difference
         if (dAngle <= dThreshold) {
-            return new RelationMeasurement<>(null, domainFeature, rangeFeature, dAngle, this.getMeasurementMetadata(), this);
+            return new RelationMeasurement<>(new DecimalLiteral(dAngle), domainFeature, rangeFeature, this.getMeasurementMetadata());
         } else return null;
-    }
-
-    /**
-     * get linestring geometry from feature
-     *
-     * @param feature input feature
-     * @return linestring geometry
-     */
-    private Geometry getGeometry(Feature feature) {
-        return Utilities.getGeometryFromFeature(feature, new BindingConstraint(LineString.class), true);
     }
 
     /**
@@ -132,28 +117,17 @@ public class AngleDifference extends AbstractRelationMeasurement {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(null, IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
+        addInputConnector(IN_THRESHOLD_TITLE, IN_THRESHOLD_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
                 new DecimalLiteral(Math.PI / 8));
     }
 
+    @NotNull
     @Override
     public IMetadata initMeasurementMetadata() {
-        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
+        return new Metadata(MEASUREMENT_TITLE, MEASUREMENT_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
     }
 
 }

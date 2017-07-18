@@ -1,22 +1,21 @@
 package de.tudresden.geoinfo.fusion.operation.measurement;
 
 import com.vividsolutions.jts.geom.*;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTGridFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.IntegerLiteral;
 import de.tudresden.geoinfo.fusion.data.metadata.Metadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Units;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import de.tudresden.geoinfo.fusion.data.relation.IRelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurement;
 import de.tudresden.geoinfo.fusion.data.relation.RelationMeasurementCollection;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
@@ -30,8 +29,6 @@ import org.jaitools.media.jai.zonalstats.Result;
 import org.jaitools.media.jai.zonalstats.ZonalStats;
 import org.jaitools.media.jai.zonalstats.ZonalStatsDescriptor;
 import org.jaitools.numeric.Statistic;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.geometry.BoundingBox;
 import org.opengis.metadata.spatial.PixelOrientation;
@@ -67,7 +64,7 @@ public class ZonalStatistics extends AbstractOperation {
     private final static String OUT_MEASUREMENTS_DESCRIPTION = "Relation measurements";
 
     private static final IMeasurementRange<Double> MEASUREMENT_RANGE = DecimalLiteral.getMaxRange();
-    private static final IResource MEASUREMENT_UNIT = Units.UNKNOWN.getResource();
+    private static final IIdentifier MEASUREMENT_UNIT = MetadataVocabulary.UNKNOWN.getIdentifier();
     private static final String MEASUREMENT_MIN_TITLE = "Min";
     private static final String MEASUREMENT_MIN_DESCRIPTION = "Zonal min value";
     private static final String MEASUREMENT_MAX_TITLE = "Min";
@@ -89,26 +86,23 @@ public class ZonalStatistics extends AbstractOperation {
     /**
      * constructor
      */
-    public ZonalStatistics(@Nullable IIdentifier identifier) {
-        super(identifier);
-        this.measurementMetadata_MIN = new Metadata(MEASUREMENT_MIN_TITLE, MEASUREMENT_MIN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
-        this.measurementMetadata_MAX = new Metadata(MEASUREMENT_MAX_TITLE, MEASUREMENT_MAX_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
-        this.measurementMetadata_MEAN = new Metadata(MEASUREMENT_MEAN_TITLE, MEASUREMENT_MEAN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
-        this.measurementMetadata_SDEV = new Metadata(MEASUREMENT_SDEV_TITLE, MEASUREMENT_SDEV_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE);
+    public ZonalStatistics() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
+        this.measurementMetadata_MIN = new Metadata(MEASUREMENT_MIN_TITLE, MEASUREMENT_MIN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
+        this.measurementMetadata_MAX = new Metadata(MEASUREMENT_MAX_TITLE, MEASUREMENT_MAX_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
+        this.measurementMetadata_MEAN = new Metadata(MEASUREMENT_MEAN_TITLE, MEASUREMENT_MEAN_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
+        this.measurementMetadata_SDEV = new Metadata(MEASUREMENT_SDEV_TITLE, MEASUREMENT_SDEV_DESCRIPTION, MEASUREMENT_UNIT, MEASUREMENT_RANGE, this);
     }
 
     @Override
     public void executeOperation() {
-        //get input connectors
-        IInputConnector domainConnector = getInputConnector(IN_DOMAIN_TITLE);
-        IInputConnector rangeConnector = getInputConnector(IN_RANGE_TITLE);
-        IInputConnector bandConnector = getInputConnector(IN_BAND_TITLE);
-        IInputConnector bufferConnector = getInputConnector(IN_BUFFER_TITLE);
+
         //get inputs
-        GTFeatureCollection domainFeatures = (GTFeatureCollection) domainConnector.getData();
-        GTGridFeature rangeGrid = (GTGridFeature) rangeConnector.getData();
-        int iBand = ((IntegerLiteral) bandConnector.getData()).resolve();
-        double dBuffer = ((DecimalLiteral) bufferConnector.getData()).resolve();
+        GTFeatureCollection domainFeatures = (GTFeatureCollection) this.getMandatoryInputData(IN_DOMAIN_TITLE);
+        GTGridFeature rangeGrid = (GTGridFeature) this.getMandatoryInputData(IN_RANGE_TITLE);
+        int iBand = ((IntegerLiteral) this.getMandatoryInputData(IN_BAND_TITLE)).resolve();
+        double dBuffer = ((DecimalLiteral) this.getMandatoryInputData(IN_BUFFER_TITLE)).resolve();
+
         //get transformation to image space
         final AffineTransform gridToWorldTransformCorrected = new AffineTransform((AffineTransform) (rangeGrid.resolve().getGridGeometry()).getGridToCRS2D(PixelOrientation.UPPER_LEFT));
         MathTransform worldToGridTransform;
@@ -118,11 +112,11 @@ public class ZonalStatistics extends AbstractOperation {
             throw new RuntimeException(e);
         }
         //calculate statistics
-        connectOutput(OUT_MEASUREMENTS_TITLE, performZonalStatistics(domainFeatures, rangeGrid, worldToGridTransform, iBand, dBuffer));
+        setOutput(OUT_MEASUREMENTS_TITLE, performZonalStatistics(domainFeatures, rangeGrid, worldToGridTransform, iBand, dBuffer));
     }
 
     private RelationMeasurementCollection performZonalStatistics(GTFeatureCollection domainFeatures, GTGridFeature rangeGrid, MathTransform worldToGridTransform, int iBand, double dBuffer) {
-        RelationMeasurementCollection relationMeasurements = new RelationMeasurementCollection(null, null, null);
+        RelationMeasurementCollection relationMeasurements = new RelationMeasurementCollection(new ResourceIdentifier(), null, null);
         for (GTVectorFeature domainFeature : domainFeatures) {
             Set<IRelationMeasurement> measurements = performZonalStatistics(domainFeature, rangeGrid, worldToGridTransform, iBand, dBuffer);
             if (measurements != null && !measurements.isEmpty())
@@ -192,13 +186,13 @@ public class ZonalStatistics extends AbstractOperation {
         ZonalStats stats = (ZonalStats) zsCoverage.getProperty(ZonalStatsDescriptor.ZONAL_STATS_PROPERTY);
         for (Result r : stats.results()) {
             if (r.getStatistic() == Statistic.MEAN)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MEAN, this));
+                measurements.add(new RelationMeasurement<>(new DecimalLiteral(r.getValue()), domainFeature, rangeGrid, measurementMetadata_MEAN));
             else if (r.getStatistic() == Statistic.MIN)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MIN, this));
+                measurements.add(new RelationMeasurement<>(new DecimalLiteral(r.getValue()), domainFeature, rangeGrid, measurementMetadata_MIN));
             else if (r.getStatistic() == Statistic.MAX)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_MAX, this));
+                measurements.add(new RelationMeasurement<>(new DecimalLiteral(r.getValue()), domainFeature, rangeGrid, measurementMetadata_MAX));
             else if (r.getStatistic() == Statistic.SDEV)
-                measurements.add(new RelationMeasurement<>(null, domainFeature, rangeGrid, r.getValue(), measurementMetadata_SDEV, this));
+                measurements.add(new RelationMeasurement<>(new DecimalLiteral(r.getValue()), domainFeature, rangeGrid, measurementMetadata_SDEV));
         }
         return measurements;
     }
@@ -237,24 +231,24 @@ public class ZonalStatistics extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector( IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTGridFeature.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_BAND_TITLE, IN_BAND_DESCRIPTION,
+        addInputConnector(IN_BAND_TITLE, IN_BAND_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(IntegerLiteral.class)},
                 null,
                 new IntegerLiteral(0));
-        addInputConnector(null, IN_BUFFER_TITLE, IN_BUFFER_DESCRIPTION,
+        addInputConnector(IN_BUFFER_TITLE, IN_BUFFER_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
@@ -264,22 +258,10 @@ public class ZonalStatistics extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
+        addOutputConnector(OUT_MEASUREMENTS_TITLE, OUT_MEASUREMENTS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(RelationMeasurementCollection.class)},
                 null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

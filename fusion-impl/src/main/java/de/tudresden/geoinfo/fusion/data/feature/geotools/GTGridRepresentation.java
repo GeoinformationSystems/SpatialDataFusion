@@ -1,8 +1,8 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureRepresentation;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,10 +17,10 @@ public class GTGridRepresentation extends AbstractFeatureRepresentation {
     /**
      * constructor
      *
-     * @param identifier representation identifier
+     * @param identifier identifier
      * @param coverage   GT coverage
      */
-    public GTGridRepresentation(@Nullable IIdentifier identifier, @NotNull GridCoverage2D coverage, @Nullable IMetadata metadata) {
+    public GTGridRepresentation(@NotNull IIdentifier identifier, @NotNull GridCoverage2D coverage, @Nullable IMetadata metadata) {
         super(identifier, coverage, metadata);
     }
 
@@ -32,7 +32,7 @@ public class GTGridRepresentation extends AbstractFeatureRepresentation {
 
 
     @Override
-    public Object getProperty(@NotNull IIdentifier identifier) {
+    public Object getProperty(@NotNull String identifier) {
         return null;
     }
 

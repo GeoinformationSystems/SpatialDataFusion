@@ -54,7 +54,7 @@ public class WFSProxyTest extends AbstractTest {
 
     private void readGML(@Nullable StringLiteral format, @Nullable StringLiteral version, @NotNull StringLiteral layer, @Nullable StringLiteral fids) throws MalformedURLException {
 
-        AbstractOperation operation = new WFSProxy(null, new URLLiteral(new URL(sResource)));
+        AbstractOperation operation = new WFSProxy(new URLLiteral(new URL(sResource)));
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_FORMAT, format);

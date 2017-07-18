@@ -1,6 +1,5 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opengis.geometry.Envelope;
@@ -34,7 +33,7 @@ public interface IFeatureRepresentation extends IFeatureView {
      * @return property or null, if identifier is not linked to a property
      */
     @Nullable
-    Object getProperty(@NotNull IIdentifier identifier);
+    Object getProperty(@NotNull String identifier);
 
     /**
      * get default feature geometry object

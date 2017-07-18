@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.constraint;
 
 import com.google.common.collect.Sets;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
 import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
 import org.jetbrains.annotations.NotNull;
@@ -14,14 +14,14 @@ import java.util.Set;
  */
 public class DataTypeConstraint implements IConnectionConstraint {
 
-    private Set<IResource> supportedDataTypes;
+    private Set<IRDFProperty> supportedDataTypes;
 
     /**
      * constructor
      *
      * @param supportedDataTypes supported data types
      */
-    public DataTypeConstraint(@NotNull Set<IResource> supportedDataTypes) {
+    public DataTypeConstraint(@NotNull Set<IRDFProperty> supportedDataTypes) {
         this.supportedDataTypes = supportedDataTypes;
     }
 
@@ -30,7 +30,7 @@ public class DataTypeConstraint implements IConnectionConstraint {
      *
      * @param supportedDataTypes supported data types
      */
-    public DataTypeConstraint(@NotNull IResource[] supportedDataTypes) {
+    public DataTypeConstraint(@NotNull IRDFProperty[] supportedDataTypes) {
         this(Sets.newHashSet(supportedDataTypes));
     }
 
@@ -39,7 +39,7 @@ public class DataTypeConstraint implements IConnectionConstraint {
      *
      * @param supportedDataType supported data type
      */
-    public DataTypeConstraint(@NotNull IResource supportedDataType) {
+    public DataTypeConstraint(@NotNull IRDFProperty supportedDataType) {
         this(Sets.newHashSet(supportedDataType));
     }
 
@@ -49,7 +49,7 @@ public class DataTypeConstraint implements IConnectionConstraint {
             return true;
         for (IConnectionConstraint constraint : connector.getConnectionConstraints()) {
             if (constraint instanceof DataTypeConstraint) {
-                for (IResource resource : ((DataTypeConstraint) constraint).getSupportedDataTypes()) {
+                for (IRDFProperty resource : ((DataTypeConstraint) constraint).getSupportedDataTypes()) {
                     if (this.compliantWith(resource))
                         return true;
                 }
@@ -64,9 +64,9 @@ public class DataTypeConstraint implements IConnectionConstraint {
      * @param target target object
      * @return true, if there is a match between the bindings
      */
-    private boolean compliantWith(@NotNull IResource target) {
-        for (IResource dataType : this.getSupportedDataTypes()) {
-            if (dataType.getIdentifier().equals(target.getIdentifier()))
+    private boolean compliantWith(@NotNull IRDFProperty target) {
+        for (IRDFProperty dataType : this.getSupportedDataTypes()) {
+            if (dataType.getIRI().equals(target.getIRI()))
                 return true;
         }
         return false;
@@ -78,7 +78,7 @@ public class DataTypeConstraint implements IConnectionConstraint {
      * @return supported formats
      */
     @NotNull
-    public Set<IResource> getSupportedDataTypes() {
+    public Set<IRDFProperty> getSupportedDataTypes() {
         return this.supportedDataTypes;
     }
 

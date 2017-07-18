@@ -5,9 +5,7 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorRepresentation;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
-import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
@@ -51,35 +49,37 @@ public class CRSReproject extends AbstractOperation {
     /**
      * constructor
      */
-    public CRSReproject(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public CRSReproject() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
-        //get input connectors
-        IInputConnector domainConnector = getInputConnector(IN_DOMAIN_TITLE);
-        IInputConnector rangeConnector = getInputConnector(IN_RANGE_TITLE);
-        IInputConnector crsConnector = getInputConnector(IN_CRS_TITLE);
+
+        //get input
+        GTFeatureCollection domainFeatures = (GTFeatureCollection) this.getMandatoryInputData(IN_DOMAIN_TITLE);
+        GTFeatureCollection rangeFeatures = (GTFeatureCollection) this.getInputData(IN_RANGE_TITLE);
+        URLLiteral finalCRSURI = (URLLiteral) this.getInputData(IN_CRS_TITLE);
+
         //validate input
-        if (rangeConnector.getData() == null && crsConnector.getData() == null)
-            throw new IllegalArgumentException("Either IN_TARGET or IN_CRS must be set as input");
-        //get features
-        GTFeatureCollection domainFeatures = (GTFeatureCollection) domainConnector.getData();
-        GTFeatureCollection rangeFeatures = rangeConnector.getData() != null ? (GTFeatureCollection) rangeConnector.getData() : null;
-        //get crs
+        if (rangeFeatures == null && finalCRSURI == null)
+            throw new IllegalArgumentException("Either " + IN_RANGE_TITLE + " or " + IN_CRS_TITLE + " must be set as input");
+
+        //set final crs
         CoordinateReferenceSystem domainCRS = getCRS(domainFeatures);
         CoordinateReferenceSystem rangeCRS = rangeFeatures != null ? getCRS(rangeFeatures) : null;
-        //get final crs
-        CoordinateReferenceSystem crsFinal = crsConnector.getData() != null ? decodeCRS((URLLiteral) crsConnector.getData()) : rangeCRS;
+        CoordinateReferenceSystem finalCRS = finalCRSURI != null ? decodeCRS(finalCRSURI) : rangeCRS;
+
         //transform
-        domainFeatures = reproject(domainFeatures, domainCRS, crsFinal);
+        domainFeatures = reproject(domainFeatures, domainCRS, finalCRS);
         if (rangeFeatures != null)
-            rangeFeatures = crsConnector.getData() != null ? reproject(rangeFeatures, domainCRS, crsFinal) : rangeFeatures;
-        //set output connector
-        connectOutput(OUT_DOMAIN_TITLE, domainFeatures);
+            rangeFeatures = finalCRSURI != null ? reproject(rangeFeatures, domainCRS, finalCRS) : rangeFeatures;
+
+        //set output
+        this.setOutput(OUT_DOMAIN_TITLE, domainFeatures);
         if (rangeFeatures != null)
-            connectOutput(OUT_RANGE_TITLE, rangeFeatures);
+            setOutput(OUT_RANGE_TITLE, rangeFeatures);
+
     }
 
     /**
@@ -89,7 +89,7 @@ public class CRSReproject extends AbstractOperation {
      * @return decodes CRS
      */
     private CoordinateReferenceSystem decodeCRS(URLLiteral literal) {
-        return decodeCRS(literal.getLiteral());
+        return decodeCRS(literal.getLiteralValue());
     }
 
     /**
@@ -98,7 +98,7 @@ public class CRSReproject extends AbstractOperation {
      * @param identifier CRS String
      * @return decodes CRS
      */
-    private CoordinateReferenceSystem decodeCRS(String identifier) {
+    private @NotNull CoordinateReferenceSystem decodeCRS(@NotNull String identifier) {
         try {
             return CRS.decode(identifier);
         } catch (FactoryException e1) {
@@ -112,9 +112,9 @@ public class CRSReproject extends AbstractOperation {
      * @param features input collection
      * @return crs of the input features
      */
-    private CoordinateReferenceSystem getCRS(GTFeatureCollection features) {
+    private @NotNull CoordinateReferenceSystem getCRS(@NotNull GTFeatureCollection features) {
         //return crs of first feature
-        return ((SimpleFeature) features.iterator().next().resolve()).getDefaultGeometryProperty().getDescriptor().getCoordinateReferenceSystem();
+        return (features.iterator().next().resolve()).getDefaultGeometryProperty().getDescriptor().getCoordinateReferenceSystem();
     }
 
     /**
@@ -125,10 +125,7 @@ public class CRSReproject extends AbstractOperation {
      * @param finalCRS   target crs
      * @return reprojected features
      */
-    private GTFeatureCollection reproject(GTFeatureCollection features, CoordinateReferenceSystem featureCRS, CoordinateReferenceSystem finalCRS) {
-        //check if feature colletion is set
-        if (features == null || features.size() == 0)
-            return null;
+    private @NotNull GTFeatureCollection reproject(@NotNull GTFeatureCollection features, @Nullable CoordinateReferenceSystem featureCRS, @Nullable CoordinateReferenceSystem finalCRS) {
         //check if transformation is required/applicable
         if (featureCRS == null || finalCRS == null || featureCRS.equals(finalCRS))
             return features;
@@ -138,7 +135,8 @@ public class CRSReproject extends AbstractOperation {
         MathTransform transformation = getTransformation(featureCRS, finalCRS);
         //iterate collection and transform
         for (GTVectorFeature feature : features) {
-            features_proj.add(reproject(((GTVectorRepresentation) feature.getRepresentation()).resolve(), featureCRS, finalCRS, transformation));
+            if(feature.getRepresentation() != null)
+                features_proj.add(reproject(((GTVectorRepresentation) feature.getRepresentation()).resolve(), featureCRS, finalCRS, transformation));
         }
         //return
         return new GTFeatureCollection(features.getIdentifier(), DataUtilities.collection(features_proj), features.getMetadata());
@@ -152,9 +150,9 @@ public class CRSReproject extends AbstractOperation {
      * @param transformation crs transformation
      * @return transformed feature
      */
-    private SimpleFeature reproject(SimpleFeature feature, CoordinateReferenceSystem domainCRS, CoordinateReferenceSystem rangeCRS, MathTransform transformation) {
+    private SimpleFeature reproject(@NotNull SimpleFeature feature, @Nullable CoordinateReferenceSystem domainCRS, @Nullable CoordinateReferenceSystem rangeCRS, @Nullable MathTransform transformation) {
         //return feature if sourceCRS = rangeCRS or one of the crs is null
-        if (domainCRS == null || rangeCRS == null || domainCRS.equals(rangeCRS))
+        if (domainCRS == null || rangeCRS == null || domainCRS.equals(rangeCRS) || transformation == null)
             return feature;
         //build new featuretype
         SimpleFeatureTypeBuilder ftBuilder = new SimpleFeatureTypeBuilder();
@@ -206,8 +204,7 @@ public class CRSReproject extends AbstractOperation {
      * @param geom input geometry
      * @return transformed geometry
      */
-    private Geometry reprojectGeometry(Geometry geom, MathTransform transformation) {
-        if (geom == null) return null;
+    private Geometry reprojectGeometry(@NotNull Geometry geom, @NotNull MathTransform transformation) {
         try {
             return JTS.transform(geom, transformation);
         } catch (Exception e) {
@@ -257,18 +254,18 @@ public class CRSReproject extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
+        addInputConnector(IN_DOMAIN_TITLE, IN_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
+        addInputConnector(IN_RANGE_TITLE, IN_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class)},
                 null,
                 null);
-        addInputConnector(null, IN_CRS_TITLE, IN_CRS_DESCRIPTION,
+        addInputConnector(IN_CRS_TITLE, IN_CRS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null,
@@ -277,27 +274,15 @@ public class CRSReproject extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_DOMAIN_TITLE, OUT_DOMAIN_DESCRIPTION,
+        addOutputConnector(OUT_DOMAIN_TITLE, OUT_DOMAIN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
-        addOutputConnector(null, OUT_RANGE_TITLE, OUT_RANGE_DESCRIPTION,
+        addOutputConnector(OUT_RANGE_TITLE, OUT_RANGE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class)},
                 null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

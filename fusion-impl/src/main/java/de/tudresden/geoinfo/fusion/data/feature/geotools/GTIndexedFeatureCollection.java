@@ -1,8 +1,9 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
 import com.vividsolutions.jts.index.strtree.STRtree;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,21 +28,31 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
     /**
      * constructor
      *
-     * @param identifier        collection identifier
-     * @param featureCollection collection object
+     * @param identifier identifier
+     * @param features collection object
      */
-    public GTIndexedFeatureCollection(@Nullable IIdentifier identifier, @NotNull Collection<GTVectorFeature> featureCollection, @Nullable IMetadata metadata) {
-        super(identifier, featureCollection, metadata);
+    public GTIndexedFeatureCollection(@NotNull IIdentifier identifier, @NotNull Collection<GTVectorFeature> features, @Nullable IMetadata metadata) {
+        super(identifier, features, metadata);
         buildIndex();
     }
 
     /**
      * constructor
      *
-     * @param featureCollection GeoTools GTVectorFeature collection
+     * @param identifier identifier
+     * @param featureCollection GeoTools feature collection
      */
-    public GTIndexedFeatureCollection(@NotNull GTFeatureCollection featureCollection) {
-        this(featureCollection.getIdentifier(), featureCollection.resolve(), featureCollection.getMetadata());
+    public GTIndexedFeatureCollection(@NotNull IIdentifier identifier, @NotNull SimpleFeatureCollection featureCollection, @Nullable IMetadata metadata) {
+        this(identifier, getGTCollection(identifier, featureCollection), metadata);
+    }
+
+    /**
+     * constructor
+     *
+     * @param collection GeoTools GTVectorFeature collection
+     */
+    public GTIndexedFeatureCollection(@NotNull GTFeatureCollection collection) {
+        this(collection.getIdentifier(), collection.resolve(), collection.getMetadata());
     }
 
     /**
@@ -49,7 +60,7 @@ public class GTIndexedFeatureCollection extends GTFeatureCollection {
      */
     private void buildIndex() {
         this.index = new STRtree();
-        for (GTVectorFeature feature : resolve()) {
+        for (GTVectorFeature feature : this) {
             addFeatureToIndex(feature);
         }
     }

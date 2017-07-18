@@ -2,15 +2,12 @@ package de.tudresden.geoinfo.fusion.operation.provision;
 
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.geojson.feature.FeatureJSON;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,8 +26,8 @@ public class JSONProvider extends AbstractOperation {
     private final static String OUT_RESOURCE_TITLE = "OUT_RESOURCE";
     private final static String OUT_RESOURCE_DESCRIPTION = "Link to JSON encoded file";
 
-    public JSONProvider(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public JSONProvider() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
@@ -48,7 +45,7 @@ public class JSONProvider extends AbstractOperation {
             throw new RuntimeException("Could not access or write output features", e);
         }
         //set output connector
-        connectOutput(OUT_RESOURCE_TITLE, jsonResource);
+        setOutput(OUT_RESOURCE_TITLE, jsonResource);
     }
 
     /**
@@ -60,7 +57,7 @@ public class JSONProvider extends AbstractOperation {
      */
     private URLLiteral encodeFeatures(GTFeatureCollection features) throws IOException {
         //init file
-        File file = File.createTempFile("json_" + UUID.randomUUID(), ".rdf");
+        File file = File.createTempFile("features_" + UUID.randomUUID(), ".json");
         //write RDF turtles
         writeFeaturesToFile(features, file);
         //return
@@ -90,7 +87,7 @@ public class JSONProvider extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
@@ -100,22 +97,10 @@ public class JSONProvider extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
+        addOutputConnector(OUT_RESOURCE_TITLE, OUT_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

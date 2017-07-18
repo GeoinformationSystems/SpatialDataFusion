@@ -1,8 +1,7 @@
 package de.tudresden.geoinfo.fusion.data.feature.osm;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
-import de.tudresden.geoinfo.fusion.data.Resource;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -11,7 +10,7 @@ import java.util.Map;
 /**
  * OSM XML property set
  */
-public class OSMPropertySet extends Resource {
+public class OSMPropertySet extends ResourceIdentifier {
 
     private static final String OSM_PROPERTY_ID = "id";
 
@@ -25,7 +24,7 @@ public class OSMPropertySet extends Resource {
      * @param properties OSM properties
      */
     public OSMPropertySet(@NotNull Map<String, String> properties, @NotNull Map<String, String> tags) {
-        super(new Identifier(properties.get(OSM_PROPERTY_ID)));
+        super(properties.get(OSM_PROPERTY_ID), null);
         setTags(tags);
         setProperties(properties);
     }
@@ -39,7 +38,7 @@ public class OSMPropertySet extends Resource {
     private Map<String, Object> getMapEntries(@NotNull Map<String, String> inputs) {
         Map<String, Object> map = new HashMap<>();
         for (Map.Entry<String, String> input : inputs.entrySet()) {
-            map.put(input.getKey(), LiteralData.parseObjectFromString(input.getValue()));
+            map.put(input.getKey(), LiteralData.parseTypedLiteral(input.getValue()));
         }
         return map;
     }

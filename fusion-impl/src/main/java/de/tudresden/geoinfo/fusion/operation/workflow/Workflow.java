@@ -1,6 +1,6 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +19,8 @@ public class Workflow extends AbstractOperation implements IWorkflow {
     /**
      * empty constructor, if used initializeConnectors() must be called after setting workflow nodes
      */
-    Workflow(IIdentifier identifier) {
-        super(identifier);
+    public Workflow() {
+        super(PROCESS_TITLE, null);
     }
 
     /**
@@ -28,8 +28,8 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      *
      * @param nodes workflow nodes
      */
-    public Workflow(IIdentifier identifier, Collection<IWorkflowNode> nodes) {
-        this(identifier);
+    public Workflow(@NotNull Collection<IWorkflowNode> nodes) {
+        this();
         this.setNodes(nodes);
         super.initializeConnectors();
     }
@@ -153,34 +153,22 @@ public class Workflow extends AbstractOperation implements IWorkflow {
      */
     private void executeNode(IWorkflowNode node) {
         //execute ancestors and self, if this node has not been executed yet
-        if (!node.isSuccess()) {
+        if (!node.success()) {
             //execute ancestors, if have not been executed yet
             for (IWorkflowNode ancestor : node.getAncestors()) {
-                if (!ancestor.isSuccess())
+                if (!ancestor.success())
                     executeNode(ancestor);
             }
             //execute self
             node.execute();
-            if (!node.isSuccess())
+            if (!node.success())
                 throw new RuntimeException("Workflow node " + node.getIdentifier() + " did not succeed");
         }
         //execute successor nodes, if have not been executed yet
         for (IWorkflowNode successor : node.getSuccessors()) {
-            if (!successor.isSuccess())
+            if (!successor.success())
                 executeNode(successor);
         }
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @Nullable
-    @Override
-    public String getDescription() {
-        return null;
     }
 
 }

@@ -1,13 +1,14 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.feature.*;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
+import de.tudresden.geoinfo.fusion.data.feature.AbstractFeature;
+import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureConcept;
+import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureEntity;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.Set;
@@ -15,53 +16,37 @@ import java.util.Set;
 /**
  * GeoTools feature implementation
  */
-public class GTVectorFeature extends AbstractFeature {
+public class GTVectorFeature extends AbstractFeature<SimpleFeature> {
 
     /**
      * constructor
      *
-     * @param identifier feature identifier
+     * @param identifier identifier
      * @param feature    feature object
      * @param relations  feature relations
      */
-    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull Feature feature, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public GTVectorFeature(@NotNull IIdentifier identifier, @NotNull SimpleFeature feature, @Nullable IMetadata metadata, @Nullable Set<IRelation> relations) {
         super(identifier, feature, metadata, relations);
     }
 
-    /**
-     * constructor
-     *
-     * @param identifier feature identifier
-     * @param feature    feature object
-     */
-    public GTVectorFeature(@Nullable IIdentifier identifier, @NotNull Feature feature, @Nullable IMetadata metadata) {
-        this(identifier, feature, metadata, null);
-    }
-
-    @NotNull
     @Override
-    public SimpleFeature resolve() {
-        return (SimpleFeature) super.resolve();
+    public GTVectorRepresentation initRepresentation() {
+        return new GTVectorRepresentation(new ResourceIdentifier(null, resolve().getID()), resolve(), null);
     }
 
     @Override
-    public AbstractFeatureRepresentation getRepresentationView() {
-        return new GTVectorRepresentation(new Identifier((resolve()).getID()), resolve(), null);
-    }
-
-    @Override
-    public AbstractFeatureEntity getEntityView() {
+    public AbstractFeatureEntity initEntity() {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public AbstractFeatureType getTypeView() {
-        return new GTFeatureType(new Identifier((resolve()).getFeatureType().getTypeName()), (resolve()).getFeatureType(), null);
+    public GTFeatureType initType() {
+        return new GTFeatureType(new ResourceIdentifier(null, resolve().getFeatureType().getTypeName()), resolve().getFeatureType(), null);
     }
 
     @Override
-    public AbstractFeatureConcept getConceptView() {
+    public AbstractFeatureConcept initConcept() {
         // TODO Auto-generated method stub
         return null;
     }

@@ -1,8 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
 import de.tudresden.geoinfo.fusion.data.Data;
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import de.tudresden.geoinfo.fusion.operation.ows.OWSServiceOperation;
 import org.camunda.bpm.model.bpmn.Bpmn;
@@ -15,7 +14,6 @@ import org.camunda.bpm.model.bpmn.instance.camunda.CamundaProperty;
 import org.camunda.bpm.model.xml.ModelValidationException;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -31,15 +29,15 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
     /**
      * constructor
      */
-    public CamundaBPMNModel(@Nullable IIdentifier identifier, @NotNull BpmnModelInstance bpmnModelInstance) {
-        super(identifier, bpmnModelInstance);
+    public CamundaBPMNModel(@NotNull IIdentifier identifier, @NotNull BpmnModelInstance bpmnModelInstance) {
+        super(identifier, bpmnModelInstance, null);
     }
 
     /**
      * constructor
      */
-    public CamundaBPMNModel(@Nullable IIdentifier identifier, @NotNull IWorkflow workflow) {
-        this(identifier, createEmptyModel(identifier != null ? identifier : new Identifier()));
+    public CamundaBPMNModel(@NotNull IIdentifier identifier, @NotNull IWorkflow workflow) {
+        this(identifier, createEmptyModel(identifier));
         this.initModel(workflow);
     }
 
@@ -73,7 +71,7 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
         Map<String, SequenceFlow> sequenceFlows = new HashMap<>();
         for (IWorkflowConnection connection : workflow.getWorkflowConnections()) {
             //add data object
-            DataObject dataObject = createDataObject(this.getUUID("dataObject_"), connection.getTitle(), null);
+            DataObject dataObject = createDataObject(this.getUUID("dataObject_"), connection.getIdentifier().getLocalIdentifier(), null);
             process.addChildElement(dataObject);
             process.addChildElement(createDataObjectRef(connection.getIdentifier().toString(), dataObject.getId()));
             //create sequence flow, if tasks are not yet connected
@@ -85,13 +83,13 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
         //add all data objects from workflow IO
         for(IInputConnector inputConnector : workflow.getInputConnectors()){
             //add data object
-            DataObject dataObject = createDataObject(this.getUUID("workflowInput_"), inputConnector.getTitle(), null);
+            DataObject dataObject = createDataObject(this.getUUID("workflowInput_"), inputConnector.getIdentifier().getLocalIdentifier(), null);
             process.addChildElement(dataObject);
             process.addChildElement(createDataObjectRef("data" + inputConnector.getIdentifier().toString(), dataObject.getId()));
         }
         for(IOutputConnector outputConnector : workflow.getOutputConnectors()){
             //add data object
-            DataObject dataObject = createDataObject(this.getUUID("workflowOutput_"), outputConnector.getTitle(), null);
+            DataObject dataObject = createDataObject(this.getUUID("workflowOutput_"), outputConnector.getIdentifier().getLocalIdentifier(), null);
             process.addChildElement(dataObject);
             process.addChildElement(createDataObjectRef("data" + outputConnector.getIdentifier().toString(), dataObject.getId()));
         }
@@ -230,7 +228,7 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
     private Task createBPMNTask(IWorkflowNode node, Task bpmnTask, IWorkflow workflow) {
         //create BPMN process
         bpmnTask.setId(node.getIdentifier().toString());
-        bpmnTask.setName(node.getTitle());
+        bpmnTask.setName(node.getIdentifier().getLocalIdentifier());
         //create io specification
         bpmnTask.addChildElement(createIOSpecification(node));
         //create io associations
@@ -339,7 +337,7 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
     private DataInput createDataInput(IWorkflowConnector connector) {
         DataInput in = this.newInstance(DataInput.class);
         in.setId(connector.getIdentifier().toString());
-        in.setName(connector.getTitle());
+        in.setName(connector.getIdentifier().getLocalIdentifier());
         return in;
     }
 
@@ -352,7 +350,7 @@ public class CamundaBPMNModel extends Data<BpmnModelInstance> {
     private DataOutput createDataOutput(IWorkflowConnector connector) {
         DataOutput out = this.newInstance(DataOutput.class);
         out.setId(connector.getIdentifier().toString());
-        out.setName(connector.getTitle());
+        out.setName(connector.getIdentifier().getLocalIdentifier());
         return out;
     }
 

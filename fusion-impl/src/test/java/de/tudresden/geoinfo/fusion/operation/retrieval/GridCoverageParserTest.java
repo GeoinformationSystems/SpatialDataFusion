@@ -25,7 +25,7 @@ public class GridCoverageParserTest extends AbstractTest {
 
     private void readCoverage(URLLiteral resource) {
 
-        AbstractOperation operation = new GridCoverageParser(null);
+        AbstractOperation operation = new GridCoverageParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

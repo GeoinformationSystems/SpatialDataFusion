@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.feature.osm.OSMFeatureCollection;
+import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
@@ -32,14 +32,14 @@ public class ShapefileParserTest extends AbstractTest {
 
     public void readShapefile(URLLiteral resource, boolean withIndex) {
 
-        AbstractOperation operation = new OSMXMLParser(null);
+        AbstractOperation operation = new ShapefileParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);
         inputs.put(IN_WITH_INDEX, new BooleanLiteral(withIndex));
 
         Map<String,Class<? extends IData>> outputs = new HashMap<>();
-        outputs.put(OUT_FEATURES, OSMFeatureCollection.class);
+        outputs.put(OUT_FEATURES, GTFeatureCollection.class);
 
         this.execute(operation, inputs, outputs);
 

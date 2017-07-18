@@ -1,8 +1,8 @@
 package de.tudresden.geoinfo.fusion.data.feature.osm;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
 import de.tudresden.geoinfo.fusion.data.feature.AbstractFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.jetbrains.annotations.NotNull;
@@ -16,17 +16,17 @@ import java.util.Set;
 
 public class OSMFeatureCollection<T extends OSMVectorFeature> extends AbstractFeatureCollection<T> {
 
-    private transient Set<OSMNode> nodes;
-    private transient Set<OSMWay> ways;
+    private Set<OSMNode> nodes;
+    private Set<OSMWay> ways;
 
     /**
      * constructor
      *
-     * @param sIdentifier       resource identifier
-     * @param featureCollection GeoTools GTVectorFeature collection
+     * @param identifier       resource identifier
+     * @param features OSM features
      */
-    public OSMFeatureCollection(@Nullable IIdentifier sIdentifier, @NotNull Collection<T> featureCollection, @Nullable IMetadata metadata) {
-        super(sIdentifier, featureCollection, metadata);
+    public OSMFeatureCollection(@NotNull IIdentifier identifier, @NotNull Collection<T> features, @Nullable IMetadata metadata) {
+        super(identifier, features, metadata);
     }
 
     /**
@@ -35,16 +35,15 @@ public class OSMFeatureCollection<T extends OSMVectorFeature> extends AbstractFe
      * @return OSM nodes in the collection
      */
     @NotNull
-    public OSMFeatureCollection<OSMNode> getNodes() {
-        if (nodes == null) {
-            nodes = new HashSet<>();
-            for (OSMVectorFeature feature : this.resolve()) {
+    public Set<OSMNode> getNodes() {
+        if (this.nodes.isEmpty()) {
+            for (OSMVectorFeature feature : this) {
                 if (feature instanceof OSMNode) {
-                    nodes.add((OSMNode) feature);
+                    this.nodes.add((OSMNode) feature);
                 }
             }
         }
-        return new OSMFeatureCollection<>(this.getIdentifier(), nodes, null);
+        return this.nodes;
     }
 
     /**
@@ -53,16 +52,30 @@ public class OSMFeatureCollection<T extends OSMVectorFeature> extends AbstractFe
      * @return OSM ways in the collection
      */
     @NotNull
-    public OSMFeatureCollection<OSMWay> getWays() {
-        if (ways == null) {
-            ways = new HashSet<>();
-            for (OSMVectorFeature feature : this.resolve()) {
+    public Set<OSMWay> getWays() {
+        if(this.ways.isEmpty()) {
+            for (OSMVectorFeature feature : this) {
                 if (feature instanceof OSMWay) {
-                    ways.add((OSMWay) feature);
+                    this.ways.add((OSMWay) feature);
                 }
             }
         }
-        return new OSMFeatureCollection<>(getIdentifier(), ways, null);
+        return this.ways;
+    }
+
+    @Override
+    public boolean add(T data){
+        if(this.nodes == null)
+            this.nodes = new HashSet<>();
+        if(this.ways == null)
+            this.ways = new HashSet<>();
+
+        if(data instanceof OSMNode)
+            this.nodes.add((OSMNode) data);
+        else if(data instanceof OSMWay)
+            this.ways.add((OSMWay) data);
+
+        return super.add(data);
     }
 
     @Override

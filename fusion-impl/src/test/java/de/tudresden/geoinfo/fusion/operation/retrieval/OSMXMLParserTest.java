@@ -32,7 +32,7 @@ public class OSMXMLParserTest extends AbstractTest {
 
     private void readOSM(URLLiteral resource) {
 
-        AbstractOperation operation = new OSMXMLParser(null);
+        AbstractOperation operation = new OSMXMLParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

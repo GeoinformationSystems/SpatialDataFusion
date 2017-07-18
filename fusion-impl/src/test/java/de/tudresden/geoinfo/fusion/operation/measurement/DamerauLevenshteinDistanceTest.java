@@ -23,7 +23,6 @@ public class DamerauLevenshteinDistanceTest extends AbstractTest {
     private final static String IN_RANGE_ATTRIBUTE = "IN_RANGE_ATTRIBUTE";
     private final static String IN_THRESHOLD = "IN_THRESHOLD";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -58,7 +57,7 @@ public class DamerauLevenshteinDistanceTest extends AbstractTest {
 
     private void getDamLevDistance(GTFeatureCollection domain, GTFeatureCollection range, StringLiteral sAttDomain, StringLiteral sAttRange, IntegerLiteral threshold) {
 
-        AbstractOperation operation = new DamerauLevenshteinDistance(null);
+        AbstractOperation operation = new DamerauLevenshteinDistance();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

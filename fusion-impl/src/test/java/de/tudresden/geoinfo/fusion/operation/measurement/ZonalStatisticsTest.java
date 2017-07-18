@@ -38,7 +38,7 @@ public class ZonalStatisticsTest extends AbstractTest {
 
     private void calculateZonalStatistics(GTFeatureCollection domain, GTGridFeature range, IntegerLiteral band, DecimalLiteral buffer) {
 
-        AbstractOperation operation = new ZonalStatistics(null);
+        AbstractOperation operation = new ZonalStatistics();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

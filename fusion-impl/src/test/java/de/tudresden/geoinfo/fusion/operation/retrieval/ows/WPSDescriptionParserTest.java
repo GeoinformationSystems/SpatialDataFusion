@@ -5,7 +5,6 @@ import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.WPSDescribeProcess;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import de.tudresden.geoinfo.fusion.operation.retrieval.OSMXMLParser;
 import org.junit.Test;
 
 import java.net.MalformedURLException;
@@ -26,7 +25,7 @@ public class WPSDescriptionParserTest extends AbstractTest {
 
     private void readProcessDescription(URLLiteral resource) {
 
-        AbstractOperation operation = new OSMXMLParser(null);
+        AbstractOperation operation = new WPSDescriptionParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

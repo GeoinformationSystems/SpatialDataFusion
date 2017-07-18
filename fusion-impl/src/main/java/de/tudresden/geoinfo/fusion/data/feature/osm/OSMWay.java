@@ -1,7 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.feature.osm;
 
 import com.vividsolutions.jts.geom.Geometry;
-import de.tudresden.geoinfo.fusion.data.feature.IFeature;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.geotools.geometry.jts.GeometryBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +23,7 @@ public class OSMWay extends OSMVectorFeature {
      * @param nodes       associated OSM nodes
      * @param relations   associated relations
      */
-    public OSMWay(@NotNull OSMPropertySet propertySet, @NotNull LinkedList<OSMNode> nodes, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public OSMWay(@NotNull OSMPropertySet propertySet, @NotNull LinkedList<OSMNode> nodes, @Nullable Set<IRelation> relations) {
         super(propertySet, getWayGeometry(nodes), null, relations);
     }
 

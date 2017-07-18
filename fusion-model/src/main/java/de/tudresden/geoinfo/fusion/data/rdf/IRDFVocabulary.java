@@ -13,6 +13,6 @@ public interface IRDFVocabulary {
      * @return RDF resource
      */
     @NotNull
-    IResource getResource();
+    IRDFResource getResource();
 
 }

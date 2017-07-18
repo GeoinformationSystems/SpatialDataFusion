@@ -15,7 +15,7 @@
 //import de.tudresden.gis.fusion.data.literal.IntegerLiteral;
 //import de.tudresden.gis.fusion.data.literal.StringLiteral;
 //import de.tudresden.gis.fusion.data.literal.URLLiteral;
-//import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
+//import de.tudresden.gis.fusion.data.relation.BinaryRelationCollection;
 //import de.tudresden.gis.fusion.operation.io.GMLParser;
 //import de.tudresden.gis.fusion.operation.io.RDFTurtleGenerator;
 //import de.tudresden.gis.fusion.operation.measurement.IntersectionLength;
@@ -30,7 +30,7 @@
 //
 //		GMLParser parserGML = new GMLParser();
 //		GridCoverageParser parserCoverage = new GridCoverageParser();
-//		BinaryFeatureRelationCollection relations;
+//		BinaryRelationCollection relations;
 //
 //		Map<String,IData> input = new HashMap<String,IData>();
 //
@@ -49,7 +49,7 @@
 //		input.setRDFProperty("IN_TARGET", targetNoise);
 //		output = lengthInPolygon.execute(input);
 //
-//		relations = (BinaryFeatureRelationCollection) output.get("OUT_RELATIONS");
+//		relations = (BinaryRelationCollection) output.get("OUT_RELATIONS");
 //
 //		//pm10 - 09:00
 //
@@ -65,7 +65,7 @@
 //		input.setRDFProperty("IN_BUFFER", new DecimalLiteral(0.0005)); //~50m in WGS84
 //		output = zonalStats.execute(input);
 //
-//		relations.addAll(((BinaryFeatureRelationCollection) output.get("OUT_RELATIONS")).resolve());
+//		relations.addAll(((BinaryRelationCollection) output.get("OUT_RELATIONS")).resolve());
 //
 //		//pm10 - 12:00
 //
@@ -79,7 +79,7 @@
 //		input.setRDFProperty("IN_BUFFER", new DecimalLiteral(0.0005)); //~50m in WGS84
 //		output = zonalStats.execute(input);
 //
-//		relations.addAll(((BinaryFeatureRelationCollection) output.get("OUT_RELATIONS")).resolve());
+//		relations.addAll(((BinaryRelationCollection) output.get("OUT_RELATIONS")).resolve());
 //
 //		//Output
 //		String result;
@@ -115,7 +115,7 @@
 //					+ "http://www.w3.org/1999/02/22-rdf-syntax-ns#;rdf;"
 //					+ "http://www.w3.org/2001/XMLSchema#;xsd;"));
 //			output = generator.execute(input);
-//			result = ((URLLiteral) output.get("OUT_RESOURCE")).getLiteral();
+//			result = ((URLLiteral) output.get("OUT_RESOURCE")).getLiteralValue();
 //		}
 //
 //		Runtime runtime = Runtime.getRuntime();

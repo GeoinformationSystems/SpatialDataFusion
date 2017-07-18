@@ -1,30 +1,30 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
 import de.tudresden.geoinfo.fusion.data.IMeasurement;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFResource;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Relation measurement, describes a quantifiable relationship between resources
+ * Relation measurement, describes a quantifiable relationship between two objects
  *
- * @param <T> Resource type participating in the relation measurement
+ * @param <T> Measurement type
  */
-public interface IRelationMeasurement<T extends Comparable<T>> extends IMeasurement<T> {
+public interface IRelationMeasurement<T extends Comparable<T>> extends IMeasurement<T>, IRDFResource {
 
     /**
-     * get relation domain
+     * get domain of this measurement
      *
-     * @return relation domain resource
+     * @return domain resource
      */
     @NotNull
-    IResource getDomain();
+    IRDFResource getDomain();
 
     /**
-     * get relation range
+     * get range of this measurement
      *
-     * @return relation range resource
+     * @return range resource
      */
     @NotNull
-    IResource getRange();
+    IRDFResource getRange();
 
 }

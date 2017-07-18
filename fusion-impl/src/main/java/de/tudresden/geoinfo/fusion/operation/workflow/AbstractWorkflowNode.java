@@ -1,7 +1,8 @@
 package de.tudresden.geoinfo.fusion.operation.workflow;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.operation.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,13 +14,17 @@ import java.util.*;
  */
 public abstract class AbstractWorkflowNode extends AbstractWorkflowElement implements IWorkflowNode {
 
-    private Map<String, IIdentifier> inputTitles = new HashMap<>();
     private Map<IIdentifier, IInputConnector> inputConnectors = new HashMap<>();
-    private Map<String, IIdentifier> outputTitles = new HashMap<>();
     private Map<IIdentifier, IOutputConnector> outputConnectors = new HashMap<>();
+    private Map<String, IIdentifier> localInputIdentifiers = new HashMap<>();
+    private Map<String, IIdentifier> localOutputIdentifiers = new HashMap<>();
 
-    public AbstractWorkflowNode(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description){
-        super(identifier, title, description);
+    /**
+     * constructor
+     * @param identifier element identifier
+     */
+    public AbstractWorkflowNode(@NotNull IIdentifier identifier, String description){
+        super(identifier, description);
         this.initializeConnectors();
     }
 
@@ -27,12 +32,9 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      * initialize IO connectors
      */
     protected void initializeConnectors() {
-        //set input connectors
-        this.clearInputConnectors();
-        initializeInputConnectors();
-        //set output connectors
-        this.clearOutputConnectors();
-        initializeOutputConnectors();
+        this.clearConnectors();
+        this.initializeInputConnectors();
+        this.initializeOutputConnectors();
     }
 
     /**
@@ -45,116 +47,204 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      */
     protected abstract void initializeOutputConnectors();
 
+    /**
+     * get connector by identifier
+     * @param connectors set of connectors
+     * @param identifier identifier to search for
+     * @return connector or null, if identifier is not found
+     */
+    @NotNull
+    private <T extends IWorkflowConnector> T getConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull IIdentifier identifier) {
+        if(!connectors.containsKey(identifier))
+            throw new IllegalArgumentException("connector with identifier " + identifier.getGlobalIdentifier() + " does not exist");
+        return connectors.get(identifier);
+    }
+
+    /**
+     * get connector by local identifier
+     * @param connectors set of connectors
+     * @param localIdentifier local identifier to search for
+     * @return connector or null, if identifier is not found
+     */
+    @NotNull
+    private <T extends IWorkflowConnector> T getConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier) {
+        if(!localIdentifiers.containsKey(localIdentifier))
+            throw new IllegalArgumentException("connector with local identifier " + localIdentifier + " does not exist");
+        return connectors.get(localIdentifiers.get(localIdentifier));
+    }
+
+    /**
+     * add a connector
+     * @param connectors connectors
+     * @param localIdentifiers local identifiers
+     * @param connector connector to add
+     * @param index current index for local identifier
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void addConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull T connector, int index) {
+        //do nothing if connector is already present
+        if(connectors.containsKey(connector.getIdentifier()))
+            return;
+        //check for local identifier, increase index if local identifier already exists
+        String localIdentifier = connector.getIdentifier().getLocalIdentifier() + (index > 0 ? "_" + index : "");
+        if(localIdentifiers.containsKey(localIdentifier))
+            this.addConnector(connectors, localIdentifiers, connector, ++index);
+        else {
+            if(index > 0)
+                connector.getIdentifier().setLocalIdentifier(localIdentifier);
+            connectors.put(connector.getIdentifier(), connector);
+            localIdentifiers.put(localIdentifier, connector.getIdentifier());
+        }
+    }
+
+    /**
+     * add connector to node, modifies local identifier (localIdentifier + _index), if duplicate identifiers exist
+     * @param connectors set of existing connectors
+     * @param localIdentifiers local identifiers
+     * @param connector connector to be added
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void addConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull T connector) {
+        this.addConnector(connectors, localIdentifiers, connector, 0);
+    }
+
+    /**
+     * remove connector
+     * @param connectors set of existing connectors
+     * @param localIdentifiers local identifiers
+     * @param identifier connector identifier
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void removeConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull IIdentifier identifier) {
+        connectors.remove(identifier);
+        localIdentifiers.remove(identifier.getLocalIdentifier());
+    }
+
+    /**
+     * remove connector
+     * @param connectors set of existing connectors
+     * @param localIdentifiers local identifiers
+     * @param localIdentifier local connector identifier
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void removeConnector(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier) {
+        if(!localIdentifiers.containsKey(localIdentifier))
+            return;
+        this.removeConnector(connectors, localIdentifiers, localIdentifiers.get(localIdentifier));
+    }
+
+    /**
+     * get connector id from local identifer
+     * @param localIdentifiers set of identifiers
+     * @param localIdentifier local connector identifier
+     * @return connector id by local identifier
+     */
+    private @NotNull IIdentifier getIdentifier(@NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier) {
+        if(!localIdentifiers.containsKey(localIdentifier))
+            throw new IllegalArgumentException("connector with local identifier " + localIdentifier + " does not exist");
+        return localIdentifiers.get(localIdentifier);
+    }
+
+    /**
+     * get output data from selected connector
+     * @param connectors set of existing connectors
+     * @param identifier connector identifier
+     * @return data associated with connector
+     */
+    private @Nullable <T extends IWorkflowConnector> IData getData(@NotNull Map<IIdentifier,T> connectors, @NotNull IIdentifier identifier) {
+        return connectors.get(identifier).getData();
+    }
+
+    /**
+     * get mandatory data from selected connector
+     * @param connectors set of existing connectors
+     * @param identifier connector identifier
+     * @return data associated with connector
+     */
+    private @NotNull <T extends IWorkflowConnector> IData getMandatoryData(@NotNull Map<IIdentifier,T> connectors, @NotNull IIdentifier identifier) {
+        IData data = connectors.get(identifier).getData();
+        if(data == null)
+            throw new RuntimeException("Mandatory constraint violation for identifier " + identifier.getLocalIdentifier());
+        return data;
+    }
+
+    /**
+     * get data from selected connector
+     *
+     * @param connectors set of existing connectors
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector or null, if connector does not exist
+     */
+    private @Nullable <T extends IWorkflowConnector> IData getData(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier) {
+        if(!localIdentifiers.containsKey(localIdentifier))
+            throw new IllegalArgumentException("connector with local identifier " + localIdentifier + " does not exist");
+        return getData(connectors, localIdentifiers.get(localIdentifier));
+    }
+
+    /**
+     * get mandatory data from selected connector
+     *
+     * @param connectors set of existing connectors
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector or null, if connector does not exist
+     */
+    private @NotNull <T extends IWorkflowConnector> IData getMandatoryData(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier) {
+        IData data = this.getData(connectors, localIdentifiers, localIdentifier);
+        if(data == null)
+            throw new RuntimeException("Mandatory constraint violation for identifier " + localIdentifier);
+        return data;
+    }
+
+    /**
+     * connect data to corresponding connector
+     *
+     * @param connector connector
+     * @param data      data
+     */
+    private <T extends IWorkflowConnector> void setData(@NotNull T connector, @Nullable IData data) {
+        connector.setData(data);
+    }
+
+    /**
+     * connect data to corresponding connector
+     * @param connectors set of connectors
+     * @param identifier connector identifier
+     * @param data data object
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void setData(@NotNull Map<IIdentifier,T> connectors, @NotNull IIdentifier identifier, @Nullable IData data) {
+        this.setData(this.getConnector(connectors, identifier), data);
+    }
+
+    /**
+     * connect data to corresponding connector
+     * @param connectors set of connectors
+     * @param localIdentifier local connector identifier
+     * @param data data object
+     * @param <T> type of connector
+     */
+    private <T extends IWorkflowConnector> void setData(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull String localIdentifier, @Nullable IData data) {
+        this.setData(this.getConnector(connectors, localIdentifiers, localIdentifier), data);
+    }
+
+    /**
+     * connect data to corresponding connectors
+     *
+     * @param connectors set of connectors
+     * @param localIdentifiers local identifiers
+     * @param data data map
+     */
+    private <T extends IWorkflowConnector> void setData(@NotNull Map<IIdentifier,T> connectors, @NotNull Map<String,IIdentifier> localIdentifiers, @NotNull Map<String,IData> data) {
+        for (Map.Entry<String, IData> input : data.entrySet()) {
+            if (input.getValue() != null)
+                this.setData(connectors, localIdentifiers, input.getKey(), input.getValue());
+        }
+    }
+
     @NotNull
     @Override
     public Collection<IInputConnector> getInputConnectors() {
         return this.inputConnectors.values();
-    }
-
-    @Override
-    @NotNull
-    public IInputConnector getInputConnector(@NotNull IIdentifier identifier) {
-        if(!this.inputConnectors.containsKey(identifier))
-            throw new IllegalArgumentException("Input " + identifier + " is not defined");
-        return this.inputConnectors.get(identifier);
-    }
-
-    /**
-     * get input connector
-     * @param title connector title
-     * @param includeIdentifier flag: include identifier.toString() in search
-     * @return connector associated with title
-     */
-    public @NotNull IInputConnector getInputConnector(@NotNull String title, boolean includeIdentifier) {
-        //check for identifier
-        if(includeIdentifier){
-            for(IIdentifier identifier : this.getInputIdentifiers()){
-                if(identifier.toString().equals(title))
-                    return this.getInputConnector(identifier);
-            }
-        }
-        //check for title
-        return this.getInputConnector(this.getInputIdentifier(title));
-    }
-
-    @NotNull
-    public IInputConnector getInputConnector(@NotNull String title) {
-        return this.getInputConnector(title, true);
-    }
-
-    @NotNull
-    public Collection<IIdentifier> getInputIdentifiers() {
-        return this.inputTitles.values();
-    }
-
-    @NotNull
-    public IIdentifier getInputIdentifier(@NotNull String title) {
-        if(!this.inputTitles.containsKey(title))
-            throw new IllegalArgumentException("Input " + title + " is not defined");
-        return this.inputTitles.get(title);
-    }
-
-    /**
-     * adds an input connector
-     *
-     * @param connector workflow connector
-     */
-    public void addConnector(@NotNull IWorkflowConnector connector) {
-        if(connector instanceof IInputConnector)
-            this.addInputConnector((IInputConnector) connector);
-        else if(connector instanceof IOutputConnector)
-            this.addOutputConnector((IOutputConnector) connector);
-    }
-
-    private void addInputConnector(@NotNull IInputConnector inputConnector, int index) {
-        String title = index == 0 ? getConnectorTitle(inputConnector) : getConnectorTitle(inputConnector) + "_" + index;
-        if (this.inputTitles.containsKey(title))
-            addInputConnector(inputConnector, ++index);
-        else {
-            this.inputTitles.put(title, inputConnector.getIdentifier());
-            this.inputConnectors.put(inputConnector.getIdentifier(), inputConnector);
-        }
-    }
-
-    /**
-     * adds an input connector
-     *
-     * @param inputConnector input connector
-     */
-    public void addInputConnector(@NotNull IInputConnector inputConnector) {
-        this.addInputConnector(inputConnector, 0);
-    }
-
-    private String getConnectorTitle(IWorkflowConnector connector){
-        return connector.getTitle() != null ? connector.getTitle() : connector.getIdentifier().toString();
-    }
-
-    /**
-     * adds an input connector
-     *
-     * @param identifier            input connector identifier
-     * @param title                 input connector title
-     * @param description           input connector description
-     * @param runtimeConstraints    existing data constraints
-     * @param connectionConstraints existing connection constraints
-     * @param defaultData           default data object
-     */
-    public void addInputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, @Nullable IData defaultData) {
-        this.addInputConnector(new InputConnector(identifier, title, description, this, runtimeConstraints, connectionConstraints, defaultData));
-    }
-
-    /**
-     * adds an input connector
-     *
-     * @param identifier            input connector identifier
-     * @param title                 input connector title
-     * @param description           input connector description
-     * @param runtimeConstraints    existing data constraints
-     * @param connectionConstraints existing connection constraints
-     * @param defaultData           default data object
-     */
-    public void addInputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
-        this.addInputConnector(identifier, title, description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null, defaultData);
     }
 
     @NotNull
@@ -165,55 +255,35 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
 
     @Override
     @NotNull
+    public IInputConnector getInputConnector(@NotNull IIdentifier identifier) {
+        return this.getConnector(this.inputConnectors, identifier);
+    }
+
+    @Override
+    @NotNull
     public IOutputConnector getOutputConnector(@NotNull IIdentifier identifier) {
-        if(!this.outputConnectors.containsKey(identifier))
-            throw new IllegalArgumentException("Output " + identifier + " is not defined");
-        return this.outputConnectors.get(identifier);
+        return this.getConnector(this.outputConnectors, identifier);
+    }
+
+    @Override
+    @NotNull
+    public IInputConnector getInputConnector(@NotNull String localIdentifier) {
+        return this.getConnector(this.inputConnectors, this.localInputIdentifiers, localIdentifier);
+    }
+
+    @Override
+    @NotNull
+    public IOutputConnector getOutputConnector(@NotNull String localIdentifier) {
+        return this.getConnector(this.outputConnectors, this.localOutputIdentifiers, localIdentifier);
     }
 
     /**
-     * get output connector
-     * @param title connector title
-     * @param includeIdentifier flag: include identifier.toString() in search
-     * @return connector associated with title
+     * adds an input connector
+     *
+     * @param inputConnector input connector
      */
-    public @NotNull IOutputConnector getOutputConnector(@NotNull String title, boolean includeIdentifier) {
-        //check for identifier
-        if(includeIdentifier){
-            for(IIdentifier identifier : this.getOutputIdentifiers()){
-                if(identifier.toString().equals(title))
-                    return this.getOutputConnector(identifier);
-            }
-        }
-        //check for title
-        return this.getOutputConnector(this.getOutputIdentifier(title));
-    }
-
-    @NotNull
-    public IOutputConnector getOutputConnector(@NotNull String title) {
-        return this.getOutputConnector(title, true);
-    }
-
-    @NotNull
-    public Collection<IIdentifier> getOutputIdentifiers() {
-        return this.outputTitles.values();
-    }
-
-    @NotNull
-    public IIdentifier getOutputIdentifier(@NotNull String title) {
-        if(!this.outputTitles.containsKey(title))
-            throw new IllegalArgumentException("Output " + title + " is not defined");
-        return this.outputTitles.get(title);
-    }
-
-    private void addOutputConnector(@NotNull IOutputConnector outputConnector, int index) {
-        String title = index == 0 ? getConnectorTitle(outputConnector) : getConnectorTitle(outputConnector) + "_" + index;
-        if (this.outputTitles.containsKey(title))
-            addOutputConnector(outputConnector, ++index);
-        else {
-            this.outputTitles.put(title, outputConnector.getIdentifier());
-            this.outputConnectors.put(outputConnector.getIdentifier(), outputConnector);
-        }
+    public void addInputConnector(@NotNull IInputConnector inputConnector) {
+        this.addConnector(this.inputConnectors, this.localInputIdentifiers, inputConnector);
     }
 
     /**
@@ -222,40 +292,114 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      * @param outputConnector output connector
      */
     public void addOutputConnector(@NotNull IOutputConnector outputConnector) {
-        this.addOutputConnector(outputConnector, 0);
+        this.addConnector(this.outputConnectors, this.localOutputIdentifiers, outputConnector);
     }
 
     /**
      * adds an input connector
      *
-     * @param identifier            input connector identifier
-     * @param title                 input connector title
-     * @param description           input connector description
+     * @param identifier element identifier
+     * @param description element description
      * @param runtimeConstraints    existing data constraints
      * @param connectionConstraints existing connection constraints
+     * @param defaultData           default data object
      */
-    public void addOutputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
-        this.addOutputConnector(new OutputConnector(identifier, title, description, this, runtimeConstraints, connectionConstraints));
+    public void addInputConnector(@NotNull IIdentifier identifier, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, @Nullable IData defaultData) {
+        this.addInputConnector(new InputConnector(identifier, description, this, runtimeConstraints, connectionConstraints, defaultData));
     }
 
     /**
      * adds an input connector
      *
-     * @param identifier            input connector identifier
-     * @param title                 input connector title
-     * @param description           input connector description
+     * @param identifier element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     * @param defaultData           default data object
+     */
+    public void addInputConnector(@NotNull IIdentifier identifier, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
+        this.addInputConnector(identifier, description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null, defaultData);
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param localIdentifier local element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     * @param defaultData           default data object
+     */
+    public void addInputConnector(@NotNull String localIdentifier, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints, @Nullable IData defaultData) {
+        this.addInputConnector(new ResourceIdentifier(null, localIdentifier), description, runtimeConstraints, connectionConstraints, defaultData);
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param localIdentifier local element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     * @param defaultData           default data object
+     */
+    public void addInputConnector(@NotNull String localIdentifier, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints, @Nullable IData defaultData) {
+        this.addInputConnector(new ResourceIdentifier(null, localIdentifier), description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null, defaultData);
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param identifier element identifier
+     * @param description element description
      * @param runtimeConstraints    existing data constraints
      * @param connectionConstraints existing connection constraints
      */
-    public void addOutputConnector(@Nullable IIdentifier identifier, @Nullable String title, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
-        this.addOutputConnector(identifier, title, description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
+    public void addOutputConnector(@NotNull IIdentifier identifier, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
+        this.addOutputConnector(new OutputConnector(identifier, description, this, runtimeConstraints, connectionConstraints));
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param identifier element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     */
+    public void addOutputConnector(@NotNull IIdentifier identifier, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
+        this.addOutputConnector(identifier, description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param localIdentifier local element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     */
+    public void addOutputConnector(@NotNull String localIdentifier, @Nullable String description, @Nullable Collection<IRuntimeConstraint> runtimeConstraints, @Nullable Collection<IConnectionConstraint> connectionConstraints) {
+        this.addOutputConnector(new ResourceIdentifier(null, localIdentifier), description, runtimeConstraints, connectionConstraints);
+    }
+
+    /**
+     * adds an input connector
+     *
+     * @param localIdentifier local element identifier
+     * @param description element description
+     * @param runtimeConstraints    existing data constraints
+     * @param connectionConstraints existing connection constraints
+     */
+    public void addOutputConnector(@NotNull String localIdentifier, @Nullable String description, @Nullable IRuntimeConstraint[] runtimeConstraints, @Nullable IConnectionConstraint[] connectionConstraints) {
+        this.addOutputConnector(new ResourceIdentifier(null, localIdentifier), description, runtimeConstraints != null ? new HashSet<>(Arrays.asList(runtimeConstraints)) : null, connectionConstraints != null ? new HashSet<>(Arrays.asList(connectionConstraints)) : null);
     }
 
     @Override
-    public boolean isReady() {
+    public boolean ready() {
         //set ready, if all input connectors have been configured successfully
         for (IInputConnector inputConnector : this.getInputConnectors()) {
-            if (!inputConnector.isReady()) {
+            if (!inputConnector.ready()) {
                 return false;
             }
         }
@@ -263,10 +407,10 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
     }
 
     @Override
-    public boolean isSuccess() {
+    public boolean success() {
         //set success if all output connectors have been configured successfully
-        for (IOutputConnector output : this.getOutputConnectors()) {
-            if (!output.isReady()) {
+        for (IOutputConnector outputConnector : this.getOutputConnectors()) {
+            if (!outputConnector.ready()) {
                 return false;
             }
         }
@@ -298,36 +442,99 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
     }
 
     /**
+     * get input connector id from local identifier
+     * @param localIdentifier local connector identifier
+     * @return input connector id
+     */
+    public @NotNull IIdentifier getInputIdentifier(@NotNull String localIdentifier) {
+        return this.getIdentifier(this.localInputIdentifiers, localIdentifier);
+    }
+
+    /**
+     * get output connector id from local identifier
+     * @param localIdentifier local connector identifier
+     * @return output connector id
+     */
+    public @NotNull IIdentifier getOutputIdentifier(@NotNull String localIdentifier) {
+        return this.getIdentifier(this.localOutputIdentifiers, localIdentifier);
+    }
+
+    /**
      * get input data from selected connector
      *
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector or null, if connector does not exist
+     */
+    public @Nullable IData getInputData(@NotNull String localIdentifier) {
+        return this.getData(this.inputConnectors, this.localInputIdentifiers, localIdentifier);
+    }
+
+    /**
+     * get mandatory input data from selected connector
+     *
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector
+     * @throws RuntimeException if data is null
+     */
+    public @NotNull IData getMandatoryInputData(@NotNull String localIdentifier) {
+        return this.getMandatoryData(this.inputConnectors, this.localInputIdentifiers, localIdentifier);
+    }
+
+    /**
+     * get output data from selected connector
      * @param identifier connector identifier
      * @return data associated with connector
      */
-    public @NotNull IData getInputData(@NotNull IIdentifier identifier) {
-        return getInputData(getInputConnector(identifier));
+    public @Nullable IData getInputData(@NotNull IIdentifier identifier) {
+        return this.getData(this.inputConnectors, identifier);
     }
 
     /**
      * get input data from selected connector
      *
-     * @param title connector title
-     * @return data associated with connector
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector or null, if connector does not exist
      */
-    @NotNull
-    protected IData getInputData(@NotNull String title) {
-        return getInputData(getInputConnector(title));
+    public @Nullable IData getOutputData(@NotNull String localIdentifier) {
+        return this.getData(this.outputConnectors, this.localOutputIdentifiers, localIdentifier);
     }
 
     /**
-     * get input data from connector
+     * get mandatory output data from selected connector
      *
-     * @param connector input connector
-     * @return data associated with connector (can be null)
+     * @param localIdentifier local connector identifier
+     * @return data associated with connector
+     * @throws RuntimeException if data is null
      */
-    private @NotNull IData getInputData(@NotNull IInputConnector connector) {
-        if (connector.getData() == null)
-            throw new RuntimeException("Data attached to connector is null");
-        return connector.getData();
+    public @NotNull IData getMandatoryOutputData(@NotNull String localIdentifier) {
+        return this.getMandatoryData(this.outputConnectors, this.localOutputIdentifiers, localIdentifier);
+    }
+
+    /**
+     * get output data from selected connector
+     * @param identifier connector identifier
+     * @return data associated with connector
+     */
+    public @Nullable IData getOutputData(@NotNull IIdentifier identifier) {
+        return this.getData(this.outputConnectors, identifier);
+    }
+
+    /**
+     * remove an output connector
+     *
+     * @param identifier connector identifier
+     */
+    protected void removeInputConnector(@NotNull IIdentifier identifier) {
+        this.removeConnector(this.inputConnectors, this.localInputIdentifiers, identifier);
+    }
+
+    /**
+     * remove an output connector
+     *
+     * @param localIdentifier local connector identifier
+     */
+    protected void removeInputConnector(@NotNull String localIdentifier) {
+        this.removeConnector(this.inputConnectors, this.localInputIdentifiers, localIdentifier);
     }
 
     /**
@@ -336,55 +543,40 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      * @param identifier connector identifier
      */
     protected void removeOutputConnector(@NotNull IIdentifier identifier) {
-        this.outputConnectors.remove(identifier);
+        this.removeConnector(this.outputConnectors, this.localOutputIdentifiers, identifier);
     }
 
     /**
-     * remove all output connectors
+     * remove an output connector
+     *
+     * @param localIdentifier local connector identifier
      */
-    protected void clearOutputConnectors() {
-        this.outputConnectors.clear();
-        this.outputTitles.clear();
+    protected void removeOutputConnector(@NotNull String localIdentifier) {
+        this.removeConnector(this.outputConnectors, this.localOutputIdentifiers, localIdentifier);
     }
 
     /**
-     * remove all output connectors
+     * clear connectors
+     */
+    protected void clearConnectors() {
+        this.clearInputConnectors();
+        this.clearOutputConnectors();
+    }
+
+    /**
+     * clear output connectors
      */
     protected void clearInputConnectors() {
         this.inputConnectors.clear();
-        this.inputTitles.clear();
+        this.localInputIdentifiers.clear();
     }
 
     /**
-     * get output data from selected connector
-     *
-     * @param identifier connector identifier
-     * @return data associated with connector
+     * clear output connectors
      */
-    public @Nullable IData getOutputData(@NotNull IIdentifier identifier) {
-        return getOutputData(getOutputConnector(identifier));
-    }
-
-    /**
-     * get output data from selected connector
-     *
-     * @param title connector title
-     * @return data associated with connector
-     */
-    public @Nullable IData getOutputData(@NotNull String title) {
-        return getOutputData(getOutputConnector(title));
-    }
-
-    /**
-     * get output data from connector
-     *
-     * @param connector output connector
-     * @return data associated with connector (can be null)
-     */
-    private @Nullable IData getOutputData(@Nullable IOutputConnector connector) {
-        if (connector == null)
-            throw new IllegalArgumentException("Requested connector is not available");
-        return connector.getData();
+    protected void clearOutputConnectors() {
+        this.outputConnectors.clear();
+        this.localOutputIdentifiers.clear();
     }
 
     /**
@@ -392,10 +584,10 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      *
      * @param inputs process inputs
      */
-    public void connectInputs(@NotNull Map<IIdentifier, IData> inputs) {
+    public void setInputs(@NotNull Map<IIdentifier, IData> inputs) {
         for (Map.Entry<IIdentifier, IData> input : inputs.entrySet()) {
             if (input.getValue() != null)
-                this.connectInput(input.getKey(), input.getValue());
+                this.setInput(input.getKey(), input.getValue());
         }
     }
 
@@ -403,61 +595,56 @@ public abstract class AbstractWorkflowNode extends AbstractWorkflowElement imple
      * connect input
      *
      * @param identifier connector identifier
-     * @param input      input data
+     * @param data input data
      */
-    public void connectInput(@NotNull IIdentifier identifier, @NotNull IData input) {
-        IInputConnector connector = this.getInputConnector(identifier);
-        this.connectData(connector, input);
+    public void setInput(@NotNull IIdentifier identifier, @Nullable IData data) {
+        this.setData(this.inputConnectors, identifier, data);
     }
 
     /**
      * connect input
      *
-     * @param title connector title
-     * @param input input data
+     * @param localIdentifier local connector identifier
+     * @param data input data
      */
-    public void connectInput(@NotNull String title, @Nullable IData input) {
-        IInputConnector connector = this.getInputConnector(title);
-        if (connector != null)
-            this.connectData(connector, input);
+    public void setInput(@NotNull String localIdentifier, @Nullable IData data) {
+        this.setData(this.inputConnectors, this.localInputIdentifiers, localIdentifier, data);
     }
 
     /**
-     * connect input
+     * set output connectors
      *
-     * @param connector connector
-     * @param data      data
+     * @param outputs process outputs
      */
-    protected void connectData(@NotNull IWorkflowConnector connector, @Nullable IData data) {
-        connector.setData(data);
+    public void setOutputs(@NotNull Map<IIdentifier, IData> outputs) {
+        for (Map.Entry<IIdentifier, IData> output : outputs.entrySet()) {
+            if (output.getValue() != null)
+                this.setOutput(output.getKey(), output.getValue());
+        }
     }
 
     /**
      * connect output
      *
      * @param identifier connector identifier
-     * @param output     output data
+     * @param data output data
      */
-    public void connectOutput(@NotNull IIdentifier identifier, @Nullable IData output) {
-        IOutputConnector connector = this.getOutputConnector(identifier);
-        if (connector != null)
-            this.connectData(connector, output);
+    public void setOutput(@NotNull IIdentifier identifier, @Nullable IData data) {
+        this.setData(this.outputConnectors, identifier, data);
     }
 
     /**
-     * connect output
+     * connect input
      *
-     * @param title  connector title
-     * @param output output data
+     * @param localIdentifier local connector identifier
+     * @param data input data
      */
-    public void connectOutput(@NotNull String title, @Nullable IData output) {
-        IOutputConnector connector = this.getOutputConnector(title);
-        if (connector != null)
-            this.connectData(connector, output);
+    public void setOutput(@NotNull String localIdentifier, @Nullable IData data) {
+        this.setData(this.outputConnectors, this.localOutputIdentifiers, localIdentifier, data);
     }
 
     /**
-     * reset input and output connections
+     * reset input and output connectors
      */
     public void reset() {
         for(IInputConnector inputConnector : this.getInputConnectors()){

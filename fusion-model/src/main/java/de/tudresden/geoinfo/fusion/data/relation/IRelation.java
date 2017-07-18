@@ -1,6 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFResource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -8,9 +8,8 @@ import java.util.Set;
 /**
  * Relation object, describes a qualified relationship between member resources
  *
- * @param <T> Resource type participating in the relation
  */
-public interface IRelation<T extends IResource> extends IResource {
+public interface IRelation extends IRDFResource {
 
     /**
      * get relation members
@@ -18,17 +17,16 @@ public interface IRelation<T extends IResource> extends IResource {
      * @return relation members
      */
     @NotNull
-    Set<T> getMembers();
+    Set<IRDFResource> getMembers();
 
     /**
-     * get relation member
+     * get relation member for particular role
      *
      * @param role relation role
      * @return relation members associated with role
-     * @throws IllegalArgumentException if role is not associated to relation
      */
     @NotNull
-    Set<T> getMembers(@NotNull IRole role);
+    Set<IRDFResource> getMembers(@NotNull IRole role);
 
     /**
      * get relation type

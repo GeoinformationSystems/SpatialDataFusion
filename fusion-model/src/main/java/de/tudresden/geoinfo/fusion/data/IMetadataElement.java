@@ -1,6 +1,5 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,7 +13,7 @@ public interface IMetadataElement {
      * @return metadata resource
      */
     @NotNull
-    IResource getResource();
+    IIdentifier getIdentifier();
 
     /**
      * get metadata value

@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMeasurement;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +24,7 @@ public interface IObservation extends IFeature {
      * @return observed property
      */
     @NotNull
-    IResource getObservedProperty();
+    IIdentifier getObservedProperty();
 
     /**
      * get time when the observation's measurement applies

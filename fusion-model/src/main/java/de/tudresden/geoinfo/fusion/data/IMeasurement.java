@@ -1,14 +1,13 @@
 package de.tudresden.geoinfo.fusion.data;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
-import de.tudresden.geoinfo.fusion.data.rdf.ITypedLiteral;
+import de.tudresden.geoinfo.fusion.operation.IOperation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Basic measurement object
  */
-public interface IMeasurement<T extends Comparable<T>> extends IData, ITypedLiteral<T>, Comparable<IMeasurement<T>> {
+public interface IMeasurement<T extends Comparable<T>> extends IData, Comparable<IMeasurement<T>> {
 
     @NotNull
     T resolve();
@@ -19,7 +18,7 @@ public interface IMeasurement<T extends Comparable<T>> extends IData, ITypedLite
      * @return measurement operation
      */
     @Nullable
-    IResource getMeasurementOperation();
+    IOperation getMeasurementOperation();
 
     /**
      * get associated measurement range
@@ -35,6 +34,6 @@ public interface IMeasurement<T extends Comparable<T>> extends IData, ITypedLite
      * @return measurement unit identifier
      */
     @Nullable
-    IResource getUnitOfMeasurement();
+    IIdentifier getUnitOfMeasurement();
 
 }

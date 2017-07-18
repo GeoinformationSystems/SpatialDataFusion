@@ -11,7 +11,6 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
@@ -20,7 +19,6 @@ import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import de.tudresden.geoinfo.fusion.operation.enhancement.ResampleGeometry;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.opengis.feature.Feature;
 import org.rosuda.REngine.REXPMismatchException;
 import org.rosuda.REngine.REngineException;
@@ -33,7 +31,7 @@ import java.text.DecimalFormat;
 
 public class SinuosityMatrix extends AbstractOperation {
 
-    private static final String PROCESS_TITLE = SinuosityMatrix.class.getName();
+    private static final String PROCESS_ID = SinuosityMatrix.class.getName();
     private static final String PROCESS_DESCRIPTION = "Builds a sinuosity matrix for a provided linear input feature";
 
     private final static String IN_FEATURE_TITLE = "IN_FEATURE";
@@ -51,8 +49,8 @@ public class SinuosityMatrix extends AbstractOperation {
     /**
      * constructor
      */
-    public SinuosityMatrix(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public SinuosityMatrix() {
+        super(PROCESS_ID, PROCESS_DESCRIPTION);
     }
 
     @Override
@@ -65,11 +63,11 @@ public class SinuosityMatrix extends AbstractOperation {
         try {
             //create matrix
             URLLiteral pathToMatrix = createMatrix(feature, dInterval);
-            connectOutput(OUT_MATRIX_TITLE, pathToMatrix);
+            setOutput(OUT_MATRIX_TITLE, pathToMatrix);
             if(bPlot){
                 //create plot
                 URLLiteral pathToPlot = createPlot(pathToMatrix, dInterval);
-                connectOutput(OUT_PLOT_TITLE, pathToPlot);
+                setOutput(OUT_PLOT_TITLE, pathToPlot);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -159,7 +157,7 @@ public class SinuosityMatrix extends AbstractOperation {
      * @return linestring geometry
      */
     private @NotNull LineString getGeometry(Feature feature) {
-        Geometry geometry = Utilities.getGeometryFromFeature(feature, new BindingConstraint(LineString.class, MultiLineString.class), true);
+        Geometry geometry = Utilities.getGeometry(feature, new BindingConstraint(LineString.class, MultiLineString.class), true);
         if(geometry instanceof LineString)
             return (LineString) geometry;
         else if(geometry instanceof MultiLineString && geometry.getNumGeometries() == 1)
@@ -217,19 +215,19 @@ public class SinuosityMatrix extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_FEATURE_TITLE, IN_FEATURE_DESCRIPTION,
+        addInputConnector(IN_FEATURE_TITLE, IN_FEATURE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTVectorFeature.class),
                         new GeometryBindingConstraint(LineString.class, MultiLineString.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_INTERVAL_TITLE, IN_INTERVAL_DESCRIPTION,
+        addInputConnector(IN_INTERVAL_TITLE, IN_INTERVAL_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class)},
                 null,
                 null);
-        addInputConnector(null, IN_PLOT_TITLE, IN_PLOT_DESCRIPTION,
+        addInputConnector(IN_PLOT_TITLE, IN_PLOT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(BooleanLiteral.class)},
                 null,
@@ -238,26 +236,15 @@ public class SinuosityMatrix extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_MATRIX_TITLE, OUT_MATRIX_DESCRIPTION,
+        addOutputConnector(OUT_MATRIX_TITLE, OUT_MATRIX_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},
                 null);
-        addOutputConnector(null, OUT_PLOT_TITLE, OUT_PLOT_DESCRIPTION,
+        addOutputConnector(OUT_PLOT_TITLE, OUT_PLOT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class)},
                 null);
     }
 
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
-    }
 }

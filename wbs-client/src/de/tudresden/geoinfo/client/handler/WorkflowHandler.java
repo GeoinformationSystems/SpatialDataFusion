@@ -1,11 +1,8 @@
 package de.tudresden.geoinfo.client.handler;
 
-import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.Identifier;
-import de.tudresden.geoinfo.fusion.data.LiteralData;
+import de.tudresden.geoinfo.fusion.data.*;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
-import de.tudresden.geoinfo.fusion.data.metadata.DC_Metadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.metadata.MetadataVocabulary;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
 import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
@@ -69,7 +66,7 @@ public class WorkflowHandler {
     }
 
     public CamundaBPMNModel getBPMNModel() {
-        return new CamundaBPMNModel(null, this.getWorkflow());
+        return new CamundaBPMNModel(new ResourceIdentifier(), this.getWorkflow());
     }
 
     private JSONArray getProcesses() {
@@ -228,7 +225,7 @@ public class WorkflowHandler {
             //establish connection
             in.connect(out);
         }
-        Workflow workflow = new Workflow(null, nodes.values());
+        Workflow workflow = new Workflow(nodes.values());
         workflow.initializeOutputConnectors(outputConnectors);
         return workflow;
     }
@@ -268,7 +265,7 @@ public class WorkflowHandler {
     }
 
     private LiteralData getLiteralData(JSONObject output) {
-        return new StringLiteral(new Identifier(output.getString(JSON_IDENTIFIER)), output.getString(JSON_TITLE), null);
+        return new StringLiteral(new ResourceIdentifier(output.getString(JSON_IDENTIFIER)), output.getString(JSON_TITLE), null, null);
     }
 
     public void execute() {
@@ -279,9 +276,10 @@ public class WorkflowHandler {
         StringBuilder builder = new StringBuilder();
         builder.append("<h3>Results for Workflow: ").append(this.getWorkflow().getIdentifier()).append("</h3>");
         for (Map.Entry<IIdentifier,IData> output : this.getOutput().entrySet()) {
+            IMetadataElement md_title = output.getValue().getMetadata() != null ? output.getValue().getMetadata().getElement(MetadataVocabulary.DC_TITLE.getIdentifier()) : null;
             builder.append("<span class='validation_valid'>")
-                    .append(output.getValue().getMetadata() != null && output.getValue().getMetadata().hasElement(DC_Metadata.DC_TITLE.getResource()) ?
-                            output.getValue().getMetadata().getElement(DC_Metadata.DC_TITLE.getResource()).getValue() :
+                    .append(md_title != null ?
+                            md_title.getValue() :
                             output.getKey().toString())
                     .append(": </span><span>")
                     .append(output.getValue().resolve())

@@ -3,7 +3,6 @@ package de.tudresden.geoinfo.client.beans;
 import de.tudresden.geoinfo.client.handler.JSONUtils;
 import de.tudresden.geoinfo.client.handler.MessageHandler;
 import de.tudresden.geoinfo.client.handler.WorkflowHandler;
-import de.tudresden.geoinfo.fusion.data.Identifier;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.IWorkflowNode;
 import de.tudresden.geoinfo.fusion.operation.ows.OWSServiceOperation;
@@ -40,7 +39,7 @@ public class WPSBean extends AbstractOWSBean implements Serializable {
 
     @Override
     WPSProxy initOWSHandler(String uid, String sBaseURL) throws IOException {
-        return new WPSProxy(new Identifier(uid), new URLLiteral(sBaseURL));
+        return new WPSProxy(new URLLiteral(sBaseURL));
     }
 
     @Override
@@ -128,7 +127,7 @@ public class WPSBean extends AbstractOWSBean implements Serializable {
 
         //init workflow
         CamundaBPMNModel model = this.workflowHandler.getBPMNModel();
-        CamundaBPMNWorkflow workflow = new CamundaBPMNWorkflow(null, model);
+        CamundaBPMNWorkflow workflow = new CamundaBPMNWorkflow(model);
 
     }
 

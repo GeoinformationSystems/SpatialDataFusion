@@ -2,8 +2,9 @@ package de.tudresden.geoinfo.fusion.data.relation;
 
 import com.google.common.collect.Sets;
 import de.tudresden.geoinfo.fusion.data.DataCollection;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,17 +19,17 @@ import java.util.Set;
 public class RelationMeasurementCollection extends DataCollection<IRelationMeasurement> {
 
     /**
-     * feature identifier with associated relations
+     * feature identifier with associated measurements
      */
-    private HashMap<IIdentifier, Set<IRelationMeasurement>> measurementIndex;
+    private HashMap<IRDFResource, Set<IRelationMeasurement>> measurementIndex;
 
     /**
      * constructor
-     *
-     * @param identifier   resource identifier
+     * @param identifier local identifier
      * @param measurements input measurements
+     * @param metadata metadata
      */
-    public RelationMeasurementCollection(@Nullable IIdentifier identifier, @Nullable Collection<IRelationMeasurement> measurements, @Nullable IMetadata metadata) {
+    public RelationMeasurementCollection(@NotNull IIdentifier identifier, @Nullable Collection<IRelationMeasurement> measurements, @Nullable IMetadata metadata) {
         super(identifier, measurements != null ? measurements : new HashSet<>(), metadata);
         measurementIndex = new HashMap<>();
         for (IRelationMeasurement measurement : this.resolve()) {
@@ -39,9 +40,10 @@ public class RelationMeasurementCollection extends DataCollection<IRelationMeasu
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param identifier local identifier
+     * @param metadata metadata
      */
-    public RelationMeasurementCollection(@Nullable IIdentifier identifier, @Nullable IMetadata metadata) {
+    public RelationMeasurementCollection(@NotNull IIdentifier identifier, @Nullable IMetadata metadata) {
         this(identifier, new HashSet<>(), metadata);
     }
 
@@ -51,8 +53,8 @@ public class RelationMeasurementCollection extends DataCollection<IRelationMeasu
      * @param measurement input measurement
      */
     public void addToIndex(IRelationMeasurement measurement) {
-        addToIndex(measurement.getDomain().getIdentifier(), measurement);
-        addToIndex(measurement.getRange().getIdentifier(), measurement);
+        this.addToIndex(measurement.getDomain(), measurement);
+        this.addToIndex(measurement.getRange(), measurement);
     }
 
     /**
@@ -61,7 +63,7 @@ public class RelationMeasurementCollection extends DataCollection<IRelationMeasu
      * @param key         relation key
      * @param measurement relation to associate with key
      */
-    public void addToIndex(@NotNull IIdentifier key, @NotNull IRelationMeasurement measurement) {
+    public void addToIndex(@NotNull IRDFResource key, @NotNull IRelationMeasurement measurement) {
         if (measurementIndex.containsKey(key))
             measurementIndex.get(key).add(measurement);
         else {
@@ -71,34 +73,13 @@ public class RelationMeasurementCollection extends DataCollection<IRelationMeasu
     }
 
     /**
-     * add measurement to measurements
+     * get measurements associated with a resource
      *
-     * @param measurement input measurement
+     * @param resource input resource
+     * @return measurements associated with input resource
      */
-    public void add(@NotNull IRelationMeasurement measurement) {
-        if (measurement instanceof RelationMeasurement)
-            this.resolve().add(measurement);
-    }
-
-    /**
-     * add relation collection to index
-     *
-     * @param measurements input relations
-     */
-    public void addAll(@NotNull Collection<IRelationMeasurement> measurements) {
-        for (IRelationMeasurement measurement : measurements) {
-            add(measurement);
-        }
-    }
-
-    /**
-     * get measurements associated with an identifier
-     *
-     * @param identifier input identifier
-     * @return measurements associated with input identifier
-     */
-    public Set<IRelationMeasurement> getMeasurements(IIdentifier identifier) {
-        return measurementIndex.get(identifier);
+    public Set<IRelationMeasurement> getMeasurements(IRDFResource resource) {
+        return measurementIndex.get(resource);
     }
 
 }

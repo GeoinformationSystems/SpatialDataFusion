@@ -1,11 +1,8 @@
 package de.tudresden.geoinfo.fusion.data.literal;
 
-import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
-import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.Measurement;
-import de.tudresden.geoinfo.fusion.data.MeasurementRange;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.*;
+import de.tudresden.geoinfo.fusion.data.metadata.MeasurementRange;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,36 +13,26 @@ import java.util.TreeSet;
 /**
  * Boolean literal implementation
  */
-public class BooleanLiteral extends Measurement<Boolean> {
+public class BooleanLiteral extends LiteralData<Boolean> {
 
-    private static IResource TYPE = Objects.BOOLEAN.getResource();
+    public final static IRDFProperty TYPE = Objects.BOOLEAN.getResource();
 
     /**
-     * @param identifier literal identifier
+     * @param identifier identifier
      * @param value      literal value
      * @param metadata   literal metadata
      */
-    public BooleanLiteral(@Nullable IIdentifier identifier, boolean value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation) {
-        super(identifier, value, metadata, TYPE, measurementOperation);
+    public BooleanLiteral(@NotNull IIdentifier identifier, boolean value, @Nullable IMetadata metadata) {
+        super(identifier, value, metadata, TYPE);
     }
 
     /**
      * constructor
      *
      * @param value                literal value
-     * @param measurementOperation associated measurement operation
-     */
-    public BooleanLiteral(boolean value, @Nullable IResource measurementOperation) {
-        this(null, value, null, measurementOperation);
-    }
-
-    /**
-     * constructor
-     *
-     * @param value literal value
      */
     public BooleanLiteral(boolean value) {
-        this(value, null);
+        this(new ResourceIdentifier(), value, null);
     }
 
     /**
@@ -61,10 +48,8 @@ public class BooleanLiteral extends Measurement<Boolean> {
         return new MeasurementRange<>(range, false);
     }
 
-    @NotNull
     @Override
-    public IResource getLiteralType() {
-        return TYPE;
+    public @Nullable String getLanguage() {
+        return null;
     }
-
 }

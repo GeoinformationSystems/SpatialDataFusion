@@ -3,7 +3,6 @@ package de.tudresden.geoinfo.fusion.operation.ows;
 import de.tudresden.geoinfo.fusion.data.literal.StringLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.WMSCapabilities;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
@@ -16,13 +15,14 @@ import java.util.Set;
 
 public class WMSProxy extends OWSServiceOperation {
 
-    private static final String PROCESS_TITLE = WMSProxy.class.getName();
-    private static final String PROCESS_DESCRIPTION = "Parser for OGC WMS";
+    private static final String PROCESS_ID = WMSProxy.class.getName();
+    private static final String PROCESS_DESCRIPTION = "Proxy for OGC WMS";
 
-    private final static String IN_FORMAT_TITLE = "IN_FORMAT";
+    private final static String IN_FORMAT_CONNECTOR = "IN_FORMAT";
     private final static String IN_FORMAT_DESCRIPTION = "WMS image format";
-    private final static String IN_LAYER_TITLE = "IN_LAYER";
-    private final static String IN_LAYER_DESCRIPTION = "WFS layer";
+
+    private final static String IN_LAYER_CONNECTOR = "IN_LAYER";
+    private final static String IN_LAYER_DESCRIPTION = "WMS layer";
 
     private final static String PARAM_LAYERS = "layers";
     private final static String VALUE_SERVICE = "WMS";
@@ -33,8 +33,8 @@ public class WMSProxy extends OWSServiceOperation {
     /**
      * constructor
      */
-    public WMSProxy(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
-        super(identifier, base);
+    public WMSProxy(@NotNull URLLiteral base) {
+        super(PROCESS_ID, PROCESS_DESCRIPTION, base);
     }
 
     @Override
@@ -50,12 +50,12 @@ public class WMSProxy extends OWSServiceOperation {
     @Override
     public void initializeInputConnectors() {
         super.initializeInputConnectors();
-        addInputConnector(null, IN_FORMAT_TITLE, IN_FORMAT_DESCRIPTION,
+        addInputConnector(IN_FORMAT_CONNECTOR, IN_FORMAT_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class)},
                 null,
                 null);
-        addInputConnector(null, IN_LAYER_TITLE, IN_LAYER_DESCRIPTION,
+        addInputConnector(IN_LAYER_CONNECTOR, IN_LAYER_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(StringLiteral.class),
                         new MandatoryDataConstraint()},
@@ -116,18 +116,6 @@ public class WMSProxy extends OWSServiceOperation {
         if (!this.isSelectedOffering(layer))
             throw new IllegalArgumentException("Layer " + layer + " is not supported");
         this.setParameter(PARAM_LAYERS, layer);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

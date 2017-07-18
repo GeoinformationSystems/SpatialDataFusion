@@ -1,9 +1,9 @@
 package de.tudresden.geoinfo.fusion.data.feature.geotools;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.*;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.relation.IRelation;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
@@ -24,42 +24,42 @@ public class GTGridFeature extends AbstractFeature {
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param identifier local identifier
      * @param feature    GT grid object
      * @param relations  feature relations
      */
-    public GTGridFeature(@Nullable IIdentifier identifier, @NotNull GridCoverage2D feature, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) {
+    public GTGridFeature(@NotNull IIdentifier identifier, @NotNull GridCoverage2D feature, @Nullable IMetadata metadata, @Nullable Set<IRelation> relations) {
         super(identifier, feature, metadata, relations);
     }
 
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param identifier identifier
      * @param feature    GT grid object
      */
-    public GTGridFeature(@Nullable IIdentifier identifier, @NotNull GridCoverage2D feature, @Nullable IMetadata metadata) {
+    public GTGridFeature(@NotNull IIdentifier identifier, @NotNull GridCoverage2D feature, @Nullable IMetadata metadata) {
         this(identifier, feature, metadata, null);
     }
 
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param identifier identifier
      * @param file       coverage file
      * @param relations  feature relations
      */
-    public GTGridFeature(@Nullable IIdentifier identifier, @NotNull File file, @Nullable IMetadata metadata, @Nullable Set<IRelation<? extends IFeature>> relations) throws IOException {
+    public GTGridFeature(@NotNull IIdentifier identifier, @NotNull File file, @Nullable IMetadata metadata, @Nullable Set<IRelation> relations) throws IOException {
         this(identifier, getCoverage(file), metadata, relations);
     }
 
     /**
      * constructor
      *
-     * @param identifier resource identifier
+     * @param identifier identifier
      * @param file       GT grid file
      */
-    public GTGridFeature(@Nullable IIdentifier identifier, @NotNull File file, @Nullable IMetadata metadata) throws IOException {
+    public GTGridFeature(@NotNull IIdentifier identifier, @NotNull File file, @Nullable IMetadata metadata) throws IOException {
         this(identifier, file, metadata, null);
     }
 
@@ -88,24 +88,24 @@ public class GTGridFeature extends AbstractFeature {
     }
 
     @Override
-    public AbstractFeatureRepresentation getRepresentationView() {
-        return new GTGridRepresentation(new Identifier(this.resolve().toString()), resolve(), null);
+    public AbstractFeatureRepresentation initRepresentation() {
+        return new GTGridRepresentation(new ResourceIdentifier(), resolve(), null);
     }
 
     @Override
-    public AbstractFeatureEntity getEntityView() {
+    public AbstractFeatureEntity initEntity() {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public AbstractFeatureType getTypeView() {
+    public AbstractFeatureType initType() {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public AbstractFeatureConcept getConceptView() {
+    public AbstractFeatureConcept initConcept() {
         // TODO Auto-generated method stub
         return null;
     }

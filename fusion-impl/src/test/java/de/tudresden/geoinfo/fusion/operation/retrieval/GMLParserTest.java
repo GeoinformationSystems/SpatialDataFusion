@@ -30,7 +30,7 @@ public class GMLParserTest extends AbstractTest {
 
     private void readGML(URLLiteral resource) {
 
-        AbstractOperation operation = new GMLParser(null);
+        AbstractOperation operation = new GMLParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

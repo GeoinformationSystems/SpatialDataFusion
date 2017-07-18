@@ -1,6 +1,5 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -33,6 +32,6 @@ public interface IFeatureType extends IFeatureView {
      * @return property identifier
      */
     @NotNull
-    Set<IIdentifier> getProperties();
+    Set<String> getProperties();
 
 }

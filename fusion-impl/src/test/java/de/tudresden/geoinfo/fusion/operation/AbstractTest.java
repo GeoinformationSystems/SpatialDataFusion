@@ -2,8 +2,8 @@ package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.IDataCollection;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.junit.Assert;
 
 import java.util.HashMap;
@@ -26,7 +26,7 @@ public abstract class AbstractTest {
 
         Map<IIdentifier, IData> operationOutput = operation.execute(operationInputs);
 
-        Assert.assertTrue(operation.isSuccess());
+        Assert.assertTrue(operation.success());
         Assert.assertNotNull(operationOutput);
 
         for(Map.Entry<String,Class<? extends IData>> output : outputs.entrySet()){
@@ -35,7 +35,7 @@ public abstract class AbstractTest {
             IData outputData = operationOutput.get(id);
             Assert.assertTrue(output.getValue().isAssignableFrom(outputData.getClass()));
             if(outputData instanceof IDataCollection)
-                Assert.assertTrue(((IDataCollection) outputData).resolve().size() > 0);
+                Assert.assertTrue(((IDataCollection) outputData).size() > 0);
             this.logOutput(output.getKey(), outputData);
         }
 
@@ -44,16 +44,17 @@ public abstract class AbstractTest {
     }
 
     private void logOperation(AbstractOperation operation) {
-        System.out.println("TEST: " + operation.getTitle());
+        System.out.println("TEST: " + operation.getLocalIdentifier());
     }
 
     private void logOutput(String key, IData result) {
         System.out.print("\t" + "result: " + key + " (type=" + result.getClass().getName() +
                 (result instanceof URLLiteral ? ", url=" + ((URLLiteral) result).resolve() : "") +
-                (result instanceof IDataCollection ? ", size=" + ((IDataCollection) result).resolve().size() : "") + ")\n");
+                (result instanceof IDataCollection ? ", size=" + ((IDataCollection) result).size() : "") + ")\n");
     }
 
     private void logRuntime(AbstractOperation operation) {
+        //noinspection ConstantConditions
         System.out.println("\t" + "process runtime (ms): " + operation.getRuntime().resolve());
     }
 

@@ -1,11 +1,12 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
-import de.tudresden.geoinfo.fusion.data.relation.BinaryFeatureRelationCollection;
+import de.tudresden.geoinfo.fusion.data.relation.BinaryRelationCollection;
 import de.tudresden.geoinfo.fusion.operation.mapping.TopologyRelation;
 import de.tudresden.geoinfo.fusion.operation.ows.WPSProxy;
 import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
@@ -55,11 +56,11 @@ public class WorkflowTest extends AbstractTest {
 
         //create BPMN workflow
         Workflow workflow = getWorkflow();
-        CamundaBPMNModel model = new CamundaBPMNModel(null, workflow);
+        CamundaBPMNModel model = new CamundaBPMNModel(new ResourceIdentifier(), workflow);
 //        System.out.println(model.asXML());
 
         //re-read and execute workflow
-        Workflow bpnmWorkflow = new CamundaBPMNWorkflow(null, model);
+        Workflow bpnmWorkflow = new CamundaBPMNWorkflow(model);
         executeWorkflow(bpnmWorkflow);
 
     }
@@ -74,7 +75,7 @@ public class WorkflowTest extends AbstractTest {
             inputs.put(IN_WITH_INDEX + "_1", new BooleanLiteral(true));
 
             Map<String,Class<? extends IData>> outputs = new HashMap<>();
-            outputs.put(OUT_RELATIONS, BinaryFeatureRelationCollection.class);
+            outputs.put(OUT_RELATIONS, BinaryRelationCollection.class);
 
             this.execute(workflow, inputs, outputs);
 
@@ -89,7 +90,7 @@ public class WorkflowTest extends AbstractTest {
         inputs.put(WPS_IN_WIDTH + "_1", new DecimalLiteral(WPS_IN_WIDTH_VALUE_1));
 
         Map<String,Class<? extends IData>> outputs = new HashMap<>();
-        outputs.put(OUT_RELATIONS, BinaryFeatureRelationCollection.class);
+        outputs.put(OUT_RELATIONS, BinaryRelationCollection.class);
 
         this.execute(workflow, inputs, outputs);
 
@@ -99,19 +100,19 @@ public class WorkflowTest extends AbstractTest {
 
         Set<IWorkflowNode> entities = new HashSet<>();
         //1st process
-        ShapefileParser parser_dom = new ShapefileParser(null);
+        ShapefileParser parser_dom = new ShapefileParser();
         entities.add(parser_dom);
         //2nd process
-        ShapefileParser parser_ran = new ShapefileParser(null);
+        ShapefileParser parser_ran = new ShapefileParser();
         entities.add(parser_ran);
         //3rd process
-        TopologyRelation process_top = new TopologyRelation(null);
+        TopologyRelation process_top = new TopologyRelation();
         entities.add(process_top);
         //set connections
         parser_dom.getOutputConnector(OUT_FEATURES).connect(process_top.getInputConnector(IN_DOMAIN));
         parser_ran.getOutputConnector(OUT_FEATURES).connect(process_top.getInputConnector(IN_RANGE));
         //init workflow
-        Workflow workflow = new Workflow(null, entities);
+        Workflow workflow = new Workflow(entities);
 
         //data input
         Set<IInputConnector> inputConnectors = new HashSet<>();
@@ -135,11 +136,11 @@ public class WorkflowTest extends AbstractTest {
 
         Set<IWorkflowNode> entities = new HashSet<>();
 
-        WPSProxy process1 = new WPSProxy(null, new URLLiteral(WPS_ROOT));
+        WPSProxy process1 = new WPSProxy(new URLLiteral(WPS_ROOT));
         process1.setProcessId(WPS_PROCESS);
         entities.add(process1);
 
-        WPSProxy process2 = new WPSProxy(null, new URLLiteral(WPS_ROOT));
+        WPSProxy process2 = new WPSProxy(new URLLiteral(WPS_ROOT));
         process2.setProcessId(WPS_PROCESS);
         entities.add(process2);
 
@@ -147,7 +148,7 @@ public class WorkflowTest extends AbstractTest {
         process1.getOutputConnector(WPS_OUT_RESULT).connect(process2.getInputConnector(WPS_IN_DATA));
 
         //init workflow
-        Workflow workflow = new Workflow(null, entities);
+        Workflow workflow = new Workflow(entities);
 
         //data input
         Set<IInputConnector> inputConnectors = new HashSet<>();

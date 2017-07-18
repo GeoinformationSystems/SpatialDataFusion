@@ -2,18 +2,16 @@ package de.tudresden.geoinfo.fusion.operation.enhancement;
 
 import com.vividsolutions.jts.geom.*;
 import de.tud.fusion.Utilities;
+import de.tudresden.geoinfo.fusion.data.feature.IFeatureRepresentation;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTVectorFeature;
 import de.tudresden.geoinfo.fusion.data.literal.DecimalLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import org.geotools.data.DataUtilities;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.opengis.feature.Feature;
 import org.opengis.feature.simple.SimpleFeature;
 
 import java.util.ArrayList;
@@ -36,19 +34,19 @@ public class ResampleGeometry extends AbstractOperation {
     /**
      * constructor
      */
-    public ResampleGeometry(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public ResampleGeometry() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
     public void executeOperation() {
         //get input
-        GTFeatureCollection features = (GTFeatureCollection) this.getInputData(IN_FEATURES_TITLE);
-        DecimalLiteral interval = (DecimalLiteral) this.getInputData(IN_INTERVAL_TITLE);
+        GTFeatureCollection features = (GTFeatureCollection) this.getMandatoryInputData(IN_FEATURES_TITLE);
+        DecimalLiteral interval = (DecimalLiteral) this.getMandatoryInputData(IN_INTERVAL_TITLE);
         //resample
         features = resampleGeometry(features, interval.resolve());
         //set output connector
-        connectOutput(OUT_FEATURES_TITLE, features);
+        setOutput(OUT_FEATURES_TITLE, features);
     }
 
     /**
@@ -62,20 +60,20 @@ public class ResampleGeometry extends AbstractOperation {
         List<SimpleFeature> nFeatures = new ArrayList<>();
         //resample feature geometries
         for (GTVectorFeature feature : inFeatures) {
-            nFeatures.add(resampleGeometry(feature, interval));
+            if(feature.getRepresentation() != null)
+                nFeatures.add(resampleGeometry(feature.getRepresentation(), interval));
         }
-        //return
         return new GTFeatureCollection(inFeatures.getIdentifier(), DataUtilities.collection(nFeatures), inFeatures.getMetadata());
     }
 
     /**
      * computes resampling for specified feature
      *
-     * @param feature input line feature
+     * @param featureRepresentation input line feature representation
      * @return resampled line features
      */
-    private @NotNull SimpleFeature resampleGeometry(@NotNull GTVectorFeature feature, double interval) {
-        return resampleGeometry((SimpleFeature) feature.getRepresentation().resolve(), interval);
+    private @NotNull SimpleFeature resampleGeometry(@NotNull IFeatureRepresentation featureRepresentation, double interval) {
+        return resampleGeometry((SimpleFeature) featureRepresentation.resolve(), interval);
     }
 
     /**
@@ -85,22 +83,12 @@ public class ResampleGeometry extends AbstractOperation {
      * @return resampled line features
      */
     private @NotNull SimpleFeature resampleGeometry(@NotNull SimpleFeature feature, double interval) {
-        Geometry geometry = getGeometry(feature);
+        Geometry geometry = Utilities.getGeometry(feature, new BindingConstraint(LineString.class, Polygon.class), true);
         if (geometry == null)
             return feature;
         Geometry resampledGeometry = resampleGeometry(geometry, interval);
         feature.setDefaultGeometry(resampledGeometry);
         return feature;
-    }
-
-    /**
-     * get linestring geometry from feature
-     *
-     * @param feature input feature
-     * @return linear geometry
-     */
-    private @Nullable Geometry getGeometry(Feature feature) {
-        return Utilities.getGeometryFromFeature(feature, new BindingConstraint(LineString.class, Polygon.class), true);
     }
 
     /**
@@ -192,13 +180,13 @@ public class ResampleGeometry extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
+        addInputConnector(IN_FEATURES_TITLE, IN_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null,
                 null);
-        addInputConnector(null, IN_INTERVAL_TITLE, IN_INTERVAL_DESCRIPTION,
+        addInputConnector(IN_INTERVAL_TITLE, IN_INTERVAL_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DecimalLiteral.class),
                         new MandatoryDataConstraint()},
@@ -208,22 +196,11 @@ public class ResampleGeometry extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(GTFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
     }
 
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
-    }
 }

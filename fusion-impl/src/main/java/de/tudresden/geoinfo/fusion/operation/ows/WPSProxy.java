@@ -2,8 +2,9 @@ package de.tudresden.geoinfo.fusion.operation.ows;
 
 import de.tud.fusion.XMLBuilder;
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.LiteralData;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.literal.*;
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
 import de.tudresden.geoinfo.fusion.data.ows.WPSCapabilities;
@@ -11,7 +12,6 @@ import de.tudresden.geoinfo.fusion.data.ows.WPSDescribeProcess;
 import de.tudresden.geoinfo.fusion.data.ows.WPSDescribeProcess.WPSProcessDescription;
 import de.tudresden.geoinfo.fusion.data.ows.WPSDescribeProcess.WPSProcessDescription.WPSIODescription;
 import de.tudresden.geoinfo.fusion.data.ows.XMLResponse;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IOutputConnector;
 import de.tudresden.geoinfo.fusion.operation.retrieval.ows.WPSDescriptionParser;
@@ -41,8 +41,11 @@ import java.util.*;
  */
 public class WPSProxy extends OWSServiceOperation {
 
-    private final static String IN_RESOURCE = "IN_RESOURCE";
-    private final static String OUT_DESCRIPTION = "OUT_DESCRIPTION";
+    private static final String PROCESS_ID = WPSProxy.class.getName();
+    private static final String PROCESS_DESCRIPTION = "Proxy for OGC WPS";
+
+    private final static String PARSER_IN_RESOURCE = "IN_RESOURCE";
+    private final static String PARSER_OUT_DESCRIPTION = "OUT_DESCRIPTION";
 
     private static final String PROCESS_OUTPUT = ".*(?i)Output$";
     private static final String IO_IDENTIFIER = ".*(?i)Identifier$";
@@ -74,8 +77,8 @@ public class WPSProxy extends OWSServiceOperation {
      *
      * @param base       WPS base url
      */
-    public WPSProxy(@Nullable IIdentifier identifier, @NotNull URLLiteral base) {
-        super(identifier, base);
+    public WPSProxy(@NotNull URLLiteral base) {
+        super(PROCESS_ID, PROCESS_DESCRIPTION, base);
     }
 
     @Override
@@ -122,22 +125,18 @@ public class WPSProxy extends OWSServiceOperation {
      * @return process description
      */
     private void initProcessDescription(@NotNull String processId) {
+        WPSDescriptionParser parser = new WPSDescriptionParser();
+        parser.setInput(parser.getInputIdentifier(PARSER_IN_RESOURCE), getDescribeProcessRequest());
+        parser.execute(null);
 
-        WPSDescriptionParser parser = new WPSDescriptionParser(null);
-        IIdentifier ID_IN_RESOURCE = parser.getInputConnector(IN_RESOURCE).getIdentifier();
-        IIdentifier ID_OUT_DESCRIPTION = parser.getOutputConnector(OUT_DESCRIPTION).getIdentifier();
-
-        Map<IIdentifier, IData> input = new HashMap<>();
-        input.put(ID_IN_RESOURCE, getDescribeProcessRequest());
-
-        Map<IIdentifier, IData> output = parser.execute(input);
-        if (!output.containsKey(ID_OUT_DESCRIPTION) || !(output.get(ID_OUT_DESCRIPTION) instanceof WPSDescribeProcess))
+        IData processDescriptions = parser.getOutputData(PARSER_OUT_DESCRIPTION);
+        if (!(processDescriptions instanceof WPSDescribeProcess))
             throw new IllegalArgumentException("Could not parse WPS process description for " + processId);
-        WPSDescribeProcess processDescriptions = (WPSDescribeProcess) output.get(ID_OUT_DESCRIPTION);
-        if (!processDescriptions.getProcessIdentifier().contains(processId))
-            throw new IllegalArgumentException("WPS does not provide process with identifier " + processId);
-        this.processDescription = processDescriptions.getProcessDescription(processId);
 
+        if (!((WPSDescribeProcess) processDescriptions).getProcessIdentifier().contains(processId))
+            throw new IllegalArgumentException("WPS does not provide process with identifier " + processId);
+
+        this.processDescription = ((WPSDescribeProcess) processDescriptions).getProcessDescription(processId);
     }
 
     /**
@@ -153,7 +152,7 @@ public class WPSProxy extends OWSServiceOperation {
     }
 
     private void setUniqueInputIdentifier(String identifier){
-        this.uniqueInputIdentifiers.put(identifier, new Identifier(UUID.randomUUID().toString()));
+        this.uniqueInputIdentifiers.put(identifier, new ResourceIdentifier(null, identifier));
     }
 
     private IIdentifier getUniqueInputIdentifier(String identifier){
@@ -170,7 +169,7 @@ public class WPSProxy extends OWSServiceOperation {
     }
 
     private void setUniqueOutputIdentifier(String identifier){
-        this.uniqueOutputIdentifiers.put(identifier, new Identifier(UUID.randomUUID().toString()));
+        this.uniqueOutputIdentifiers.put(identifier, new ResourceIdentifier(null, identifier));
     }
 
     private IIdentifier getUniqueOutputIdentifier(String identifier){
@@ -257,7 +256,7 @@ public class WPSProxy extends OWSServiceOperation {
         this.hiddenConnectors.addAll(super.getInputConnectors());
         for (WPSIODescription input : this.getProcessDescription().getInputs().values()) {
             this.setUniqueInputIdentifier(input.getIdentifier());
-            IInputConnector connector = new InputConnector(this.getUniqueInputIdentifier(input.getIdentifier()), input.getTitle(), input.getDescription(), this, input.getRuntimeConstraints(), input.getConnectionConstraints(), null);
+            IInputConnector connector = new InputConnector(this.getUniqueInputIdentifier(input.getIdentifier()), input.getDescription(), this, input.getRuntimeConstraints(), input.getConnectionConstraints(), null);
             this.addInputConnector(connector);
         }
     }
@@ -266,7 +265,7 @@ public class WPSProxy extends OWSServiceOperation {
     public void initializeOutputConnectors() {
         for (WPSIODescription output : this.getProcessDescription().getOutputs().values()) {
             this.setUniqueOutputIdentifier(output.getIdentifier());
-            IOutputConnector connector = new OutputConnector(this.getUniqueOutputIdentifier(output.getIdentifier()), output.getTitle(), output.getDescription(), this, output.getRuntimeConstraints(), output.getConnectionConstraints());
+            IOutputConnector connector = new OutputConnector(this.getUniqueOutputIdentifier(output.getIdentifier()), output.getDescription(), this, output.getRuntimeConstraints(), output.getConnectionConstraints());
             this.addOutputConnector(connector);
         }
     }
@@ -351,7 +350,7 @@ public class WPSProxy extends OWSServiceOperation {
     }
 
     private XMLBuilder getLiteralData(@NotNull LiteralData data) {
-        XMLBuilder builder = new XMLBuilder("wps", "LiteralData", null, data.getLiteral(), null);
+        XMLBuilder builder = new XMLBuilder("wps", "LiteralData", null, data.getLiteralValue(), null);
         //TODO: support literal type matching
 //        builder.addAttribute("dataType", getLiteralType(data));
         return builder;
@@ -382,7 +381,7 @@ public class WPSProxy extends OWSServiceOperation {
         builder.addAttribute("lineage", "false");
         builder.addAttribute("status", "false");
         for (IOutputConnector connector : this.getOutputConnectors()) {
-            if (!connector.getTitle().matches(REGEX_IGNORED_OUTPUT))
+            if (!connector.getIdentifier().getLocalIdentifier().matches(REGEX_IGNORED_OUTPUT))
                 builder.addChildNode(getOutput(connector));
         }
         return builder;
@@ -428,19 +427,7 @@ public class WPSProxy extends OWSServiceOperation {
         if (identifier == null || reference == null)
             throw new RuntimeException("Could not determine output reference");
         //set connector data
-        this.getOutputConnector(identifier).setData(new URLLiteral(new URL(reference), new IOFormat(mimeType, schema, null)));
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return this.getProcessId();
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return this.getProcessDescription().getDescription();
+        this.setOutput(identifier, new URLLiteral(new URL(reference), new IOFormat(mimeType, schema, null)));
     }
 
 }

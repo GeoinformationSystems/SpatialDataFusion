@@ -1,6 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFResource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -8,9 +8,8 @@ import java.util.Set;
 /**
  * binary relation
  *
- * @param <T> Resource type participating in the relation
  */
-public interface IBinaryRelation<T extends IResource> extends IRelation<T> {
+public interface IBinaryRelation extends IRelation {
 
     /**
      * get relation domain
@@ -18,7 +17,7 @@ public interface IBinaryRelation<T extends IResource> extends IRelation<T> {
      * @return relation domain resource
      */
     @NotNull
-    T getDomain();
+    IRDFResource getDomain();
 
     /**
      * get relation range
@@ -26,7 +25,7 @@ public interface IBinaryRelation<T extends IResource> extends IRelation<T> {
      * @return relation range resource
      */
     @NotNull
-    T getRange();
+    IRDFResource getRange();
 
     /**
      * get relation measurements between the two resources
@@ -34,7 +33,7 @@ public interface IBinaryRelation<T extends IResource> extends IRelation<T> {
      * @return relation measurements
      */
     @NotNull
-    Set<IRelationMeasurement> getMeasurements();
+    Set<? extends IRelationMeasurement> getMeasurements();
 
     /**
      * add relation measurement

@@ -3,7 +3,7 @@ package de.tudresden.geoinfo.fusion.operation.mapping;
 import de.tudresden.geoinfo.fusion.data.IData;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.BooleanLiteral;
-import de.tudresden.geoinfo.fusion.data.relation.BinaryFeatureRelationCollection;
+import de.tudresden.geoinfo.fusion.data.relation.BinaryRelationCollection;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
 import de.tudresden.geoinfo.fusion.operation.retrieval.ShapefileParser;
@@ -40,7 +40,7 @@ public class TopologyRelationTest extends AbstractTest {
 
     private void getTopologyRelations(GTFeatureCollection domain, GTFeatureCollection range, BooleanLiteral explicitDisjoint) {
 
-        AbstractOperation operation = new TopologyRelation(null);
+        AbstractOperation operation = new TopologyRelation();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);
@@ -49,7 +49,7 @@ public class TopologyRelationTest extends AbstractTest {
             inputs.put(IN_EXPLICIT_DISJOINT, explicitDisjoint);
 
         Map<String,Class<? extends IData>> outputs = new HashMap<>();
-        outputs.put(OUT_RELATIONS, BinaryFeatureRelationCollection.class);
+        outputs.put(OUT_RELATIONS, BinaryRelationCollection.class);
 
         this.execute(operation, inputs, outputs);
 

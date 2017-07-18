@@ -18,7 +18,6 @@ public class IntersectionLengthTest extends AbstractTest {
     private final static String IN_DOMAIN = "IN_DOMAIN";
     private final static String IN_RANGE = "IN_RANGE";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -30,7 +29,7 @@ public class IntersectionLengthTest extends AbstractTest {
 
     private void calculateIntersectionLength(GTFeatureCollection domain, GTFeatureCollection range) {
 
-        AbstractOperation operation = new IntersectionLength(null);
+        AbstractOperation operation = new IntersectionLength();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

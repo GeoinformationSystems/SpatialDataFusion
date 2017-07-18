@@ -2,10 +2,11 @@ package de.tudresden.geoinfo.fusion.operation.retrieval;
 
 import com.google.common.collect.Sets;
 import de.tudresden.geoinfo.fusion.data.DataCollection;
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.osm.*;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.relation.IRelationType;
 import de.tudresden.geoinfo.fusion.data.relation.IRole;
 import de.tudresden.geoinfo.fusion.data.relation.RelationType;
 import de.tudresden.geoinfo.fusion.data.relation.Role;
@@ -14,8 +15,6 @@ import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -23,7 +22,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
@@ -59,8 +57,8 @@ public class OSMXMLParser extends AbstractOperation {
     /**
      * constructor
      */
-    public OSMXMLParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public OSMXMLParser() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
@@ -76,14 +74,14 @@ public class OSMXMLParser extends AbstractOperation {
         //parse
         try {
             Map<String, OSMPropertySet> featureMap = parseOSM(resourceURL);
-            features = initOSMCollection(new Identifier(resourceURL), featureMap);
-            relations = initOSMRelations(new Identifier(resourceURL), featureMap, features);
-        } catch (IOException | XMLStreamException | URISyntaxException e) {
+            features = initOSMCollection(new ResourceIdentifier(resourceURL), featureMap);
+            relations = initOSMRelations(new ResourceIdentifier(resourceURL), featureMap, features);
+        } catch (IOException | XMLStreamException e) {
             throw new RuntimeException("Could not parse OSM XML source", e);
         }
         //set output connector
-        connectOutput(OUT_FEATURES_TITLE, features);
-        connectOutput(OUT_RELATIONS_TITLE, relations);
+        setOutput(OUT_FEATURES_TITLE, features);
+        setOutput(OUT_RELATIONS_TITLE, relations);
     }
 
     private Map<String, OSMPropertySet> parseOSM(URL resourceURL) throws IOException, XMLStreamException {
@@ -177,7 +175,7 @@ public class OSMXMLParser extends AbstractOperation {
         //first run: add nodes
         for (Map.Entry<String, OSMPropertySet> entry : featureMap.entrySet()) {
             if (entry.getValue().getProperties().containsKey(OSMNode.OSM_PROPERTY_LAT) && entry.getValue().getProperties().containsKey(OSMNode.OSM_PROPERTY_LON))
-                map.put(entry.getValue().getIdentifier().toString(), new OSMNode(entry.getValue(), null));
+                map.put(entry.getValue().getGlobalIdentifier(), new OSMNode(entry.getValue(), null));
         }
         //second run: add ways
         for (Map.Entry<String, OSMPropertySet> entry : featureMap.entrySet()) {
@@ -191,7 +189,7 @@ public class OSMXMLParser extends AbstractOperation {
                 }
                 if (nodes.size() < 2)
                     continue; // cannot create way, if there are less than 2 nodes
-                map.put(entry.getValue().getIdentifier().toString(), new OSMWay(entry.getValue(), nodes, null));
+                map.put(entry.getValue().getGlobalIdentifier(), new OSMWay(entry.getValue(), nodes, null));
             }
         }
         //return
@@ -205,34 +203,34 @@ public class OSMXMLParser extends AbstractOperation {
                 IIdentifier relationId = entry.getValue().getIdentifier();
                 String[] members = entry.getValue().getTags().get(RELATION_MEMBER).toString().split(";");
                 Map<IRole, Set<OSMVectorFeature>> relationMembers = new HashMap<>();
+                int i = 0;
                 for (String member : members) {
                     String[] refRole = member.split(",", -1);
                     String sFeatureId = refRole[0];
-                    if (features.getFeatureById(sFeatureId) != null) {
-                        IRole role = new Role(new Identifier(refRole[2]));
+                    if (features.getMember(sFeatureId) != null) {
+                        i++;
+                        IRole role = new Role(refRole[2].isEmpty() ? RELATION_MEMBER : refRole[2]);
                         if (relationMembers.containsKey(role))
-                            relationMembers.get(role).add(features.getFeatureById(sFeatureId));
+                            relationMembers.get(role).add(features.getMember(sFeatureId));
                         else
-                            relationMembers.put(role, Sets.newHashSet(features.getFeatureById(sFeatureId)));
+                            relationMembers.put(role, Sets.newHashSet(features.getMember(sFeatureId)));
                     }
                     //TODO: handle missing members
                 }
-                if (relationMembers.size() < 2)
+                if (i < 2)
                     continue; // cannot create relation, if there are less than 2 members
-                collection.add(new OSMRelation(relationId, initRelationType(relationMembers.keySet()), relationMembers, null));
+                //TODO: get relation type from tags
+                IRelationType relationType = new RelationType(TYPE_RELATION, relationMembers.keySet());
+                collection.add(new OSMRelation(relationId, relationType, relationMembers, null));
             }
         }
         //return
         return new DataCollection<>(identifier, collection, null);
     }
 
-    private RelationType initRelationType(Set<IRole> roles) {
-        return new RelationType(null, roles);
-    }
-
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},
@@ -242,27 +240,15 @@ public class OSMXMLParser extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
+        addOutputConnector(OUT_FEATURES_TITLE, OUT_FEATURES_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(OSMFeatureCollection.class),
                         new MandatoryDataConstraint()},
                 null);
-        addOutputConnector(null, OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
+        addOutputConnector(OUT_RELATIONS_TITLE, OUT_RELATIONS_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(DataCollection.class)},
                 null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
 }

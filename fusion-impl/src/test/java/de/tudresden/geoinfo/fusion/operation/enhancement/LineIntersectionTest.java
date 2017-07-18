@@ -25,7 +25,7 @@ public class LineIntersectionTest extends AbstractTest {
 
     private void runIntersection(GTFeatureCollection features) {
 
-        AbstractOperation operation = new LineIntersection(null);
+        AbstractOperation operation = new LineIntersection();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_FEATURES, features);

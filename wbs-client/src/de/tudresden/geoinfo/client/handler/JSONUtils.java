@@ -1,7 +1,6 @@
 package de.tudresden.geoinfo.client.handler;
 
 import de.tudresden.geoinfo.fusion.data.ows.IOFormat;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.IConnectionConstraint;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.IWorkflowConnector;
@@ -28,13 +27,13 @@ public class JSONUtils {
         if (wfsProxy.getSelectedOffering() == null)
             return new JSONObject();
         //set hidden entries
-        Set<IIdentifier> hiddenInputs = new HashSet<>();
-        hiddenInputs.add(wfsProxy.getInputConnector("IN_FORMAT").getIdentifier());
-        hiddenInputs.add(wfsProxy.getInputConnector("IN_LAYER").getIdentifier());
-        hiddenInputs.add(wfsProxy.getInputConnector("IN_FID").getIdentifier());
-        Set<IIdentifier> hiddenOutputs = new HashSet<>();
-        hiddenOutputs.add(wfsProxy.getOutputConnector("OUT_START").getIdentifier());
-        hiddenOutputs.add(wfsProxy.getOutputConnector("OUT_RUNTIME").getIdentifier());
+        Set<String> hiddenInputs = new HashSet<>();
+        hiddenInputs.add(wfsProxy.getInputConnector("IN_FORMAT").getIdentifier().getLocalIdentifier());
+        hiddenInputs.add(wfsProxy.getInputConnector("IN_LAYER").getIdentifier().getLocalIdentifier());
+        hiddenInputs.add(wfsProxy.getInputConnector("IN_FID").getIdentifier().getLocalIdentifier());
+        Set<String> hiddenOutputs = new HashSet<>();
+        hiddenOutputs.add(wfsProxy.getOutputConnector("OUT_START").getIdentifier().getLocalIdentifier());
+        hiddenOutputs.add(wfsProxy.getOutputConnector("OUT_RUNTIME").getIdentifier().getLocalIdentifier());
         //get description
         return JSONUtils.getJSONDescription(wfsProxy, hiddenInputs, hiddenOutputs);
     }
@@ -65,11 +64,11 @@ public class JSONUtils {
         if (wpsProxy.getProcessDescription() == null)
             return new JSONObject();
         //set hidden entries
-        Set<IIdentifier> hiddenInputs = new HashSet<>();
-        hiddenInputs.add(wpsProxy.getInputConnector("IN_VERSION").getIdentifier());
-        Set<IIdentifier> hiddenOutputs = new HashSet<>();
-        hiddenOutputs.add(wpsProxy.getOutputConnector("OUT_START").getIdentifier());
-        hiddenOutputs.add(wpsProxy.getOutputConnector("OUT_RUNTIME").getIdentifier());
+        Set<String> hiddenInputs = new HashSet<>();
+        hiddenInputs.add(wpsProxy.getInputConnector("IN_VERSION").getIdentifier().getLocalIdentifier());
+        Set<String> hiddenOutputs = new HashSet<>();
+        hiddenOutputs.add(wpsProxy.getOutputConnector("OUT_START").getIdentifier().getLocalIdentifier());
+        hiddenOutputs.add(wpsProxy.getOutputConnector("OUT_RUNTIME").getIdentifier().getLocalIdentifier());
         //get description
         return JSONUtils.getJSONDescription(wpsProxy, hiddenInputs, hiddenOutputs);
     }
@@ -82,8 +81,8 @@ public class JSONUtils {
      */
     public static @NotNull JSONObject getJSONDescription(@NotNull IWorkflowNode node) {
         return new JSONObject()
-                .put("identifier", node.getIdentifier())
-                .put("title", node.getTitle())
+                .put("identifier", node.getIdentifier().getGlobalIdentifier())
+                .put("title", node.getIdentifier().getLocalIdentifier())
                 .put("description", node.getDescription())
                 .put("inputs", getJSONProcessDescription(node.getInputConnectors()))
                 .put("outputs", getJSONProcessDescription(node.getOutputConnectors()))
@@ -98,10 +97,10 @@ public class JSONUtils {
      * @param hiddenOutputs output connectors to be hidden
      * @return
      */
-    public static @NotNull JSONObject getJSONDescription(@NotNull IWorkflowNode node, Set<IIdentifier> hiddenInputs, Set<IIdentifier> hiddenOutputs) {
+    public static @NotNull JSONObject getJSONDescription(@NotNull IWorkflowNode node, Set<String> hiddenInputs, Set<String> hiddenOutputs) {
         return new JSONObject()
-                .put("identifier", node.getIdentifier())
-                .put("title", node.getTitle())
+                .put("identifier", node.getIdentifier().getLocalIdentifier())
+                .put("title", node.getIdentifier().getLocalIdentifier())
                 .put("description", node.getDescription())
                 .put("inputs", getJSONProcessDescription(node.getInputConnectors(), hiddenInputs))
                 .put("outputs", getJSONProcessDescription(node.getOutputConnectors(), hiddenOutputs))
@@ -144,10 +143,10 @@ public class JSONUtils {
      * @param hiddenConnectors connectors to be hidden
      * @return JSON connector descriptions
      */
-    private static @NotNull JSONArray getJSONProcessDescription(@NotNull Collection<? extends IWorkflowConnector> connectors, @NotNull Set<IIdentifier> hiddenConnectors) {
+    private static @NotNull JSONArray getJSONProcessDescription(@NotNull Collection<? extends IWorkflowConnector> connectors, @NotNull Set<String> hiddenConnectors) {
         JSONArray jsonArray = new JSONArray();
         for (IWorkflowConnector connector : connectors) {
-            if (!hiddenConnectors.contains(connector.getIdentifier()))
+            if (!hiddenConnectors.contains(connector.getIdentifier().getLocalIdentifier()))
                 jsonArray.put(getJSONDescription(connector));
         }
         return jsonArray;
@@ -162,10 +161,10 @@ public class JSONUtils {
     public static @NotNull JSONObject getJSONDescription(@NotNull IWorkflowConnector connector) {
         IOFormatConstraint formatConstraint = getIOFormatConstraint(connector);
         return new JSONObject()
-                .put("identifier", connector.getIdentifier())
+                .put("identifier", connector.getIdentifier().getGlobalIdentifier())
                 .put("minOccurs", getMinOccurs(connector))
                 .put("maxOccurs", getMaxOccurs(connector))
-                .put("title", connector.getTitle())
+                .put("title", connector.getIdentifier().getLocalIdentifier())
                 .put("description", connector.getDescription())
                 .put("defaultFormat", formatConstraint != null ? getJSONDescription(formatConstraint.getDefaultFormat()) : "undefined")
                 .put("supportedFormats", formatConstraint != null ? getJSONDescription(formatConstraint.getSupportedFormats()) : "undefined");

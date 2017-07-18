@@ -1,13 +1,18 @@
 package de.tudresden.geoinfo.fusion.operation;
 
 import de.tudresden.geoinfo.fusion.data.IData;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public interface IWorkflowConnector extends IResource, IWorkflowElement {
+public interface IWorkflowConnector extends IWorkflowElement {
+
+    /**
+     * get description for this connector
+     * @return connector description
+     */
+    @Nullable String getDescription();
 
     /**
      * get associated workflow entity

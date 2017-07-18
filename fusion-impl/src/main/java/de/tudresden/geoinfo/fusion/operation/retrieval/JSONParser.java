@@ -1,13 +1,11 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.feature.geotools.GTIndexedFeatureCollection;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import org.geotools.feature.FeatureCollection;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.geojson.feature.FeatureJSON;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,8 +22,8 @@ public class JSONParser extends GTFeatureParser {
     /**
      * constructor
      */
-    public JSONParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public JSONParser() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
@@ -80,24 +78,12 @@ public class JSONParser extends GTFeatureParser {
      */
     private GTFeatureCollection parseJSON(URL resourceURL, InputStream stream, boolean withIndex) throws IOException {
         FeatureJSON io = new FeatureJSON();
-        FeatureCollection collection = io.readFeatureCollection(stream);
-        IIdentifier identifier = new Identifier(resourceURL.toString());
+        SimpleFeatureCollection collection = (SimpleFeatureCollection) io.readFeatureCollection(stream);
+        IIdentifier identifier = new ResourceIdentifier(resourceURL.toString());
         if (withIndex)
             return new GTIndexedFeatureCollection(identifier, GTFeatureCollection.getGTCollection(identifier, collection), null);
         else
             return new GTFeatureCollection(identifier, collection, null);
-    }
-
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
     }
 
     /**
@@ -108,7 +94,7 @@ public class JSONParser extends GTFeatureParser {
      * @return feature collection from json
      */
     public static GTFeatureCollection readJSON(URL url, boolean index) throws IOException {
-        return new JSONParser(null).getFeatures(url, index);
+        return new JSONParser().getFeatures(url, index);
     }
 
 }

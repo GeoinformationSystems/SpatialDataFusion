@@ -20,7 +20,6 @@ public class BoundingBoxDistanceTest extends AbstractTest {
     private final static String IN_RANGE = "IN_RANGE";
     private final static String IN_THRESHOLD = "IN_THRESHOLD";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -41,7 +40,7 @@ public class BoundingBoxDistanceTest extends AbstractTest {
 
     public void calculateDistance(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
 
-        AbstractOperation operation = new BoundingBoxOverlap(null);
+        AbstractOperation operation = new BoundingBoxOverlap();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

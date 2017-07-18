@@ -40,7 +40,7 @@ public class AngleDifferenceTest extends AbstractTest {
 
     private void calculateDifference(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
 
-        AbstractOperation operation = new AngleDifference(null);
+        AbstractOperation operation = new AngleDifference();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

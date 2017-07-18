@@ -1,12 +1,11 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval.ows;
 
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.BindingConstraint;
 import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -21,15 +20,15 @@ import java.net.HttpURLConnection;
 
 public abstract class OWSXMLParser extends AbstractOperation {
 
-    private final static String IN_RESOURCE_TITLE = "IN_RESOURCE";
+    private final static String IN_RESOURCE_CONNECTOR = "IN_RESOURCE";
     private final static String IN_RESOURCE_DESCRIPTION = "Link to OWS XML document";
 
     /**
      * constructor
      *
      */
-    public OWSXMLParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public OWSXMLParser(@NotNull String localIdentifier, String description) {
+        super(localIdentifier, description);
     }
 
     public Document getDocument() throws SAXException, IOException, ParserConfigurationException {
@@ -46,7 +45,7 @@ public abstract class OWSXMLParser extends AbstractOperation {
     }
 
     protected URLLiteral getResourceURI() {
-        return ((URLLiteral) getInputConnector(IN_RESOURCE_TITLE).getData());
+        return ((URLLiteral) getInputConnector(IN_RESOURCE_CONNECTOR).getData());
     }
 
     private Document parseDocumentFromHTTP(URLLiteral uriLiteral) throws IOException, SAXException, ParserConfigurationException {
@@ -77,7 +76,7 @@ public abstract class OWSXMLParser extends AbstractOperation {
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(IN_RESOURCE_CONNECTOR, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},

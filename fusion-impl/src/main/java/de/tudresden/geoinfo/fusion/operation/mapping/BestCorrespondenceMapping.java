@@ -6,7 +6,7 @@
 //import de.tudresden.gis.fusion.data.feature.IFeature;
 //import de.tudresden.gis.fusion.data.literal.BooleanLiteral;
 //import de.tudresden.gis.fusion.data.rdf.RDFVocabulary;
-//import de.tudresden.gis.fusion.data.relation.BinaryFeatureRelationCollection;
+//import de.tudresden.gis.fusion.data.relation.BinaryRelationCollection;
 //import de.tudresden.gis.fusion.data.relation.IFeatureRelation;
 //import de.tudresden.gis.fusion.data.relation.RelationMeasurement;
 //import de.tudresden.gis.fusion.operation.AOperationInstance;
@@ -35,13 +35,13 @@
 //			"best correspondence",
 //			"relation with best correspondence",
 //			BooleanLiteral.maxRange(),
-//			RDFVocabulary.UOM_UNDEFINED.getResource());
+//			RDFVocabulary.UOM_UNDEFINED.getIdentifier());
 //
 //	@Override
 //	public void execute() throws ProcessException {
 //
 //		//get input
-//		BinaryFeatureRelationCollection relations = (BinaryFeatureRelationCollection) getInputConnector(IN_RELATIONS);
+//		BinaryRelationCollection relations = (BinaryRelationCollection) getInputConnector(IN_RELATIONS);
 //		bDropRelations = ((BooleanLiteral) getInputConnector(IN_DROP_RELATIONS)).resolve();
 //
 //		//add best correspondence relations
@@ -55,9 +55,9 @@
 //		setOutput(OUT_RELATIONS, relations);
 //	}
 //
-//	private BinaryFeatureRelationCollection filterRelations(BinaryFeatureRelationCollection relations) {
+//	private BinaryRelationCollection filterRelations(BinaryRelationCollection relations) {
 //
-//		BinaryFeatureRelationCollection nRelations = new BinaryFeatureRelationCollection();
+//		BinaryRelationCollection nRelations = new BinaryRelationCollection();
 //		for(IFeatureRelation relation : relations){
 //			nRelations.add(relation);
 //		}
@@ -69,7 +69,7 @@
 //	 * adds best correspondences
 //	 * @param relations input relations
 //	 */
-//	private void addBestCorrespondences(BinaryFeatureRelationCollection relations) {
+//	private void addBestCorrespondences(BinaryRelationCollection relations) {
 //
 //		//get unique reference feature ids
 //		Collection<IFeature> sourceColl = relations.getSourceFeatures();
@@ -102,7 +102,7 @@
 //		Collection<IFeatureRelation> maxMeasurements = new HashSet<IFeatureRelation>();
 //		int max = 0;
 //		for(IFeatureRelation relation : relations){
-//			//add relation, if number of measurements equals current max
+//			//add relation, if number of measurements globallyEquals current max
 //			if(relation.getRelationMeasurements().size() == max)
 //				maxMeasurements.add(relation);
 //			//replace relation, if number of measurements is higher than current max
@@ -142,8 +142,8 @@
 //	 */
 //	private void addBestCorrespondence(IFeatureRelation relation) {
 //		relation.addMeasurement(new RelationMeasurement(
-//				RDFVocabulary.FEATURE_REPRESENTATION.getResource(),
-//				RDFVocabulary.FEATURE_REPRESENTATION.getResource(),
+//				RDFVocabulary.FEATURE_REPRESENTATION.getIdentifier(),
+//				RDFVocabulary.FEATURE_REPRESENTATION.getIdentifier(),
 //				new BooleanLiteral(true),
 //				measurementDescription));
 //	}
@@ -176,7 +176,7 @@
 //			inputDescriptions.add(new InputDescription(IN_RELATIONS, IN_RELATIONS, "Input relations with measurements)",
 //					new IRuntimeConstraint[]{
 //							ContraintFactory.getMandatoryConstraint(IN_RELATIONS),
-//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryFeatureRelationCollection.class})
+//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryRelationCollection.class})
 //					}));
 //			inputDescriptions.add(new InputDescription(IN_DROP_RELATIONS, IN_DROP_RELATIONS, "If true, relations that are not best correspondences are dropped",
 //					new IRuntimeConstraint[]{
@@ -195,7 +195,7 @@
 //					OUT_RELATIONS, OUT_RELATIONS, "Output relations with correspondence mapping",
 //					new IRuntimeConstraint[]{
 //							ContraintFactory.getMandatoryConstraint(OUT_RELATIONS),
-//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryFeatureRelationCollection.class})
+//							ContraintFactory.getBindingConstraint(new Class<?>[]{BinaryRelationCollection.class})
 //					}));
 //		}
 //		return outputDescriptions;

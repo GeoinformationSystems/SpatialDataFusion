@@ -44,6 +44,19 @@ public class KVPRequestBuilder {
     }
 
     /**
+     * get OWS request parameter
+     *
+     * @param key parameter key
+     * @return OWS request parameter for key
+     */
+    public @NotNull String getMandatoryParameter(@NotNull String key) {
+        String parameter = this.parameters.get(key.toLowerCase());
+        if(parameter == null)
+            throw new IllegalArgumentException("Mandatory constraint violation for key " + key);
+        return parameter;
+    }
+
+    /**
      * set request parameter
      *
      * @param key   parameter key

@@ -1,8 +1,8 @@
 package de.tudresden.geoinfo.fusion.data.feature;
 
-import de.tudresden.geoinfo.fusion.data.Data;
+import de.tudresden.geoinfo.fusion.data.DataSubject;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +12,7 @@ import java.util.HashSet;
 /**
  * feature entity implementation
  */
-public abstract class AbstractFeatureEntity extends Data implements IFeatureEntity {
+public abstract class AbstractFeatureEntity<T> extends DataSubject<T> implements IFeatureEntity {
 
     private IFeatureConcept concept;
     private Collection<IFeatureRepresentation> representations;
@@ -20,10 +20,10 @@ public abstract class AbstractFeatureEntity extends Data implements IFeatureEnti
     /**
      * constructor
      *
-     * @param identifier entity identifier
+     * @param identifier identifier
      * @param entity     entity object
      */
-    public AbstractFeatureEntity(@NotNull IIdentifier identifier, @NotNull Object entity, @Nullable IMetadata metadata) {
+    public AbstractFeatureEntity(@NotNull IIdentifier identifier, @NotNull T entity, @Nullable IMetadata metadata) {
         super(identifier, entity, metadata);
     }
 

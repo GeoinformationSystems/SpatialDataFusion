@@ -29,7 +29,7 @@ public class WPSProxyTest extends AbstractTest {
 
     private void executeProcess(URLLiteral data, DecimalLiteral width) {
 
-        WPSProxy operation = new WPSProxy(null, new URLLiteral(WPS_ROOT));
+        WPSProxy operation = new WPSProxy(new URLLiteral(WPS_ROOT));
         operation.setProcessId(WPS_PROCESS);
 
         Map<String,IData> inputs = new HashMap<>();

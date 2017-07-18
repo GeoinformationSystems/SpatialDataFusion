@@ -7,7 +7,6 @@ import de.tudresden.geoinfo.fusion.data.ows.WMSCapabilities;
 import de.tudresden.geoinfo.fusion.data.ows.WPSCapabilities;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import de.tudresden.geoinfo.fusion.operation.retrieval.OSMXMLParser;
 import org.junit.Test;
 
 import java.net.MalformedURLException;
@@ -19,7 +18,6 @@ public class OWSCapabilitiesParserTest extends AbstractTest {
     private final static String IN_RESOURCE = "IN_RESOURCE";
 
     private final static String OUT_CAPABILITIES = "OUT_CAPABILITIES";
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
 
     @Test
     public void readWMSCapabilities() throws MalformedURLException {
@@ -38,7 +36,7 @@ public class OWSCapabilitiesParserTest extends AbstractTest {
 
     private void readOWSCapabilities(URLLiteral resource, Class<? extends IData> type) {
 
-        AbstractOperation operation = new OSMXMLParser(null);
+        AbstractOperation operation = new OWSCapabilitiesParser();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_RESOURCE, resource);

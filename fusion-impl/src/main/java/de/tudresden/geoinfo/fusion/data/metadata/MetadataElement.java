@@ -1,7 +1,7 @@
 package de.tudresden.geoinfo.fusion.data.metadata;
 
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
 import de.tudresden.geoinfo.fusion.data.IMetadataElement;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,17 +9,22 @@ import org.jetbrains.annotations.NotNull;
  */
 public class MetadataElement implements IMetadataElement {
 
-    private IResource md_resource;
+    private IIdentifier md_identifier;
     private Object md_object;
 
-    public MetadataElement(IResource md_resource, Object md_object) {
-        this.md_resource = md_resource;
+    /**
+     * constructor
+     * @param md_identifier metadata element identifier
+     * @param md_object metadata object
+     */
+    public MetadataElement(IIdentifier md_identifier, Object md_object) {
+        this.md_identifier = md_identifier;
         this.md_object = md_object;
     }
 
     @Override
-    public @NotNull IResource getResource() {
-        return md_resource;
+    public @NotNull IIdentifier getIdentifier() {
+        return md_identifier;
     }
 
     @Override

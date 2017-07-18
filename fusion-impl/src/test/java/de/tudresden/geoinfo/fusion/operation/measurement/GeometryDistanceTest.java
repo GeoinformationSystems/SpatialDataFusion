@@ -20,7 +20,6 @@ public class GeometryDistanceTest extends AbstractTest {
     private final static String IN_RANGE = "IN_RANGE";
     private final static String IN_THRESHOLD = "IN_THRESHOLD";
 
-    private final static String OUT_RUNTIME = "OUT_RUNTIME";
     private final static String OUT_MEASUREMENTS = "OUT_MEASUREMENTS";
 
     @Test
@@ -28,12 +27,12 @@ public class GeometryDistanceTest extends AbstractTest {
         calculateDistance(
                 ShapefileParser.readShapefile(new File("src/test/resources/lines1.shp").toURI().toURL(), true),
                 ShapefileParser.readShapefile(new File("src/test/resources/lines2.shp").toURI().toURL(), true),
-                new DecimalLiteral(50));
+                new DecimalLiteral(0.0005));
     }
 
     public void calculateDistance(GTFeatureCollection domain, GTFeatureCollection range, DecimalLiteral threshold) {
 
-        AbstractOperation operation = new DamerauLevenshteinDistance(null);
+        AbstractOperation operation = new GeometryDistance();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

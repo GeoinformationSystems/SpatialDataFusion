@@ -1,6 +1,6 @@
 package de.tudresden.geoinfo.fusion.data.relation;
 
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -8,7 +8,7 @@ import java.util.Collection;
 /**
  * Relation type
  */
-public interface IRelationType extends IResource {
+public interface IRelationType extends IRDFProperty {
 
     /**
      * get roles participating in this relation

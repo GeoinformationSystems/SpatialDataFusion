@@ -5,7 +5,6 @@ import de.tudresden.geoinfo.fusion.data.feature.geotools.GTFeatureCollection;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.AbstractTest;
-import de.tudresden.geoinfo.fusion.operation.mapping.TopologyRelation;
 import org.junit.Test;
 
 import java.io.File;
@@ -51,7 +50,7 @@ public class CRSReprojectTest extends AbstractTest {
 
     private void reproject(GTFeatureCollection domain, GTFeatureCollection range, URLLiteral crsURI) {
 
-        AbstractOperation operation = new TopologyRelation(null);
+        AbstractOperation operation = new CRSReproject();
 
         Map<String,IData> inputs = new HashMap<>();
         inputs.put(IN_DOMAIN, domain);

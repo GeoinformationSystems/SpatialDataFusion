@@ -9,6 +9,12 @@ import org.jetbrains.annotations.Nullable;
 public interface IData {
 
     /**
+     * get identifier for this data object
+     * @return data identifier
+     */
+    @NotNull IIdentifier getIdentifier();
+
+    /**
      * resolve data object or value
      *
      * @return Java object represented by this resource

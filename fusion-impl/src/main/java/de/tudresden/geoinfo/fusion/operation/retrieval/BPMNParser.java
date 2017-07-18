@@ -1,8 +1,8 @@
 package de.tudresden.geoinfo.fusion.operation.retrieval;
 
-import de.tudresden.geoinfo.fusion.data.Identifier;
+import de.tudresden.geoinfo.fusion.data.IIdentifier;
+import de.tudresden.geoinfo.fusion.data.ResourceIdentifier;
 import de.tudresden.geoinfo.fusion.data.literal.URLLiteral;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
 import de.tudresden.geoinfo.fusion.operation.AbstractOperation;
 import de.tudresden.geoinfo.fusion.operation.IInputConnector;
 import de.tudresden.geoinfo.fusion.operation.IRuntimeConstraint;
@@ -11,8 +11,6 @@ import de.tudresden.geoinfo.fusion.operation.constraint.MandatoryDataConstraint;
 import de.tudresden.geoinfo.fusion.operation.workflow.CamundaBPMNModel;
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -40,8 +38,8 @@ public class BPMNParser extends AbstractOperation {
     /**
      * constructor
      */
-    public BPMNParser(@Nullable IIdentifier identifier) {
-        super(identifier);
+    public BPMNParser() {
+        super(PROCESS_TITLE, PROCESS_DESCRIPTION);
     }
 
     @Override
@@ -57,7 +55,7 @@ public class BPMNParser extends AbstractOperation {
             throw new RuntimeException("Could not parse BPMN source", e);
         }
         //set output connector
-        connectOutput(OUT_BPMN_TITLE, model);
+        setOutput(OUT_BPMN_TITLE, model);
     }
 
     /**
@@ -119,14 +117,14 @@ public class BPMNParser extends AbstractOperation {
      * @throws SAXException
      */
     private CamundaBPMNModel parseBPMN(URL resourceURL, InputStream inputStream) throws ParserConfigurationException, IOException, SAXException {
-        IIdentifier identifier = new Identifier(resourceURL.toString());
+        IIdentifier identifier = new ResourceIdentifier(resourceURL.toString());
         BpmnModelInstance modelInstance = Bpmn.readModelFromStream(inputStream);
         return new CamundaBPMNModel(identifier, modelInstance);
     }
 
     @Override
     public void initializeInputConnectors() {
-        addInputConnector(null, IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
+        addInputConnector(IN_RESOURCE_TITLE, IN_RESOURCE_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(URLLiteral.class),
                         new MandatoryDataConstraint()},
@@ -136,22 +134,11 @@ public class BPMNParser extends AbstractOperation {
 
     @Override
     public void initializeOutputConnectors() {
-        addOutputConnector(null, OUT_BPMN_TITLE, OUT_BPMN_DESCRIPTION,
+        addOutputConnector(OUT_BPMN_TITLE, OUT_BPMN_DESCRIPTION,
                 new IRuntimeConstraint[]{
                         new BindingConstraint(CamundaBPMNModel.class),
                         new MandatoryDataConstraint()},
                 null);
     }
 
-    @NotNull
-    @Override
-    public String getTitle() {
-        return PROCESS_TITLE;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return PROCESS_DESCRIPTION;
-    }
 }

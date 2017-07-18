@@ -1,11 +1,8 @@
 package de.tudresden.geoinfo.fusion.data.literal;
 
-import de.tudresden.geoinfo.fusion.data.IMeasurementRange;
-import de.tudresden.geoinfo.fusion.data.IMetadata;
-import de.tudresden.geoinfo.fusion.data.Measurement;
-import de.tudresden.geoinfo.fusion.data.MeasurementRange;
-import de.tudresden.geoinfo.fusion.data.rdf.IIdentifier;
-import de.tudresden.geoinfo.fusion.data.rdf.IResource;
+import de.tudresden.geoinfo.fusion.data.*;
+import de.tudresden.geoinfo.fusion.data.metadata.MeasurementRange;
+import de.tudresden.geoinfo.fusion.data.rdf.IRDFProperty;
 import de.tudresden.geoinfo.fusion.data.rdf.vocabularies.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,27 +13,17 @@ import java.util.TreeSet;
 /**
  * Decimal literal implementation
  */
-public class DecimalLiteral extends Measurement<Double> {
+public class DecimalLiteral extends LiteralData<Double> {
 
-    private static IResource TYPE = Objects.DECIMAL.getResource();
+    public final static IRDFProperty TYPE = Objects.DECIMAL.getResource();
 
     /**
-     * @param identifier literal identifier
+     * @param identifier identifier
      * @param value      literal value
      * @param metadata   literal metadata
      */
-    public DecimalLiteral(@Nullable IIdentifier identifier, double value, @Nullable IMetadata metadata, @Nullable IResource measurementOperation) {
-        super(identifier, value, metadata, TYPE, measurementOperation);
-    }
-
-    /**
-     * constructor
-     *
-     * @param value                literal value
-     * @param measurementOperation associated measurement operation
-     */
-    public DecimalLiteral(double value, @Nullable IResource measurementOperation) {
-        this(null, value, null, measurementOperation);
+    public DecimalLiteral(@NotNull IIdentifier identifier, double value, @Nullable IMetadata metadata) {
+        super(identifier, value, metadata, TYPE);
     }
 
     /**
@@ -45,7 +32,7 @@ public class DecimalLiteral extends Measurement<Double> {
      * @param value literal value
      */
     public DecimalLiteral(double value) {
-        this(value, null);
+        this(new ResourceIdentifier(), value, null);
     }
 
     /**
@@ -81,10 +68,8 @@ public class DecimalLiteral extends Measurement<Double> {
         return new MeasurementRange<>(range, true);
     }
 
-    @NotNull
     @Override
-    public IResource getLiteralType() {
-        return TYPE;
+    public @Nullable String getLanguage() {
+        return null;
     }
-
 }
